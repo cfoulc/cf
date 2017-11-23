@@ -19,6 +19,11 @@ struct STEPSWidget : ModuleWidget {
 	STEPSWidget();
 };
 
+struct trSEQWidget : ModuleWidget {
+	trSEQWidget();
+Menu *createContextMenu() override;
+};
+
 struct DAVEWidget : ModuleWidget {
 	DAVEWidget();
 };
