@@ -7,6 +7,8 @@ struct trSEQ : Module {
 		CLOCK_PARAM,
 		RUN_PARAM,
 		RESET_PARAM,
+		NOTESIN_PARAM,
+		CLEAR_PARAM,
 		STEPS_PARAM,
 		GATE_PARAM = STEPS_PARAM + 16,
 		NUM_PARAMS = GATE_PARAM + 16
@@ -15,6 +17,8 @@ struct trSEQ : Module {
 		CLOCK_INPUT,
 		EXT_CLOCK_INPUT,
 		RESET_INPUT,
+		NOTESIN_INPUT,
+		CLEAR_INPUT,
 		STEPS_INPUT,
 		GATE_INPUT,
 		NUM_INPUTS = GATE_INPUT+16
@@ -37,6 +41,7 @@ struct trSEQ : Module {
 	SchmittTrigger runningTrigger;
 	SchmittTrigger resetTrigger;
 	SchmittTrigger gateTriggers[32];
+
 	float phase = 0.0;
 	int index = 0;
 	bool gateState[16] = {};
@@ -152,7 +157,13 @@ void trSEQ::step() {
 	if (nextStep) {
 		// Advance step
 		int numSteps = clampi(roundf(params[STEPS_PARAM].value + inputs[STEPS_INPUT].value), 1, 16);
+if (!inputs[NOTESIN_INPUT].active) inputs[NOTESIN_INPUT].value = 0;
+if (!inputs[CLEAR_INPUT].active) inputs[CLEAR_INPUT].value = 0;
+if (params[NOTESIN_PARAM].value or inputs[NOTESIN_INPUT].value>0) gateState[index] = true;
+if (params[CLEAR_PARAM].value or inputs[CLEAR_INPUT].value>0) gateState[index] = false;
+
 		index += 1;
+		
 		if (index >= numSteps) {
 			index = 0;
 		}
@@ -227,14 +238,21 @@ trSEQWidget::trSEQWidget() {
 	addChild(createLight<MediumLight<BlueLight>>(Vec(103.4, 64.4), module, trSEQ::RESET_LIGHT));
 	addParam(createParam<RoundSmallBlackSnapKnob>(Vec(132, 56), module, trSEQ::STEPS_PARAM, 1.0, 16.0, 16.0));
 	addChild(createLight<MediumLight<BlueLight>>(Vec(289.4, 64.4), module, trSEQ::GATES_LIGHT));
-
-
+	
 	static const float portX[8] = {20, 58, 96, 135, 173, 212, 250, 289};
+
+
+	addParam(createParam<PadButton>(Vec(portX[5]-26, 56), module, trSEQ::NOTESIN_PARAM, 0.0, 1.0, 0.0));
+	addParam(createParam<PadButton>(Vec(portX[6]-26, 56), module, trSEQ::CLEAR_PARAM, 0.0, 1.0, 0.0));
+	addInput(createInput<PJ301MPort>(Vec(portX[5]-24, 98), module, trSEQ::NOTESIN_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(portX[6]-24, 98), module, trSEQ::CLEAR_INPUT));
+
+
 	addInput(createInput<PJ301MPort>(Vec(portX[0]-1, 98), module, trSEQ::CLOCK_INPUT));
 	addInput(createInput<PJ301MPort>(Vec(portX[1]-1, 98), module, trSEQ::EXT_CLOCK_INPUT));
 	addInput(createInput<PJ301MPort>(Vec(portX[2]-1, 98), module, trSEQ::RESET_INPUT));
 	addInput(createInput<PJ301MPort>(Vec(portX[3]-1, 98), module, trSEQ::STEPS_INPUT));
-	addOutput(createOutput<PJ301MPort>(Vec(portX[4]-1+110, 98), module, trSEQ::GATES_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(portX[7]-6.5, 98), module, trSEQ::GATES_OUTPUT));
 
 
 	for (int i = 0; i < 16; i++) {

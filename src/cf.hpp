@@ -27,3 +27,12 @@ Menu *createContextMenu() override;
 struct DAVEWidget : ModuleWidget {
 	DAVEWidget();
 };
+
+struct PadButton : SVGSwitch, MomentarySwitch {
+	PadButton() {
+		addFrame(SVG::load(assetPlugin(plugin, "res/PadButton.svg")));
+		addFrame(SVG::load(assetPlugin(plugin, "res/PadButtonDown.svg")));
+		sw->wrap();
+		box.size = sw->box.size;
+	}
+};
