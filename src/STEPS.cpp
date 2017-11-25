@@ -94,7 +94,7 @@ STEPSWidget::STEPSWidget() {
 	{
 		SVGPanel *panel = new SVGPanel();
 		panel->box.size = box.size;
-		panel->setBackground(SVG::load(assetPlugin(plugin, "res/steps.svg")));
+		panel->setBackground(SVG::load(assetPlugin(plugin, "res/STEPS.svg")));
 		addChild(panel);
 	}
 
