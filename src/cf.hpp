@@ -19,6 +19,14 @@ struct STEPSWidget : ModuleWidget {
 	STEPSWidget();
 };
 
+struct PEAKWidget : ModuleWidget {
+	PEAKWidget();
+};
+
+struct FOURWidget : ModuleWidget {
+	FOURWidget();
+};
+
 struct trSEQWidget : ModuleWidget {
 	trSEQWidget();
 Menu *createContextMenu() override;
@@ -27,7 +35,6 @@ Menu *createContextMenu() override;
 struct DAVEWidget : ModuleWidget {
 	DAVEWidget();
 };
-
 struct PadButton : SVGSwitch, MomentarySwitch {
 	PadButton() {
 		addFrame(SVG::load(assetPlugin(plugin, "res/PadButton.svg")));

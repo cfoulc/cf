@@ -38,12 +38,12 @@ if (inputs[LIN1_INPUT].active)
 	}
 }
 
-struct NumberDisplayWidget : TransparentWidget {
+struct NumbeDisplayWidget : TransparentWidget {
 
   int *value;
   std::shared_ptr<Font> font;
 
-  NumberDisplayWidget() {
+  NumbeDisplayWidget() {
     font = Font::load(assetPlugin(plugin, "res/Segment7Standard.ttf"));
   };
 
@@ -112,7 +112,7 @@ STEPSWidget::STEPSWidget() {
 
 	addOutput(createOutput<PJ301MPort>(Vec(54, 321), module, STEPS::OUT1_OUTPUT));
 
-NumberDisplayWidget *display = new NumberDisplayWidget();
+NumbeDisplayWidget *display = new NumbeDisplayWidget();
 	display->box.pos = Vec(20,56);
 	display->box.size = Vec(50, 20);
 	display->value = &module->max_steps;
