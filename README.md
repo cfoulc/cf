@@ -5,7 +5,7 @@ STEPS : variable quantiser
 
 PEAK : Peak limiter
 
-Four : 4 trigged solos/mutes
+FOUR : 4 trigged solos/mutes
 
 trSEQ : tr style 16 steps SEQ with trig input per step
 
