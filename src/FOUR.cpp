@@ -28,6 +28,7 @@ struct FOUR : Module {
 
 bool soloState[4] = {};
 bool muteState[4] = {};
+bool act = false;
 int solo = 0;
 int cligno = 0;
 int shot = 0;
@@ -37,7 +38,7 @@ SchmittTrigger actTrigger;
 SchmittTrigger muteTrigger[8];
 SchmittTrigger soloTrigger[8];
 
-PulseGenerator gatePulse;
+//PulseGenerator gatePulse;
 
 FOUR() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
 	void step() override;
@@ -71,8 +72,10 @@ json_t *toJson() override {
 
 
 void FOUR::step() {
-
 	
+	if (soloedTrigger.process(inputs[SOLOED_INPUT].value)) {solo=5;}
+	if (inputs[SOLOED_INPUT].active!=act) {act=inputs[SOLOED_INPUT].active; solo=0;}
+
 	for (int i = 0; i < 4; i++) {
 		if (soloTrigger[i].process(params[S_PARAM + i].value)+soloTrigger[i+4].process(inputs[TRS_INPUT + i].value))
 			{
@@ -99,10 +102,11 @@ void FOUR::step() {
 		lights[M_LIGHT + i].value = muteState[i];
 	}
 
-	if (soloedTrigger.process(inputs[SOLOED_INPUT].value)) {solo=0;}
-if (solo>0) outputs[SOLOED_OUTPUT].value = 10; else outputs[SOLOED_OUTPUT].value = 0.0;
+	
+	if ((solo>0)&(solo<5)) outputs[SOLOED_OUTPUT].value = 10; else outputs[SOLOED_OUTPUT].value = 0.0;
+
 //	if (soloedTrigger.process(inputs[SOLOED_INPUT].value)) {solo=0;shot=1;} 
-//	if ((solo>0)||(shot>0)) {outputs[SOLOED_OUTPUT].value = 10;shot=0;} else {outputs[SOLOED_OUTPUT].value = 0.0;}
+//	if ((solo>-1)||(shot>0)) {outputs[SOLOED_OUTPUT].value = 10;shot=0;} else {outputs[SOLOED_OUTPUT].value = 0.0;}
 //||
 }
 
@@ -142,6 +146,6 @@ for (int i = 0; i < 4; i++) {
 }
 addInput(createInput<PJ301MPort>(Vec(15, y-20), module, FOUR::SOLOED_INPUT));
 addOutput(createOutput<PJ301MPort>(Vec(95, y-20), module, FOUR::SOLOED_OUTPUT));
-addChild(createLight<MediumLight<BlueLight>>(Vec(70+4.4, y+18.4), module, FOUR::TEST_LIGHT));
+//addChild(createLight<MediumLight<BlueLight>>(Vec(112+4.4, y-25), module, FOUR::TEST_LIGHT));
 	
 }
