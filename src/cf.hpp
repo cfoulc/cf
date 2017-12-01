@@ -35,6 +35,9 @@ Menu *createContextMenu() override;
 struct DAVEWidget : ModuleWidget {
 	DAVEWidget();
 };
+struct CUBEWidget : ModuleWidget {
+	CUBEWidget();
+};
 struct PadButton : SVGSwitch, MomentarySwitch {
 	PadButton() {
 		addFrame(SVG::load(assetPlugin(plugin, "res/PadButton.svg")));
