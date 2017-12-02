@@ -27,7 +27,7 @@ struct FOUR : Module {
 	};
 
 bool soloState[4] = {};
-bool muteState[4] = {};
+bool muteState[8] = {};
 //bool act = false;
 int solo = 0;
 int cligno = 0;
@@ -40,23 +40,28 @@ SchmittTrigger soloTrigger[8];
 
 
 FOUR() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {reset();}
+
 	void step() override;
+
 void reset() override {
 		for (int i = 0; i < 4; i++) {
 			muteState[i] = true;
-			soloState[i] = false;
+			muteState[i+4] = false;
 		}
 		solo = 0;
 		
 		
 	}
-	void randomize() override {
-		for (int i = 0; i < 10; i++) {
+
+void randomize() override {
+		for (int i = 0; i < 8; i++) {
 			muteState[i] = (randomf() < 0.5);
 		}
 	}
+
 json_t *toJson() override {
 		json_t *rootJ = json_object();
+		
 		// states
 		json_t *mutestatesJ = json_array();
 		for (int i = 0; i < 8; i++) {
@@ -65,10 +70,13 @@ json_t *toJson() override {
 			}
 		json_object_set_new(rootJ, "mutestates", mutestatesJ);
 
+		// solo
+		json_object_set_new(rootJ, "solo", json_integer(solo));
 		return rootJ;
 		}
 
-	void fromJson(json_t *rootJ) override {
+void fromJson(json_t *rootJ) override {
+		
 		// states
 		json_t *mutestatesJ = json_object_get(rootJ, "mutestates");
 		if (mutestatesJ) {
@@ -78,7 +86,10 @@ json_t *toJson() override {
 					muteState[i] = json_boolean_value(mutestateJ);
 			}
 		}
-		
+		// solo
+		json_t *soloJ = json_object_get(rootJ, "solo");
+		if (soloJ)
+			solo = json_integer_value(soloJ);
 	
 	}
 
@@ -92,23 +103,25 @@ void FOUR::step() {
 //	if (inputs[SOLOED_INPUT].active!=true) {if (solo==5) solo=0;}
 
 	for (int i = 0; i < 4; i++) {
+	
 		if (soloTrigger[i].process(params[S_PARAM + i].value)+soloTrigger[i+4].process(inputs[TRS_INPUT + i].value))
 			{
-			soloState[i] ^= true;
-			solo = (i+1)*soloState[i];
-			};
+			muteState[i+4] ^= true;
+			solo = (i+1)*muteState[i+4];
+			};		
 		if (solo==i+1)
 		{
 			float in = inputs[IN_INPUT + i].value;
 			outputs[OUT_OUTPUT + i].value = in;
 			
-		} else {soloState[i] = false;lights[S_LIGHT + i].value = 0;outputs[OUT_OUTPUT + i].value = 0.0;}
-		if (soloState[i]==true)
+		} else {muteState[i+4] = false;lights[S_LIGHT + i].value = 0;outputs[OUT_OUTPUT + i].value = 0.0;}
+		if (muteState[i+4]==true)
 		{
 			cligno = cligno + 1;
 			if (cligno ==10000) {lights[S_LIGHT + i].value = !lights[S_LIGHT + i].value;cligno =0;}
 		}		
 	}
+
 	for (int i = 0; i < 4; i++) {
 		if (muteTrigger[i].process(params[M_PARAM + i].value)+muteTrigger[i+4].process(inputs[TRM_INPUT + i].value))
 			muteState[i] ^= true;
@@ -148,7 +161,7 @@ for (int i = 0; i < 4; i++) {
 		addChild(createLight<MediumLight<BlueLight>>(Vec(45+4.4, y+8.4), module, FOUR::S_LIGHT + i));
 
 	addInput(createInput<PJ301MPort>(Vec(46, y+31), module, FOUR::TRM_INPUT + i));
-   		addParam(createParam<LEDButton>(Vec(70, y+4), module, FOUR::M_PARAM + i, 1.0, 0.0, 1.0));
+   		addParam(createParam<LEDButton>(Vec(70, y+4), module, FOUR::M_PARAM + i, 0.0, 1.0, 0.0));
  		addChild(createLight<MediumLight<BlueLight>>(Vec(70+4.4, y+8.4), module, FOUR::M_LIGHT + i));
 
 	addOutput(createOutput<PJ301MPort>(Vec(95, y), module, FOUR::OUT_OUTPUT + i));
