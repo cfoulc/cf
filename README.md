@@ -37,7 +37,7 @@
 
 **PEAK : Peak limiter**
 
-  threshold :   turn it down from 10 V. to 0 V. until it lights up as the limiter acts
+  threshold :    turn it down from 10 V. to 0 V. until it lights up as the limiter acts
   
   make up :     turn it up to adjust gain, lights up when signal gets over 10 V.
   
