@@ -3,7 +3,7 @@
 
 PLAYER : sampler [mod from Bidoo's OUAIve]
   
-  use right click menu to select a .wav or .aif sample (some hi-res or compressed ones won't open)
+  use right click menu to select a .wav or .aif sample (some hi-res or compressed ones won't open)/n
   
   gate :      the sample will be played while the gate is open (i.e. input > 0 V.)
               try retrigger mode (right clic menu) with most seq's
