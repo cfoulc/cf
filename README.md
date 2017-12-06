@@ -7,7 +7,7 @@
   
   gate :      the sample will be played while the gate is open (i.e. input > 0 V.)
   
-                try retrigger mode (right clic menu) with most seq's
+                try retrigger mode (right click menu) with most seq's
               
                 or use an enveloppe or ML gate delay to have a correct gate for your needs
               
