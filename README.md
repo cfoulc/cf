@@ -15,7 +15,7 @@
   
                 (don't forget to "open" the attenuverter)
               
-  speed :    same as start but for speed, very low setting will play reverse (from start point)
+  speed :   same as start but for speed, very low setting will play reverse (from start point)
   
   trick :     use a square fast LFO on gate input and a saw LFO on start input to get dirty time stretch
   
