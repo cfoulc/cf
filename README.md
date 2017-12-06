@@ -15,7 +15,7 @@
   
                 (don't forget to "open" the attenuverter)
               
-  speed :     - same as start for speed, very low setting will play reverse (from start point)
+  speed :     same as start for speed, very low setting will play reverse (from start point)
   
   trick :     use a square fast LFO on gate input and a saw LFO on start input to get dirty time stretch
   
@@ -37,9 +37,9 @@
 
 **PEAK : Peak limiter**
 
-  threshold : turn it down from 10 V. to 0 V. until it lights up as the limiter acts
+  threshold :   turn it down from 10 V. to 0 V. until it lights up as the limiter acts
   
-  make up :   turn it up to adjust gain, lights up when signal gets over 10 V.
+  make up :     turn it up to adjust gain, lights up when signal gets over 10 V.
   
   
   trick :     if input is unplugged, PEAK will output screen's voltage
