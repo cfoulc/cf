@@ -5,7 +5,7 @@ PLAYER : sampler [mod from Bidoo's OUAIve]
   
   use right click menu to select a .wav or .aif sample (some hi-res or compressed ones won't open)
   
-  gate :      the sample will be played while the gate is open (i.e. input > 0 V.)
+  gate :      the sample will be played while the gate is open (i.e. input > 0 V.)
               try retrigger mode (right clic menu) with most seq's
               or use an enveloppe or ML gate delay to have a correct gate for your needs
   start :     use knob to choose start point or attenuverted CV input 
@@ -48,7 +48,7 @@ CUBE : a blank panel turned weird module
             found it quite un-predicable especially when inputs are modulated
             
             Pretty and experimental :)
-
+            
 
 trSEQ : tr style 16 steps SEQ with trig input per step
 
