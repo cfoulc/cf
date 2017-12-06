@@ -102,5 +102,4 @@
 **DAVE : blank panel**
 
 
-[DONATE](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=3CSNFE349G99Q) so i can buy other devs 
-'modules
+[DONATE](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=3CSNFE349G99Q) so i can buy other devs'modules
