@@ -11,7 +11,7 @@
               
                 or use an enveloppe or ML gate delay to have a correct gate for your needs
               
-  start :     use knob to choose start point or attenuverted CV input 
+  start :     use knob to choose start point and/or attenuverted CV input 
   
                 (don't forget to "open" the attenuverter)
               
@@ -51,7 +51,7 @@
 
 **FOUR : 4 trigged solos/mutes**
 
-  each signal "line" can be turned on/off or soloed, manually or triggered thru its own trig input
+  each signal "line" can be turned on/off or soloed, manually and/or triggered thru its own trig input
   
               you can use an external keyboard, pad controller, or third party app to use your computer keyboard
             
@@ -82,7 +82,7 @@
   
   steps :   each step can be turned on/off manually by clicking it or can be automated
   
-              or externally controlled thru its own trig input
+              and/or externally controlled thru its own trig input
             
               you can use an external keyboard, pad controller, or third party app to use your computer keyboard
             
