@@ -5,12 +5,16 @@
   
   use right click menu to select a .wav or .aif sample (some hi-res or compressed ones won't open)
   
-  gate :      - the sample will be played while the gate is open (i.e. input > 0 V.)
+  gate :      the sample will be played while the gate is open (i.e. input > 0 V.)
   
-              - try retrigger mode (right clic menu) with most seq's
-              - or use an enveloppe or ML gate delay to have a correct gate for your needs
-  start :     - use knob to choose start point or attenuverted CV input 
-              - (don't forget to "open" the attenuverter)
+              try retrigger mode (right clic menu) with most seq's
+              
+              or use an enveloppe or ML gate delay to have a correct gate for your needs
+              
+  start :     use knob to choose start point or attenuverted CV input 
+  
+              (don't forget to "open" the attenuverter)
+              
   speed :     - same as start for speed, very low setting will play reverse (from start point)
   
   trick :     use a square fast LFO on gate input and a saw LFO on start input to get dirty time stretch
