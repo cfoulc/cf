@@ -37,7 +37,7 @@
 
 **PEAK : Peak limiter**
 
-  threshold :    turn it down from 10 V. to 0 V. until it lights up as the limiter acts
+  threshold :   turn it down from 10 V. to 0 V. until it lights up as the limiter acts
   
   make up :     turn it up to adjust gain, lights up when signal gets over 10 V.
   
@@ -102,4 +102,5 @@
 **DAVE : blank panel**
 
 
-[DONATE](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=3CSNFE349G99Q)
+[DONATE](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=3CSNFE349G99Q) so i can buy other devs 
+'modules
