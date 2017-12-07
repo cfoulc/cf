@@ -57,7 +57,6 @@
 
 
 
-
 **PEAK : Peak limiter**
 
   threshold :   turn it down from 10 V. to 0 V. until it lights up as the limiter acts
@@ -70,19 +69,7 @@
                 it can also be use as an attenu/amp.
               
   
-
-
-**FOUR : 4 trigged solos/mutes**
-
-  each signal "line" can be turned on/off or soloed, manually and/or triggered thru its own trig input
   
-              you can use an external keyboard, pad controller, or third party app to use your computer keyboard
-            
-              as a midi keyboard, via Core/midi-trigger-to-CV or Core/midi-to-CV
-            
-              or any CV/trigger source/modifier like Audible/Bernouilli's gate for randomness
-            
-            
 
 **CUBE : a blank panel turned weird module**
 
@@ -98,6 +85,18 @@
             
      
      
+
+**FOUR : 4 trigged solos/mutes**
+
+  each signal "line" can be turned on/off or soloed, manually and/or triggered thru its own trig input
+  
+              you can use an external keyboard, pad controller, or third party app to use your computer keyboard
+            
+              as a midi keyboard, via Core/midi-trigger-to-CV or Core/midi-to-CV
+            
+              or any CV/trigger source/modifier like Audible/Bernouilli's gate for randomness
+            
+            
 
 
 **DAVE : blank panel**
