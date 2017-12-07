@@ -20,7 +20,9 @@
             
   clear :   same as "tap in" but for deleting notes
   
-
+![alt text](/screens/trseq1.png)
+![alt text](/screens/trseq2.png)
+![alt text](/screens/trseq3.png)
 
 
 
@@ -35,6 +37,9 @@
   
     allowing for regular slicing of breakbeat loops or anything else
   
+![alt text](/screens/steps1.png)
+![alt text](/screens/steps2.png)
+
 
 
 
@@ -56,6 +61,9 @@
   
   trick :     use a square fast LFO on gate input and a saw LFO on start input to get dirty time stretch
   
+![alt text](/screens/player1.png)
+![alt text](/screens/player2.png)
+
 
 
 
@@ -70,6 +78,9 @@
   
                 it can also be use as an attenu/amp.
               
+![alt text](/screens/peak1.png)
+![alt text](/screens/peak2.png)
+  
   
   
 
@@ -85,7 +96,7 @@
             
               Pretty and experimental :)
             
-     
+![alt text](/screens/cube1.png)
      
 
 **FOUR : 4 trigged solos/mutes**
@@ -98,7 +109,10 @@
             
               or any CV/trigger source/modifier like Audible/Bernouilli's gate for randomness
             
-            
+![alt text](/screens/four1.png)            
+![alt text](/screens/four2.png)  
+
+
 
 
 **DAVE : blank panel**
