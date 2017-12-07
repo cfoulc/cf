@@ -81,7 +81,7 @@
             
   output :  is Z coordinate of one of the points of the cube
   
-              found it quite un-predicable especially when inputs are modulated
+              found it quite unpredictable, especially when inputs are modulated
             
               Pretty and experimental :)
             
