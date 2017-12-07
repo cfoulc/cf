@@ -1,5 +1,40 @@
 ![alt text](/cf.png)
 
+**trSEQ : tr style 16 steps SEQ with trig input per step**
+
+  main functions : cf. Fundamental/SEQ3
+  
+  steps :   each step can be turned on/off manually by clicking it or can be automated
+  
+              and/or externally controlled thru its own trig input
+            
+              you can use an external keyboard, pad controller, or third party app to use your computer keyboard
+            
+              as a midi keyboard, via Core/midi-trigger-to-CV or Core/midi-to-CV
+            
+              or any CV/trigger source/modifier like Audible/Bernouilli's gate for randomness
+            
+  tap in :  input notes by clicking on the pad or sending trigs or sustained gates to the corresponding input
+  
+              (cf. steps)
+            
+  clear :   same as "tap in" but for deleting notes
+  
+
+
+
+**STEPS : variable quantiser**
+
+    originally conceived as a companion for PLAYER,
+  
+    used between a LFO or a SEQ CV out and PLAYER's start input
+  
+    it will quantize 0 to 10 Volts CV to regular steps,
+  
+    allowing for regular slicing of breakbeat loops or anything else
+  
+
+
 
 **PLAYER : sampler [mod from Bidoo's OUAIve]**
   
@@ -20,18 +55,6 @@
   trick :     use a square fast LFO on gate input and a saw LFO on start input to get dirty time stretch
   
 
-
-
-**STEPS : variable quantiser**
-
-    originally conceived as a companion for PLAYER,
-  
-    used between a LFO or a SEQ CV out and PLAYER's start input
-  
-    it will quantize 0 to 10 Volts CV to regular steps,
-  
-    allowing for regular slicing of breakbeat loops or anything else
-  
 
 
 
@@ -75,28 +98,6 @@
             
      
      
-
-**trSEQ : tr style 16 steps SEQ with trig input per step**
-
-  main functions : cf. Fundamental/SEQ3
-  
-  steps :   each step can be turned on/off manually by clicking it or can be automated
-  
-              and/or externally controlled thru its own trig input
-            
-              you can use an external keyboard, pad controller, or third party app to use your computer keyboard
-            
-              as a midi keyboard, via Core/midi-trigger-to-CV or Core/midi-to-CV
-            
-              or any CV/trigger source/modifier like Audible/Bernouilli's gate for randomness
-            
-  tap in :  input notes by clicking on the pad or sending trigs or sustained gates to the corresponding input
-  
-              (cf. steps)
-            
-  clear :   same as "tap in" but for deleting notes
-  
-
 
 
 **DAVE : blank panel**
