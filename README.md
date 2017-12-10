@@ -1,5 +1,6 @@
 ![alt text](/cf.png)
 
+
 **trSEQ : tr style 16 steps SEQ with trig input per step**
 
   main functions : cf. Fundamental/SEQ3
