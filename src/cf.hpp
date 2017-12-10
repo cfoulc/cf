@@ -38,6 +38,15 @@ struct DAVEWidget : ModuleWidget {
 struct CUBEWidget : ModuleWidget {
 	CUBEWidget();
 };
+struct MONOWidget : ModuleWidget {
+	MONOWidget();
+};
+struct STEREOWidget : ModuleWidget {
+	STEREOWidget();
+};
+struct MASTERWidget : ModuleWidget {
+	MASTERWidget();
+};
 struct PadButton : SVGSwitch, MomentarySwitch {
 	PadButton() {
 		addFrame(SVG::load(assetPlugin(plugin, "res/PadButton.svg")));
