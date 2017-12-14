@@ -47,6 +47,16 @@ struct STEREOWidget : ModuleWidget {
 struct MASTERWidget : ModuleWidget {
 	MASTERWidget();
 };
+struct METROWidget : ModuleWidget {
+	METROWidget();
+};
+struct EACHWidget : ModuleWidget {
+	EACHWidget();
+};
+struct PATCHWidget : ModuleWidget {
+	PATCHWidget();
+};
+
 struct PadButton : SVGSwitch, MomentarySwitch {
 	PadButton() {
 		addFrame(SVG::load(assetPlugin(plugin, "res/PadButton.svg")));
