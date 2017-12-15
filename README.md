@@ -137,16 +137,16 @@
   with any number of mono and/or stereo channels, sub groups, etc.
   
   
-  in :        gets your mono or stero signal in
+  in :        *gets your mono or stero signal in
   
-  out :       on MONO, duplicates the signal post gain, post on and solo, 
+  out :       *on MONO, duplicates the signal post gain, post on and solo, 
   
-              for redirection to an FX (reverb, delay, ...) or any other use
+              *for redirection to an FX (reverb, delay, ...) or any other use
               
               
-  gain :      multiplies the in signal by 0 to 2, 1 is at 12 o'clock/reset position
+  gain :      *multiplies the in signal by 0 to 2, 1 is at 12 o'clock/reset position
   
-              beware of your levels, a red light will bright up over 10 V.
+              *beware of your levels, a red light will bright up over 10 V.
               
   gain input : over-rides gain knob and turns 0 to 10 V. input 
   
