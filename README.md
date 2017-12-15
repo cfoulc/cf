@@ -253,7 +253,7 @@
   
                turns 0 to 10 V. to 1 to 12 divs
                
-  trick :      chain EACHs to trig events every mesure, 4 mesures or 16 mesures
+  trick :    chain EACHs to trig events every mesure, 4 mesures or 16 mesures
   
 
   ![alt text](/screens/clock.png)
