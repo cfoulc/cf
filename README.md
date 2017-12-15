@@ -226,7 +226,7 @@
                  
   start :      will output a trig on start or reset
   
-  x 12 :       will output 12 trigs per beat
+  x 12 :      will output 12 trigs per beat
   
 
 
@@ -236,11 +236,11 @@
 
   left circuit will receive and duplicate
   
-               start/reset trigs to its ouputs
+               start/reset trigs to its ouputs
   
   right circuit will receive and duplicate
   
-                trigs stream ('x 12' from METRO) to its output
+               trigs stream ('x 12' from METRO) to its output
   
                and 1 out of DIV. (knob/screen) trig to the middle output
                
