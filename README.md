@@ -193,7 +193,7 @@
               
                 don't forget to link the last to the first.
   
-  
+  ![alt text](/screens/mixer.png)
 
 
 
