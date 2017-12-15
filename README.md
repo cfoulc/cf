@@ -234,11 +234,11 @@
 
 **EACH : clock divider**
 
-  left circuit will receive and duplicate
+  left circuit 'start' will receive and duplicate
   
                start/reset trigs to its ouputs
   
-  right circuit will receive and duplicate
+  right circuit 'x 12' will receive and duplicate
   
                trigs stream ('x 12' from METRO) to its output
   
