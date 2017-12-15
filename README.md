@@ -226,11 +226,16 @@
 
 
 
+
 **EACH : clock divider**
 
-  left circuit will receive and duplicate start/reset trigs to its ouputs
+  left circuit will receive and duplicate
   
-  right circuit will receive and duplicate trigs stream ('x 12' from METRO) to its output
+               start/reset trigs to its ouputs
+  
+  right circuit will receive and duplicate
+  
+               trigs stream ('x 12' from METRO) to its output
   
                and 1 out of DIV. (knob/screen) trig to the middle output
                
