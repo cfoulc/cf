@@ -137,7 +137,7 @@
   with any number of mono and/or stereo channels, sub groups, etc.
   
   
-  in :        gets your mono or stero signal in
+  in :        gets your mono or stero signal in
   
   out :       on MONO, duplicates the signal post gain, post on and solo, 
   
