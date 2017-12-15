@@ -208,11 +208,11 @@
   
                  turns 0 to 10 V. into 0 to 300 bpm
                
-  on :         turns it on/off, starts on first beat (most of the times)
+  on :         turns METRO on/off, starts on first beat (most of the times)
 
-  on input :    turns metro on/off on trig
+  on input :    turns METRO on/off on trig
   
-  reset :      sets metro back to 1st beat without stoping it
+  reset :      sets METRO back to 1st beat without stoping it
   
                  use to reset dividers and seqs on the fly
                
