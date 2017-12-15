@@ -141,33 +141,33 @@
   
   out :       on MONO, duplicates the signal post gain, post on and solo, 
   
-              for redirection to an FX (reverb, delay, ...) or any other use
+               for redirection to an FX (reverb, delay, ...) or any other use
               
               
   gain :      multiplies the in signal by 0 to 2, 1 is at 12 o'clock/reset position
   
-              beware of your levels, a red light will bright up over 10 V.
+               beware of your levels, a red light will bright up over 10 V.
               
   gain input : over-rides gain knob and turns 0 to 10 V. input 
   
-              into 0 to 2 multiplier (1 being 5 V.) 
+               into 0 to 2 multiplier (1 being 5 V.) 
               
-              for automation and/or external control
+               for automation and/or external control
               
               
   on :        switches the signal of this channel on/off
   
   on input :  inverts on state on trig
   
-              for automation and/or external control
+               for automation and/or external control
               
               
               
-  solo :      turns off un-soloed channels in a solo-group, cf. solo-link
+  solo :       turns off un-soloed channels in a solo-group, cf. solo-link
   
   solo input : inverts solo state on trig
   
-              for automation and/or external control
+               for automation and/or external control
               
               
               
@@ -175,22 +175,22 @@
   
   pan input : over-rides pan knob and turns -5 to 5 V. input into left to right (0 being center)
   
-              for automation and/or external control
+               for automation and/or external control
               
               
   
   stereo bus : stereo signal gets in 
   
-              adds gained & pan'ed input signal
+               adds gained & pan'ed input signal
               
-              stereo signal gets out to next channel or master
+               stereo signal gets out to next channel or master
               
               
   S-L :       solo link, make a solo group so that solo'ing a channel or many will turn off others 
   
-              by linking them so they can communicate, 
+               by linking them so they can communicate, 
               
-              don't forget to link the last to the first.
+               don't forget to link the last to the first.
   
   
 
