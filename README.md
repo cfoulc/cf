@@ -182,16 +182,16 @@
   
   stereo bus : stereo signal gets in 
   
-              adds gained & pan'ed input signal
+                adds gained & pan'ed input signal
               
-              stereo signal gets out to next channel or master
+                stereo signal gets out to next channel or master
               
               
   S-L :       solo link, make a solo group so that solo'ing a channel or many will turn off others 
   
-              by linking them so they can communicate, 
+                by linking them so they can communicate, 
               
-              don't forget to link the last to the first.
+                don't forget to link the last to the first.
   
   
 
