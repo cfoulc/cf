@@ -195,9 +195,54 @@
   
   ![alt text](/screens/mixer.png)
 
+**METRO : master clock and metronome
+
+  BPM :        sets the beat per minute tempo
+  
+  BPM input :  over-rides BPM knob
+  
+               turns 0 to 10 V. into 0 to 300 bpm
+               
+  on :         turns it on/off, starts on first beat (most of the times)
+               
+  on input :   turns metro on/off on trig
+  
+  reset :      sets metro back to 1st beat without stoping it
+  
+               use to reset dividers and seqs on the fly
+               
+  mes. light : will light up on 1st beat out of 4
+  
+  beat light : will light up on every beat
+  
+  head speaker : outputs audio metronome
+
+               TOC-toc-toc-toc-TOC-toc-toc-toc-TOC-toc...
+                 
+  start :      will output a trig on start or reset
+  
+  x 12 :       will output 12 trigs per beat
+  
 
 
 
+**EACH : clock divider**
+
+  left circuit will receive and duplicate start/reset trigs to its ouputs
+  
+  right circuit will receive and duplicate trigs stream ('x 12' from METRO) to its output
+  
+               and 1 out of DIV. (knob/screen) trig to the middle output
+               
+               allow sync'ing of seqs
+               
+               3 will give you 1/4 of beat, 4 triolets, 6 half beat and so on
+               
+  DIV. input : over-rides DIV. knob
+  
+               turns 0 to 10 V. to 1 to 12 divs
+
+  ![alt text](/screens/clock.png)
 
 
 **DAVE : blank panel**
