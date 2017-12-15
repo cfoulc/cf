@@ -206,7 +206,7 @@
   
   BPM input :   over-rides BPM knob
   
-               turns 0 to 10 V. into 0 to 300 bpm
+                 turns 0 to 10 V. into 0 to 300 bpm
                
   on :         turns it on/off, starts on first beat (most of the times)
 
@@ -214,7 +214,7 @@
   
   reset :      sets metro back to 1st beat without stoping it
   
-               use to reset dividers and seqs on the fly
+                 use to reset dividers and seqs on the fly
                
   mes. light : will light up on 1st beat out of 4
   
@@ -222,7 +222,7 @@
   
   head speaker : outputs audio metronome
 
-               TOC-toc-toc-toc-TOC-toc-toc-toc-TOC-toc...
+                 TOC-toc-toc-toc-TOC-toc-toc-toc-TOC-toc...
                  
   start :      will output a trig on start or reset
   
@@ -240,7 +240,7 @@
   
   right circuit will receive and duplicate
   
-               trigs stream ('x 12' from METRO) to its output
+                trigs stream ('x 12' from METRO) to its output
   
                and 1 out of DIV. (knob/screen) trig to the middle output
                
