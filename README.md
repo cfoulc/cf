@@ -255,6 +255,17 @@
   ![alt text](/screens/clock.png)
 
 
+
+
+**PATCH : patch bay**
+
+  mainly here to take cables out of the view
+  
+  signals follow the lines between inputs and outputs
+
+
+
+
 **DAVE : blank panel**
 
 
