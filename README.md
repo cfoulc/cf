@@ -146,7 +146,7 @@
               
   gain :      multiplies the in signal by 0 to 2, 1 is at 12 o'clock/reset position
   
-              beware of your levels, a red light will bright up over 10 V.
+              beware of your levels, a red light will bright up over 10 V.
               
   gain input : over-rides gain knob and turns 0 to 10 V. input 
   
@@ -179,11 +179,11 @@
               
               
   
-  stereo bus : stereo signal gets in, 
+  stereo bus : stereo signal gets in 
   
-              adds gained & pan'ed input signal,
+              adds gained & pan'ed input signal
               
-              stereo signal gets out to next channel or master
+              stereo signal gets out to next channel or master
               
               
   S-L :       solo link, make a solo group so that solo'ing a channel or many will turn off others 
