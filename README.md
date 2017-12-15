@@ -194,8 +194,13 @@
                 don't forget to link the last to the first.
   
   ![alt text](/screens/mixer.png)
+  
+  
+  
+  
+  
 
-**METRO : master clock and metronome
+**METRO : master clock and metronome**
 
   BPM :        sets the beat per minute tempo
   
@@ -203,7 +208,7 @@
   
                turns 0 to 10 V. into 0 to 300 bpm
                
-  on :         turns it on/off, starts on first beat (most of the times)
+  on :         turns it on/off, starts on first beat (most of the times)
                
   on input :   turns metro on/off on trig
   
