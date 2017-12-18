@@ -41,6 +41,8 @@ SchmittTrigger onTrigger;
 SchmittTrigger oninTrigger;
 SchmittTrigger rstTrigger;
 bool ON_STATE = false;
+float or_gain ;
+int or_affi ;
 
 	METRO() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {reset();}
 	void step() override;
@@ -69,7 +71,16 @@ void fromJson(json_t *rootJ) override {
 
 
 void METRO::step() {
-	if (!inputs[BPM_INPUT].active) max_METRO = floor(params[BPM_PARAM].value) ; else max_METRO = floor(inputs[BPM_INPUT].value *30) ;
+
+	if (!inputs[BPM_INPUT].active) {
+		max_METRO = floor(params[BPM_PARAM].value);
+		or_affi = 0;
+	} else {
+		max_METRO = round(clampf(inputs[BPM_INPUT].value *30,0,300));
+		or_affi = 1;
+		or_gain = max_METRO/30.0;
+	}
+
 	float bpm = max_METRO ;
 	bool toced = false;
 
@@ -93,10 +104,10 @@ void METRO::step() {
 			}
 
 		if(toced) {
-			beatl = toc % 12u ? 0 : 20000;
-			mesl = toc % 48u ? 0 : 40000;
-			beats = toc % 12u ? 0 : 200;
-			mess = toc % 48u ? 0 : 200;
+			if (toc % 12u ? 0 : 1) beatl = 4000;
+			if (toc % 48u ? 0 : 1) mesl = 5000;
+			if (toc % 12u ? 0 : 1) beats = 200;
+			if (toc % 48u ? 0 : 1) mess = 200;
 			note =5;
 			}
 
@@ -182,6 +193,42 @@ struct NumDisplayWidget : TransparentWidget {
   }
 };
 
+struct MOTORPOTDisplay : TransparentWidget {
+
+	float d;
+	float *gainX ;
+	int *affich;
+
+	MOTORPOTDisplay() {
+		
+	}
+	
+	void draw(NVGcontext *vg) {
+		if (*affich==1) {
+		float xx = d*sin(-(*gainX*0.17+0.15)*M_PI) ;
+		float yy = d*cos((*gainX*0.17+0.15)*M_PI) ;
+
+		
+			nvgBeginPath(vg);
+			nvgCircle(vg, 0,0, d);
+			nvgFillColor(vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			nvgFill(vg);	
+		
+			nvgStrokeWidth(vg,1.2);
+			nvgStrokeColor(vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			{
+				nvgBeginPath(vg);
+				nvgMoveTo(vg, 0,0);
+				nvgLineTo(vg, xx,yy);
+				nvgClosePath(vg);
+			}
+			nvgStroke(vg);
+		}
+
+	}
+};
+
+
 METROWidget::METROWidget() {
 	METRO *module = new METRO();
 	setModule(module);
@@ -201,6 +248,14 @@ METROWidget::METROWidget() {
 
 	addParam(createParam<RoundBlackKnob>(Vec(27, 107), module, METRO::BPM_PARAM, 0.0, 301.0, 120.1));
 	addInput(createInput<PJ301MPort>(Vec(11, 141), module, METRO::BPM_INPUT));
+	{
+		MOTORPOTDisplay *display = new MOTORPOTDisplay();
+		display->box.pos = Vec(46, 126);
+		display->d = 19.1;
+		display->gainX = &module->or_gain;
+		display->affich = &module->or_affi;
+		addChild(display);
+	}
 
      	addParam(createParam<LEDButton>(Vec(38, 167), module, METRO::ON_PARAM, 0.0, 1.0, 0.0));
 	addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 171.4), module, METRO::ON_LIGHT));

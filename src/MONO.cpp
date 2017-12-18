@@ -49,6 +49,10 @@ SchmittTrigger onTrigger;
 SchmittTrigger oninTrigger;
 SchmittTrigger soloTrigger;
 SchmittTrigger soloinTrigger;
+float or_gain ;
+int or_affi ;
+float orp_gain ;
+int orp_affi ;
 
 
 	MONO() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {reset();}
@@ -90,8 +94,8 @@ void MONO::step() {
         SIGNAL = inputs[IN1_INPUT].value ;
 
 	if (!inputs[GAIN_INPUT].active)
-		SIGNAL = SIGNAL * params[GAIN_PARAM].value/5.0 ;
-		else SIGNAL = SIGNAL * inputs[GAIN_INPUT].value/5.0 ;
+		{SIGNAL = SIGNAL * params[GAIN_PARAM].value/5.0 ;or_affi=0;}
+		else {SIGNAL = SIGNAL * clampf(inputs[GAIN_INPUT].value/5.0,0.0,2.0) ; or_affi=1;or_gain=clampf(inputs[GAIN_INPUT].value,0.0,10.0);}
 
 	if (onTrigger.process(params[ON_PARAM].value)+oninTrigger.process(inputs[ONT_INPUT].value))
 			{if (ON_STATE == 0) ON_STATE = 1; else ON_STATE = 0;}
@@ -116,9 +120,11 @@ void MONO::step() {
 	if (!inputs[PAN_INPUT].active) {
 			outputs[LEFT_OUTPUT].value = inputs[LEFT_INPUT].value + SIGNAL*(1-clampf(params[PAN_PARAM].value,0,1));
 			outputs[RIGHT_OUTPUT].value = inputs[RIGHT_INPUT].value + SIGNAL*(1-clampf(-params[PAN_PARAM].value,0,1));
+			orp_affi = 0;
 		} else {
-			outputs[LEFT_OUTPUT].value = inputs[LEFT_INPUT].value + SIGNAL*(1-clampf(inputs[PAN_INPUT].value,0,5)/5);
-			outputs[RIGHT_OUTPUT].value = inputs[RIGHT_INPUT].value + SIGNAL*(1-clampf(-inputs[PAN_INPUT].value,0,5)/5);
+			outputs[LEFT_OUTPUT].value = inputs[LEFT_INPUT].value + SIGNAL*(1-(clampf(inputs[PAN_INPUT].value,5,10)-5)/5);
+			outputs[RIGHT_OUTPUT].value = inputs[RIGHT_INPUT].value + SIGNAL*(1-(clampf(inputs[PAN_INPUT].value,0,5)+5)/5);
+			orp_affi = 1;orp_gain = clampf(inputs[PAN_INPUT].value,0.0,10.0);
 		}
 
 	if (ON_STATE==1) lights[ON_LIGHT].value=true; else lights[ON_LIGHT].value=false;
@@ -134,7 +140,40 @@ void MONO::step() {
 	}
 }
 
+struct MOTORPOTDisplay : TransparentWidget {
 
+	float d;
+	float *gainX ;
+	int *affich;
+
+	MOTORPOTDisplay() {
+		
+	}
+	
+	void draw(NVGcontext *vg) {
+		if (*affich==1) {
+		float xx = d*sin(-(*gainX*0.17+0.15)*M_PI) ;
+		float yy = d*cos((*gainX*0.17+0.15)*M_PI) ;
+
+		
+			nvgBeginPath(vg);
+			nvgCircle(vg, 0,0, d);
+			nvgFillColor(vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			nvgFill(vg);	
+		
+			nvgStrokeWidth(vg,1.2);
+			nvgStrokeColor(vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			{
+				nvgBeginPath(vg);
+				nvgMoveTo(vg, 0,0);
+				nvgLineTo(vg, xx,yy);
+				nvgClosePath(vg);
+			}
+			nvgStroke(vg);
+		}
+
+	}
+};
 
 
 MONOWidget::MONOWidget() {
@@ -157,10 +196,25 @@ MONOWidget::MONOWidget() {
 
 	addParam(createParam<Trimpot>(Vec(38, 127), module, MONO::PAN_PARAM, -1.0, 1.0, 0.0));
 	addInput(createInput<PJ301MPort>(Vec(11, 131), module, MONO::PAN_INPUT));
+	{
+		MOTORPOTDisplay *pdisplay = new MOTORPOTDisplay();
+		pdisplay->box.pos = Vec(47, 136);
+		pdisplay->d = 9.2;
+		pdisplay->gainX = &module->orp_gain;
+		pdisplay->affich = &module->orp_affi;
+		addChild(pdisplay);
+	}
 
     	addParam(createParam<RoundBlackKnob>(Vec(27, 247), module, MONO::GAIN_PARAM, 0.0, 10.0, 5.0));
 	addInput(createInput<PJ301MPort>(Vec(11, 281), module, MONO::GAIN_INPUT));
-
+	{
+		MOTORPOTDisplay *display = new MOTORPOTDisplay();
+		display->box.pos = Vec(46, 266);
+		display->d = 19.1;
+		display->gainX = &module->or_gain;
+		display->affich = &module->or_affi;
+		addChild(display);
+	}
 
    	addParam(createParam<LEDButton>(Vec(38, 167), module, MONO::SOLO_PARAM, 0.0, 1.0, 0.0));
  	addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 171.4), module, MONO::SOLO_LIGHT));

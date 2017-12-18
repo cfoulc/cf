@@ -1,8 +1,6 @@
 
-
-
 #include "cf.hpp"
-
+#include "dsp/digital.hpp"
 
 
 struct CUBE : Module {
@@ -18,24 +16,9 @@ struct CUBE : Module {
 	};
 	enum OutputIds {
 		X_OUTPUT,
-//		Y_OUTPUT,
-//		Z_OUTPUT,
 		NUM_OUTPUTS
 	};
 
-
-	CUBE() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS) {}
-	void step() override;
-
-};
-
-
-void CUBE::step() {
-	//outputs[X_OUTPUT].value = 10;
-}
-
-struct CUBEDisplay : TransparentWidget {
-	CUBE *module;
 	float frameX = 0.0;
 	float frameY = 0.0;
 
@@ -47,102 +30,110 @@ struct CUBEDisplay : TransparentWidget {
 	float y[12] = {};
 	float z[12] = {};
 
-	float d =0.0;
-	float theta=0.0 ;
+	float d = 0.0;
+	float theta= 0.0 ;
+	float gainX = 1.0;
+	float gainY = 1.0;
+	
 
-	int repx= 55;
-	int repy=80;
+	CUBE() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS) {}
+	void step() override;
+
+};
+
+
+
+void CUBE::step() { 
+	gainX = 0.5; gainY = 0.5;
+	if (inputs[X_INPUT].active) gainX=inputs[X_INPUT].value;
+	if (inputs[Y_INPUT].active) gainY=inputs[Y_INPUT].value;
+
+       	for(int i=0; i<12; i++)
+        	{
+			d = sqrt(yy[i]*yy[i] + zz[i]*zz[i]);
+			theta = atan2(yy[i],zz[i])+frameX;
+			x[i] = xx[i]; 
+			y[i] = d * sin(theta); 
+			z[i] = d * cos(theta);
+
+			d = sqrt(x[i]*x[i] + z[i]*z[i]);
+			theta = atan2(x[i],z[i])+frameY;
+			x[i] = d * sin(theta); 
+			y[i] = y[i]; 
+			z[i] = d * cos(theta);
+        	}
+		
+	if (frameX<100) frameX=frameX+gainX/engineGetSampleRate(); else frameX=0;
+	if (frameY<100) frameY=frameY+gainY/engineGetSampleRate(); else frameY=0;
+
+
+	outputs[X_OUTPUT].value=z[0]*5.0;
+}
+
+struct CUBEDisplay : TransparentWidget {
+
+	float *xxxx[12] = {};
+	float *yyyy[12] = {};
 
 	CUBEDisplay() {
 		
 	}
 	
 	void draw(NVGcontext *vg) {
-	float gainX = module->inputs[CUBE::X_INPUT].value;
-	float gainY = module->inputs[CUBE::Y_INPUT].value;
-
-	if (!module->inputs[CUBE::X_INPUT].active) gainX=1.0;
-	if (!module->inputs[CUBE::Y_INPUT].active) gainY=1.0;
-
-         for(int i=0; i<12; i++)
-        {
-	d = sqrt(yy[i]*yy[i] + zz[i]*zz[i]);
-	theta = atan2(yy[i],zz[i])+frameX;
-	x[i] = xx[i]; 
-	y[i] = d * sin(theta); 
-	z[i] = d * cos(theta);
-
-	d = sqrt(x[i]*x[i] + z[i]*z[i]);
-	theta = atan2(x[i],z[i])+frameY;
-	x[i] = d * sin(theta); 
-	y[i] = y[i]; 
-	z[i] = d * cos(theta);
-
-        }
-
 
 		nvgStrokeColor(vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff));
 		{
 			nvgBeginPath(vg);
-			nvgMoveTo(vg, x[0]*20+ repx,y[0]*20+ repy);
-			nvgLineTo(vg, x[1]*20+ repx,y[1]*20+ repy);
-			nvgLineTo(vg, x[2]*20+ repx,y[2]*20+ repy);
-			nvgLineTo(vg, x[3]*20+ repx,y[3]*20+ repy);
+			nvgMoveTo(vg, *xxxx[0]*20,*yyyy[0]*20);
+			nvgLineTo(vg, *xxxx[1]*20,*yyyy[1]*20);
+			nvgLineTo(vg, *xxxx[2]*20,*yyyy[2]*20);
+			nvgLineTo(vg, *xxxx[3]*20,*yyyy[3]*20);
 			nvgClosePath(vg);
 		}
 		nvgStroke(vg);
 
 		{
 			nvgBeginPath(vg);
-			nvgMoveTo(vg, x[4]*20+ repx,y[4]*20+ repy);
-			nvgLineTo(vg, x[5]*20+ repx,y[5]*20+ repy);
-			nvgLineTo(vg, x[6]*20+ repx,y[6]*20+ repy);
-			nvgLineTo(vg, x[7]*20+ repx,y[7]*20+ repy);
+			nvgMoveTo(vg, *xxxx[4]*20,*yyyy[4]*20);
+			nvgLineTo(vg, *xxxx[5]*20,*yyyy[5]*20);
+			nvgLineTo(vg, *xxxx[6]*20,*yyyy[6]*20);
+			nvgLineTo(vg, *xxxx[7]*20,*yyyy[7]*20);
 			nvgClosePath(vg);
 		}
 		nvgStroke(vg);
 
 		{
 			nvgBeginPath(vg);
-			nvgMoveTo(vg, x[0]*20+ repx,y[0]*20+ repy);
-			nvgLineTo(vg, x[4]*20+ repx,y[4]*20+ repy);
+			nvgMoveTo(vg, *xxxx[0]*20,*yyyy[0]*20);
+			nvgLineTo(vg, *xxxx[4]*20,*yyyy[4]*20);
 			nvgClosePath(vg);
 		}
 		nvgStroke(vg);
 
 		{
 			nvgBeginPath(vg);
-			nvgMoveTo(vg, x[1]*20+ repx,y[1]*20+ repy);
-			nvgLineTo(vg, x[5]*20+ repx,y[5]*20+ repy);
+			nvgMoveTo(vg, *xxxx[1]*20,*yyyy[1]*20);
+			nvgLineTo(vg, *xxxx[5]*20,*yyyy[5]*20);
 			nvgClosePath(vg);
 		}
 		nvgStroke(vg);
 
 		{
 			nvgBeginPath(vg);
-			nvgMoveTo(vg, x[2]*20+ repx,y[2]*20+ repy);
-			nvgLineTo(vg, x[6]*20+ repx,y[6]*20+ repy);
+			nvgMoveTo(vg, *xxxx[2]*20,*yyyy[2]*20);
+			nvgLineTo(vg, *xxxx[6]*20,*yyyy[6]*20);
 			nvgClosePath(vg);
 		}
 		nvgStroke(vg);
 
 		{
 			nvgBeginPath(vg);
-			nvgMoveTo(vg, x[3]*20+ repx,y[3]*20+ repy);
-			nvgLineTo(vg, x[7]*20+ repx,y[7]*20+ repy);
+			nvgMoveTo(vg, *xxxx[3]*20,*yyyy[3]*20);
+			nvgLineTo(vg, *xxxx[7]*20,*yyyy[7]*20);
 			nvgClosePath(vg);
 		}
 		nvgStroke(vg);
 
-		
-		frameX=frameX+gainX/50.0;
-		frameY=frameY+gainY/50.0;
-
-		
-
-	module->outputs[CUBE::X_OUTPUT].value=z[0]*5.0;
-//	module->outputs[CUBE::Y_OUTPUT].value=y[2]*5.0;
-//	module->outputs[CUBE::Z_OUTPUT].value=z[2]*5.0;
 	}
 };
 
@@ -166,16 +157,16 @@ CUBEWidget::CUBEWidget() {
 
 	{
 		CUBEDisplay *display = new CUBEDisplay();
-		display->module = module;
-		display->box.pos = Vec(5, 40);
-		display->box.size = Vec(130, 250);
+		display->box.pos = Vec(60, 120);
+		for (int i=0;i<12;i++) {
+			display->xxxx[i] = &module->x[i] ;
+			display->yyyy[i] = &module->y[i] ;	
+		}
 		addChild(display);
 	}
 
 	addInput(createInput<PJ301MPort>(Vec(15, 321), module, CUBE::X_INPUT));
 	addInput(createInput<PJ301MPort>(Vec(47, 321), module, CUBE::Y_INPUT));
-	addOutput(createOutput<PJ301MPort>(Vec(80, 321), module, CUBE::X_OUTPUT));
-	//addOutput(createOutput<PJ301MPort>(Vec(80, 286), module, CUBE::Y_OUTPUT));
-	//addOutput(createOutput<PJ301MPort>(Vec(80, 316), module, CUBE::Z_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(80, 321), module, CUBE::X_OUTPUT));       
 	
 }

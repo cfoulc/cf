@@ -34,6 +34,9 @@ int lum = 0 ;
 int note = 0;
 SchmittTrigger stTrigger;
 SchmittTrigger dzTrigger;
+float or_gain ;
+int or_affi ;
+
 
 	EACH() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
 	void step() override;
@@ -41,7 +44,15 @@ SchmittTrigger dzTrigger;
 
 
 void EACH::step() {
-	if (!inputs[DIV_INPUT].active) max_EACH = floor(params[DIV_PARAM].value) ; else max_EACH = floor(inputs[DIV_INPUT].value * 1.2)+1 ;
+	if (!inputs[DIV_INPUT].active) {
+		max_EACH = floor(params[DIV_PARAM].value);
+		or_affi=0;
+	} else {
+		max_EACH = round(clampf((inputs[DIV_INPUT].value * 1.2)+1,1,12));
+		or_gain = round(clampf(inputs[DIV_INPUT].value,0,10));
+		or_affi=1;
+	}
+
 	if (inputs[START_INPUT].active) {
 		outputs[START_OUTPUT].value = inputs[START_INPUT].value;
 		outputs[RESET_OUTPUT].value = inputs[START_INPUT].value;
@@ -55,7 +66,7 @@ void EACH::step() {
 		if (stepa == max_EACH) {
 			note = 5;
 			stepa = 0; 
-			lum = 1000;
+			lum = 2000;
 			}
 		outputs[DOUZE_OUTPUT].value = inputs[DOUZE_INPUT].value;
 	} 
@@ -111,6 +122,42 @@ struct NuDisplayWidget : TransparentWidget {
   }
 };
 
+struct MOTORPOTDisplay : TransparentWidget {
+
+	float d;
+	float *gainX ;
+	int *affich;
+
+	MOTORPOTDisplay() {
+		
+	}
+	
+	void draw(NVGcontext *vg) {
+		if (*affich==1) {
+		float xx = d*sin(-(*gainX*0.17+0.15)*M_PI) ;
+		float yy = d*cos((*gainX*0.17+0.15)*M_PI) ;
+
+		
+			nvgBeginPath(vg);
+			nvgCircle(vg, 0,0, d);
+			nvgFillColor(vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			nvgFill(vg);	
+		
+			nvgStrokeWidth(vg,1.2);
+			nvgStrokeColor(vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			{
+				nvgBeginPath(vg);
+				nvgMoveTo(vg, 0,0);
+				nvgLineTo(vg, xx,yy);
+				nvgClosePath(vg);
+			}
+			nvgStroke(vg);
+		}
+
+	}
+};
+
+
 EACHWidget::EACHWidget() {
 	EACH *module = new EACH();
 	setModule(module);
@@ -138,6 +185,14 @@ EACHWidget::EACHWidget() {
 
 	addParam(createParam<RoundBlackKnob>(Vec(27, 107), module, EACH::DIV_PARAM, 1.0, 12.1, 3.1));
 	addInput(createInput<PJ301MPort>(Vec(11, 141), module, EACH::DIV_INPUT));
+	{
+		MOTORPOTDisplay *display = new MOTORPOTDisplay();
+		display->box.pos = Vec(46, 126);
+		display->d = 19.1;
+		display->gainX = &module->or_gain;
+		display->affich = &module->or_affi;
+		addChild(display);
+	}
 
      	addParam(createParam<LEDButton>(Vec(38, 197), module, EACH::BEAT_PARAM, 0.0, 1.0, 0.0));
 	addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 201.4), module, EACH::BEAT_LIGHT));
