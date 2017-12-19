@@ -1,3 +1,7 @@
+SLUG = cf
+VERSION = 0.5.10
+
+FLAGS += -D v050
 
 SOURCES = $(wildcard src/*.cpp)
 
