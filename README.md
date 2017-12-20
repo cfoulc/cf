@@ -175,7 +175,7 @@
               
   pan :       attenuates one side of the stereo signal
   
-  pan input : over-rides pan knob and turns -5 to 5 V. input into left to right (0 being center)
+  pan input : over-rides pan knob and turns 0 to 10 V. input into left to right (0 being center)
   
                 for automation and/or external control
               
