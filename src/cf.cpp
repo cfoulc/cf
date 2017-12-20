@@ -9,6 +9,8 @@ void init(rack::Plugin *p) {
 #ifdef VERSION
 	p->version = TOSTRING(VERSION);
 #endif
+	p->website = "https://github.com/cfoulc/cf";
+	p->manual = "https://github.com/cfoulc/cf/blob/master/README.md";
 	p->addModel(createModel<PLAYERWidget>("cf", "PLAYER", "Player", SAMPLER_TAG));
 	p->addModel(createModel<STEPSWidget>("cf", "STEPS", "Steps", UTILITY_TAG));
 	p->addModel(createModel<PEAKWidget>("cf", "PEAK", "Peak", UTILITY_TAG));
