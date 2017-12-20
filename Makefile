@@ -7,8 +7,10 @@ SOURCES = $(wildcard src/*.cpp)
 
 include ../../plugin.mk
 
+.PHONY: dist
 dist: all
-	mkdir -p dist/cf
-	cp LICENSE* dist/cf/
-	cp plugin.* dist/cf/
-	cp -R res dist/cf/
+	mkdir -p dist/$(SLUG)
+	cp LICENSE* dist/$(SLUG)/
+	cp $(TARGET) dist/$(SLUG)/
+	cp -R res dist/$(SLUG)/
+	cd dist && zip -5 -r $(SLUG)-$(VERSION)-$(ARCH).zip $(SLUG)
