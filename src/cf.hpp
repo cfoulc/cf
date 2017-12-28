@@ -65,3 +65,19 @@ struct PadButton : SVGSwitch, MomentarySwitch {
 		box.size = sw->box.size;
 	}
 };
+struct upButton : SVGSwitch, MomentarySwitch {
+	upButton() {
+		addFrame(SVG::load(assetPlugin(plugin, "res/upButton.svg")));
+		addFrame(SVG::load(assetPlugin(plugin, "res/upButtonDown.svg")));
+		sw->wrap();
+		box.size = sw->box.size;
+	}
+};
+struct downButton : SVGSwitch, MomentarySwitch {
+	downButton() {
+		addFrame(SVG::load(assetPlugin(plugin, "res/downButton.svg")));
+		addFrame(SVG::load(assetPlugin(plugin, "res/downButtonDown.svg")));
+		sw->wrap();
+		box.size = sw->box.size;
+	}
+};

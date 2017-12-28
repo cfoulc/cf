@@ -4,6 +4,16 @@
 #include "AudioFile.h"
 #include <vector>
 #include "cmath"
+#include <sys/dir.h>
+#include <dirent.h>
+
+
+#ifndef WIN32
+
+    #include <sys/types.h>
+
+#endif
+
 
 using namespace std;
 
@@ -17,6 +27,8 @@ struct PLAYER : Module {
 		TSTART_PARAM,
 		TSPEED_PARAM,
 		SPD_PARAM,
+		NEXT_PARAM,
+		PREV_PARAM,
 		NUM_PARAMS 
 	};
 	enum InputIds {
@@ -27,6 +39,7 @@ struct PLAYER : Module {
 	};
 	enum OutputIds {
 		OUT_OUTPUT,
+		OUT2_OUTPUT,
 		NUM_OUTPUTS
 	};
 	enum LightIds {
@@ -34,7 +47,7 @@ struct PLAYER : Module {
 	};
 	
 	bool play = false;
-	string lastPath;
+	string lastPath = "";
 	AudioFile<double> audioFile;
 	float samplePos = 0;
     float startPos = 0;
@@ -43,6 +56,8 @@ struct PLAYER : Module {
 	bool fileLoaded = false;
 
 	SchmittTrigger playTrigger;
+	SchmittTrigger nextTrigger;
+	SchmittTrigger prevTrigger;
 
 	PLAYER() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) { }
 
@@ -81,7 +96,7 @@ void PLAYER::loadSample(std::string path) {
 		fileDesc += std::to_string(audioFile.getBitDepth())+ " bits" + " \n";
 		fileDesc += std::to_string(audioFile.getNumSamplesPerChannel())+ " smp" +"\n";
 		fileDesc += std::to_string(audioFile.getLengthInSeconds())+ " s." + "\n";
-		fileDesc += std::to_string(audioFile.getNumChannels())+ " channel" + "\n";
+		fileDesc += std::to_string(audioFile.getNumChannels())+ " channel(s)" + "\n";
 	//	fileDesc += std::to_string(audioFile.isMono())+ "\n";
 	//	fileDesc += std::to_string(audioFile.isStereo())+ "\n";
 	}
@@ -92,7 +107,65 @@ void PLAYER::loadSample(std::string path) {
 
 
 void PLAYER::step() {
- 	
+		
+		if (nextTrigger.process(params[NEXT_PARAM].value))
+			{
+			string newPath;
+			DIR* rep = NULL;
+			struct dirent* dirp = NULL;
+			bool found = false;
+			std::string dir = lastPath.empty() ? assetLocal("") : extractDirectory(lastPath);
+
+			rep = opendir(dir.c_str());
+
+			while ((dirp = readdir(rep)) != NULL) {
+				if (found) {
+						//fileLoaded = false;
+						loadSample(dir+"/" + dirp->d_name); 
+						//if (fileLoaded) {
+							found = false;
+							newPath = dir+"/" + dirp->d_name;
+						//	}
+						
+						}
+				if ((dir+"/" + dirp->d_name)==lastPath) {found=true;}
+				}
+			lastPath = newPath;
+			closedir(rep);
+			params[NEXT_PARAM].value=0;
+
+			} 
+				
+			
+		if (prevTrigger.process(params[PREV_PARAM].value))
+			{
+			string newPath;
+			DIR* rep = NULL;
+			struct dirent* dirp = NULL;
+			bool foundp = false;
+			std::string dir = lastPath.empty() ? assetLocal("") : extractDirectory(lastPath);
+
+			rep = opendir(dir.c_str());
+
+			while ((dirp = readdir(rep)) != NULL) {
+				if ((dir+"/" + dirp->d_name)==lastPath) {foundp=true;}
+				if (foundp) {   
+						
+						loadSample(newPath); 
+						
+						foundp = false;
+						lastPath = newPath;
+						}
+				
+				newPath = dir+"/" + dirp->d_name;
+				}
+			
+			closedir(rep);
+			params[PREV_PARAM].value=0;
+
+			} 
+
+
 	// Play
     bool gated = inputs[GATE_INPUT].value > 0;
     
@@ -109,11 +182,13 @@ void PLAYER::step() {
 	}
     
 	if ((play) && ((floor(samplePos) < audioFile.getNumSamplesPerChannel()) && (floor(samplePos) >= 0))) {
-		if (audioFile.getNumChannels() == 1)
+		if (audioFile.getNumChannels() == 1) {
 			outputs[OUT_OUTPUT].value = 5 * audioFile.samples[0][floor(samplePos)];
-		else if (audioFile.getNumChannels() ==2)
-			outputs[OUT_OUTPUT].value = 5 * (audioFile.samples[0][floor(samplePos)] + audioFile.samples[1][floor(samplePos)]) / 2;
-        
+			outputs[OUT2_OUTPUT].value = 5 * audioFile.samples[0][floor(samplePos)];}
+		else if (audioFile.getNumChannels() ==2) {
+			outputs[OUT_OUTPUT].value = 5 * audioFile.samples[0][floor(samplePos)];
+			outputs[OUT2_OUTPUT].value = 5 * audioFile.samples[1][floor(samplePos)];
+        		}
 		if (inputs[SPD_INPUT].active)
         samplePos = samplePos+1+(params[LSPEED_PARAM].value +inputs[SPD_INPUT].value * params[TSPEED_PARAM].value) /3;
         else {
@@ -123,9 +198,9 @@ void PLAYER::step() {
 	else
 	{ 
 		play = false;
-	    outputs[OUT_OUTPUT].value = 0;
+	    outputs[OUT_OUTPUT].value = 0;outputs[OUT2_OUTPUT].value = 0;
 	}
-       if (gated == false) {play = false; outputs[OUT_OUTPUT].value = 0;}
+       if (gated == false) {play = false; outputs[OUT_OUTPUT].value = 0;outputs[OUT2_OUTPUT].value = 0;}
 }
 
 struct PLAYERDisplay : TransparentWidget {
@@ -244,7 +319,13 @@ PLAYERWidget::PLAYERWidget() {
 	addInput(createInput<PJ301MPort>(Vec(portX0[0], 321), module, PLAYER::GATE_INPUT));
 	addInput(createInput<PJ301MPort>(Vec(portX0[1], 321), module, PLAYER::POS_INPUT));
   	addInput(createInput<PJ301MPort>(Vec(portX0[2], 321), module, PLAYER::SPD_INPUT));
-	addOutput(createOutput<PJ301MPort>(Vec(portX0[3], 321), module, PLAYER::OUT_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(portX0[3], 291), module, PLAYER::OUT_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(portX0[3], 321), module, PLAYER::OUT2_OUTPUT));
+
+
+
+	addParam(createParam<upButton>(Vec(108, 52), module, PLAYER::PREV_PARAM, 0.0, 1.0, 0.0));
+	addParam(createParam<downButton>(Vec(108, 77), module, PLAYER::NEXT_PARAM, 0.0, 1.0, 0.0));
 }
 
 struct PLAYERItem : MenuItem {
