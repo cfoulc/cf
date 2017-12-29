@@ -4,15 +4,15 @@
 #include "AudioFile.h"
 #include <vector>
 #include "cmath"
-#include <sys/dir.h>
+//#include <sys/dir.h>
 #include <dirent.h>
 
 
-#ifndef WIN32
+//#ifndef WIN32
 
-    #include <sys/types.h>
+//    #include <sys/types.h>
 
-#endif
+//#endif
 
 
 using namespace std;
