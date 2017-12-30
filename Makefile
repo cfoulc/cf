@@ -1,5 +1,5 @@
 SLUG = cf
-VERSION = 0.5.10
+VERSION = 0.5.11
 
 FLAGS += -D v050
 
