@@ -35,6 +35,9 @@ struct PLAYER : Module {
 		GATE_INPUT,
 		POS_INPUT,
         SPD_INPUT,
+	PREV_INPUT,
+	NEXT_INPUT,
+		TRIG_INPUT,
 		NUM_INPUTS
 	};
 	enum OutputIds {
@@ -50,14 +53,22 @@ struct PLAYER : Module {
 	string lastPath = "";
 	AudioFile<double> audioFile;
 	float samplePos = 0;
-    float startPos = 0;
+ 	float startPos = 0;
 	vector<double> displayBuff;
 	string fileDesc;
 	bool fileLoaded = false;
 
 	SchmittTrigger playTrigger;
+	SchmittTrigger playGater;
 	SchmittTrigger nextTrigger;
 	SchmittTrigger prevTrigger;
+	SchmittTrigger nextinTrigger;
+	SchmittTrigger previnTrigger;
+	vector <string> fichier;
+
+	int sampnumber = 0;
+	int retard = 0;
+
 
 	PLAYER() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) { }
 
@@ -92,79 +103,65 @@ void PLAYER::loadSample(std::string path) {
 			displayBuff.push_back(audioFile.samples[0][i]);
 		}
 		fileDesc = extractFilename(path)+ "\n";
-		fileDesc += std::to_string(audioFile.getSampleRate())+ " Hz" + "\n";
+		fileDesc += std::to_string(audioFile.getSampleRate())+ " Hz" + " - ";                 //"\n";
 		fileDesc += std::to_string(audioFile.getBitDepth())+ " bits" + " \n";
-		fileDesc += std::to_string(audioFile.getNumSamplesPerChannel())+ " smp" +"\n";
-		fileDesc += std::to_string(audioFile.getLengthInSeconds())+ " s." + "\n";
+	//	fileDesc += std::to_string(audioFile.getNumSamplesPerChannel())+ " smp" +"\n";
+	//	fileDesc += std::to_string(audioFile.getLengthInSeconds())+ " s." + "\n";
 		fileDesc += std::to_string(audioFile.getNumChannels())+ " channel(s)" + "\n";
 	//	fileDesc += std::to_string(audioFile.isMono())+ "\n";
 	//	fileDesc += std::to_string(audioFile.isStereo())+ "\n";
+
+		
+			DIR* rep = NULL;
+			struct dirent* dirp = NULL;
+			std::string dir = path.empty() ? assetLocal("") : extractDirectory(path);
+
+			rep = opendir(dir.c_str());
+			int i = 0;
+			while ((dirp = readdir(rep)) != NULL) {
+				std::string name = dirp->d_name;
+
+				std::size_t found = name.find(".wav",name.length()-5);
+				if (found==std::string::npos) found = name.find(".WAV",name.length()-5);
+				if (found==std::string::npos) found = name.find(".aif",name.length()-5);
+				if (found==std::string::npos) found = name.find(".AIF",name.length()-5);
+				if (found==std::string::npos) found = name.find(".aiff",name.length()-5);
+				if (found==std::string::npos) found = name.find(".AIFF",name.length()-5);
+
+  				if (found!=std::string::npos) {
+					fichier.push_back(name);
+					if ((dir + "/" + name)==path) {sampnumber = i;}
+					i=i+1;
+					}
+				
+				}
+			closedir(rep);
+			lastPath = path;
 	}
 	else {
+		
 		fileLoaded = false;
 	}
 }
 
 
 void PLAYER::step() {
-		
-		if (nextTrigger.process(params[NEXT_PARAM].value))
+	if (fileLoaded) {
+		if (nextTrigger.process(params[NEXT_PARAM].value)+nextinTrigger.process(inputs[NEXT_INPUT].value))
 			{
-			string newPath;
-			DIR* rep = NULL;
-			struct dirent* dirp = NULL;
-			bool found = false;
 			std::string dir = lastPath.empty() ? assetLocal("") : extractDirectory(lastPath);
-
-			rep = opendir(dir.c_str());
-
-			while ((dirp = readdir(rep)) != NULL) {
-				if (found) {
-						//fileLoaded = false;
-						loadSample(dir+"/" + dirp->d_name); 
-						//if (fileLoaded) {
-							found = false;
-							newPath = dir+"/" + dirp->d_name;
-						//	}
-						
-						}
-				if ((dir+"/" + dirp->d_name)==lastPath) {found=true;}
-				}
-			lastPath = newPath;
-			closedir(rep);
-			params[NEXT_PARAM].value=0;
-
-			} 
+			if (sampnumber < int(fichier.size()-1)) sampnumber=sampnumber+1; else sampnumber =0;
+			loadSample(dir + "/" + fichier[sampnumber]);
+			}
 				
 			
-		if (prevTrigger.process(params[PREV_PARAM].value))
-			{
-			string newPath;
-			DIR* rep = NULL;
-			struct dirent* dirp = NULL;
-			bool foundp = false;
+		if (prevTrigger.process(params[PREV_PARAM].value)+previnTrigger.process(inputs[PREV_INPUT].value))
+			{retard = 1000;
 			std::string dir = lastPath.empty() ? assetLocal("") : extractDirectory(lastPath);
-
-			rep = opendir(dir.c_str());
-
-			while ((dirp = readdir(rep)) != NULL) {
-				if ((dir+"/" + dirp->d_name)==lastPath) {foundp=true;}
-				if (foundp) {   
-						
-						loadSample(newPath); 
-						
-						foundp = false;
-						lastPath = newPath;
-						}
-				
-				newPath = dir+"/" + dirp->d_name;
-				}
-			
-			closedir(rep);
-			params[PREV_PARAM].value=0;
-
+			if (sampnumber > 0) sampnumber=sampnumber-1; else sampnumber =int(fichier.size()-1);
+			loadSample(dir + "/" + fichier[sampnumber]);
 			} 
-
+	} else fileDesc = "right click to load .wav or .aif sample";
 
 	// Play
     bool gated = inputs[GATE_INPUT].value > 0;
@@ -175,10 +172,16 @@ void PLAYER::step() {
         inputs[POS_INPUT].value = 0 ;
     }
     
-    
-	if (playTrigger.process(inputs[GATE_INPUT].value)) {
+    if (!inputs[TRIG_INPUT].active) {
+	if (playGater.process(inputs[GATE_INPUT].value)) {
 		play = true;
 		samplePos = startPos;
+		}
+	} else {
+	if (playTrigger.process(inputs[TRIG_INPUT].value)) {
+		play = true;
+		samplePos = startPos;
+		}
 	}
     
 	if ((play) && ((floor(samplePos) < audioFile.getNumSamplesPerChannel()) && (floor(samplePos) >= 0))) {
@@ -200,7 +203,7 @@ void PLAYER::step() {
 		play = false;
 	    outputs[OUT_OUTPUT].value = 0;outputs[OUT2_OUTPUT].value = 0;
 	}
-       if (gated == false) {play = false; outputs[OUT_OUTPUT].value = 0;outputs[OUT2_OUTPUT].value = 0;}
+       if (!inputs[TRIG_INPUT].active) {if (gated == false) {play = false; outputs[OUT_OUTPUT].value = 0;outputs[OUT2_OUTPUT].value = 0;}}
 }
 
 struct PLAYERDisplay : TransparentWidget {
@@ -319,13 +322,14 @@ PLAYERWidget::PLAYERWidget() {
 	addInput(createInput<PJ301MPort>(Vec(portX0[0], 321), module, PLAYER::GATE_INPUT));
 	addInput(createInput<PJ301MPort>(Vec(portX0[1], 321), module, PLAYER::POS_INPUT));
   	addInput(createInput<PJ301MPort>(Vec(portX0[2], 321), module, PLAYER::SPD_INPUT));
-	addOutput(createOutput<PJ301MPort>(Vec(portX0[3], 291), module, PLAYER::OUT_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(portX0[3], 275), module, PLAYER::OUT_OUTPUT));
 	addOutput(createOutput<PJ301MPort>(Vec(portX0[3], 321), module, PLAYER::OUT2_OUTPUT));
 
-
-
-	addParam(createParam<upButton>(Vec(108, 52), module, PLAYER::PREV_PARAM, 0.0, 1.0, 0.0));
-	addParam(createParam<downButton>(Vec(108, 77), module, PLAYER::NEXT_PARAM, 0.0, 1.0, 0.0));
+	addInput(createInput<PJ301MPort>(Vec(portX0[0], 91), module, PLAYER::PREV_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(portX0[3], 91), module, PLAYER::NEXT_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(portX0[0], 275), module, PLAYER::TRIG_INPUT));
+	addParam(createParam<upButton>(Vec(43, 95), module, PLAYER::PREV_PARAM, 0.0, 1.0, 0.0));
+	addParam(createParam<downButton>(Vec(73, 95), module, PLAYER::NEXT_PARAM, 0.0, 1.0, 0.0));
 }
 
 struct PLAYERItem : MenuItem {
