@@ -1,7 +1,6 @@
 SLUG = cf
 VERSION = 0.5.11
 
-FLAGS += -D v050
 
 SOURCES = $(wildcard src/*.cpp)
 
@@ -9,6 +8,7 @@ include ../../plugin.mk
 
 .PHONY: dist
 dist: all
+	rm -rf dist
 	mkdir -p dist/$(SLUG)
 	cp LICENSE* dist/$(SLUG)/
 	cp $(TARGET) dist/$(SLUG)/
