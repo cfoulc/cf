@@ -118,6 +118,7 @@ void PLAYER::loadSample(std::string path) {
 
 			rep = opendir(dir.c_str());
 			int i = 0;
+			fichier.clear();
 			while ((dirp = readdir(rep)) != NULL) {
 				std::string name = dirp->d_name;
 
