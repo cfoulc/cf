@@ -68,6 +68,7 @@ struct PLAYER : Module {
 
 	int sampnumber = 0;
 	int retard = 0;
+	bool reload = false ;
 
 
 	PLAYER() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) { }
@@ -90,7 +91,9 @@ struct PLAYER : Module {
 		json_t *lastPathJ = json_object_get(rootJ, "lastPath");
 		if (lastPathJ) {
 			lastPath = json_string_value(lastPathJ);
+			reload = true ;
 			loadSample(lastPath);
+			
 		}
 	}
 };
@@ -111,7 +114,7 @@ void PLAYER::loadSample(std::string path) {
 	//	fileDesc += std::to_string(audioFile.isMono())+ "\n";
 	//	fileDesc += std::to_string(audioFile.isStereo())+ "\n";
 
-		
+		if (reload) {
 			DIR* rep = NULL;
 			struct dirent* dirp = NULL;
 			std::string dir = path.empty() ? assetLocal("") : extractDirectory(path);
@@ -137,6 +140,8 @@ void PLAYER::loadSample(std::string path) {
 				
 				}
 			closedir(rep);
+			reload = false;
+		}
 			lastPath = path;
 	}
 	else {
@@ -341,6 +346,7 @@ struct PLAYERItem : MenuItem {
 		char *path = osdialog_file(OSDIALOG_OPEN, dir.c_str(), NULL, NULL);
 		if (path) {
 			player->play = false;
+			player->reload = true;
 			player->loadSample(path);
 			player->samplePos = 0;
 			player->lastPath = path;
