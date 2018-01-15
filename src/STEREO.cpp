@@ -27,6 +27,8 @@ struct STEREO : Module {
 		EXTSOLO_OUTPUT,
 		LEFT_OUTPUT,
 		RIGHT_OUTPUT,
+		TLEFT_OUTPUT,
+		TRIGHT_OUTPUT,
 		NUM_OUTPUTS
 	};
     enum LightIds {
@@ -126,10 +128,14 @@ void STEREO::step() {
 	if (!inputs[PAN_INPUT].active) {
 			outputs[LEFT_OUTPUT].value = inputs[LEFT_INPUT].value + SIGNAL1*(1-clampf(params[PAN_PARAM].value,0,1));
 			outputs[RIGHT_OUTPUT].value = inputs[RIGHT_INPUT].value + SIGNAL2*(1-clampf(-params[PAN_PARAM].value,0,1));
+			outputs[TLEFT_OUTPUT].value = SIGNAL1*(1-clampf(params[PAN_PARAM].value,0,1));
+			outputs[TRIGHT_OUTPUT].value = SIGNAL2*(1-clampf(-params[PAN_PARAM].value,0,1));
 			orp_affi = 0;
 		} else {
 			outputs[LEFT_OUTPUT].value = inputs[LEFT_INPUT].value + SIGNAL1*(1-(clampf(inputs[PAN_INPUT].value,5,10)-5)/5);
 			outputs[RIGHT_OUTPUT].value = inputs[RIGHT_INPUT].value + SIGNAL2*(1-(clampf(inputs[PAN_INPUT].value,0,5)+5)/5);
+			outputs[TLEFT_OUTPUT].value = SIGNAL1*(1-(clampf(inputs[PAN_INPUT].value,5,10)-5)/5);
+			outputs[TRIGHT_OUTPUT].value = SIGNAL2*(1-(clampf(inputs[PAN_INPUT].value,0,5)+5)/5);
 			orp_affi = 1;orp_gain = clampf(inputs[PAN_INPUT].value,0.0,10.0);
 		}
 
@@ -233,9 +239,8 @@ STEREOWidget::STEREOWidget() {
 	addInput(createInput<PJ301MPort>(Vec(11, 211), module, STEREO::ONT_INPUT));
     
 
-	addInput(createInput<PJ301MPort>(Vec(11, 321), module, STEREO::IN1_INPUT));
-
-	addInput(createInput<PJ301MPort>(Vec(54, 321), module, STEREO::IN2_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(11, 308), module, STEREO::IN1_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(11, 334), module, STEREO::IN2_INPUT));
 	
 	addOutput(createOutput<PJ301MPort>(Vec(54, 31), module, STEREO::EXTSOLO_OUTPUT));
 	addOutput(createOutput<PJ301MPort>(Vec(54, 61), module, STEREO::LEFT_OUTPUT));
@@ -245,6 +250,8 @@ STEREOWidget::STEREOWidget() {
 	addInput(createInput<PJ301MPort>(Vec(11, 61), module, STEREO::LEFT_INPUT));
 	addInput(createInput<PJ301MPort>(Vec(11, 91), module, STEREO::RIGHT_INPUT));
 
+	addOutput(createOutput<PJ301MPort>(Vec(54, 308), module, STEREO::TLEFT_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(54, 334), module, STEREO::TRIGHT_OUTPUT));
 
 	for (int i = 0; i < 11; i++) {
 		if (i<10) addChild(createLight<MediumLight<BlueLight>>(Vec(70, 242-i*12), module, STEREO::LEVEL_LIGHTS + i));
