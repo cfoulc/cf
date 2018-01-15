@@ -6,7 +6,7 @@
 #include "cmath"
 //#include <sys/dir.h>
 #include <dirent.h>
-
+#include <algorithm>
 
 //#ifndef WIN32
 
@@ -139,6 +139,13 @@ void PLAYER::loadSample(std::string path) {
 					}
 				
 				}
+
+			sort(fichier.begin(), fichier.end());  // Linux and OSX needs this to get files in right order
+            for (int o=0;o<int(fichier.size()-1); o++) {
+                if ((dir + "/" + fichier[o])==path) {
+                    sampnumber = o;
+                }
+            }
 			closedir(rep);
 			reload = false;
 		}
