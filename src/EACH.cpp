@@ -48,8 +48,8 @@ void EACH::step() {
 		max_EACH = floor(params[DIV_PARAM].value);
 		or_affi=0;
 	} else {
-		max_EACH = round(clampf((inputs[DIV_INPUT].value * 1.2)+1,1,12));
-		or_gain = round(clampf(inputs[DIV_INPUT].value,0,10));
+		max_EACH = round(clamp((inputs[DIV_INPUT].value * 1.2)+1,1.0f,12.0f));
+		or_gain = round(clamp(inputs[DIV_INPUT].value,0.0f,10.0f));
 		or_affi=1;
 	}
 
@@ -158,33 +158,28 @@ struct MOTORPOTDisplay : TransparentWidget {
 };
 
 
-EACHWidget::EACHWidget() {
-	EACH *module = new EACH();
-	setModule(module);
-	box.size = Vec(15*6, 380);
+struct EACHWidget : ModuleWidget {
+	EACHWidget(EACH *module);
+};
 
-	{
-		SVGPanel *panel = new SVGPanel();
-		panel->box.size = box.size;
-		panel->setBackground(SVG::load(assetPlugin(plugin, "res/EACH.svg")));
-		addChild(panel);
-	}
+EACHWidget::EACHWidget(EACH *module) : ModuleWidget(module) {
+	setPanel(SVG::load(assetPlugin(plugin, "res/EACH.svg")));
 
-	addChild(createScrew<ScrewSilver>(Vec(15, 0)));
-	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(createScrew<ScrewSilver>(Vec(15, 365)));
-	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 365)));
+	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
+	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
+	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
 
-	addInput(createInput<PJ301MPort>(Vec(11, 26), module, EACH::START_INPUT));
-	addOutput(createOutput<PJ301MPort>(Vec(35, 275), module, EACH::RESET_OUTPUT));
-	addOutput(createOutput<PJ301MPort>(Vec(11, 321), module, EACH::START_OUTPUT));
+	addInput(Port::create<PJ301MPort>(Vec(11, 26), Port::INPUT, module, EACH::START_INPUT));
+	addOutput(Port::create<PJ301MPort>(Vec(35, 275), Port::OUTPUT, module, EACH::RESET_OUTPUT));
+	addOutput(Port::create<PJ301MPort>(Vec(11, 321), Port::OUTPUT, module, EACH::START_OUTPUT));
 
-	addInput(createInput<PJ301MPort>(Vec(54, 26), module, EACH::DOUZE_INPUT));
-	addOutput(createOutput<PJ301MPort>(Vec(54, 321), module, EACH::DOUZE_OUTPUT));
-	addOutput(createOutput<PJ301MPort>(Vec(35, 235), module, EACH::BEAT_OUTPUT));
+	addInput(Port::create<PJ301MPort>(Vec(54, 26), Port::INPUT, module, EACH::DOUZE_INPUT));
+	addOutput(Port::create<PJ301MPort>(Vec(54, 321), Port::OUTPUT, module, EACH::DOUZE_OUTPUT));
+	addOutput(Port::create<PJ301MPort>(Vec(35, 235), Port::OUTPUT, module, EACH::BEAT_OUTPUT));
 
-	addParam(createParam<RoundBlackKnob>(Vec(27, 107), module, EACH::DIV_PARAM, 1.0, 12.1, 3.1));
-	addInput(createInput<PJ301MPort>(Vec(11, 141), module, EACH::DIV_INPUT));
+	addParam(ParamWidget::create<RoundBlackKnob>(Vec(27, 107), module, EACH::DIV_PARAM, 1.0f, 12.1f, 3.1f));
+	addInput(Port::create<PJ301MPort>(Vec(11, 141), Port::INPUT, module, EACH::DIV_INPUT));
 	{
 		MOTORPOTDisplay *display = new MOTORPOTDisplay();
 		display->box.pos = Vec(46, 126);
@@ -194,8 +189,8 @@ EACHWidget::EACHWidget() {
 		addChild(display);
 	}
 
-     	addParam(createParam<LEDButton>(Vec(38, 197), module, EACH::BEAT_PARAM, 0.0, 1.0, 0.0));
-	addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 201.4), module, EACH::BEAT_LIGHT));
+     	addParam(ParamWidget::create<LEDButton>(Vec(38, 197), module, EACH::BEAT_PARAM, 0.0f, 1.0f, 0.0f));
+	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(42.4, 201.4), module, EACH::BEAT_LIGHT));
 	
 	
 	NuDisplayWidget *display = new NuDisplayWidget();
@@ -206,3 +201,5 @@ EACHWidget::EACHWidget() {
 
 	
 }
+
+Model *modelEACH = Model::create<EACH, EACHWidget>("cf", "EACH", "Each", CLOCK_TAG);

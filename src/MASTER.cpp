@@ -39,10 +39,10 @@ SchmittTrigger onTrigger;
 SchmittTrigger oninTrigger;
 
 
-	MASTER() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {reset();}
+	MASTER() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {onReset();}
 	void step() override;
 
-void reset() override {
+void onReset() override {
 			ON_STATE = true;
 			}
 
@@ -106,51 +106,45 @@ void MASTER::step() {
 }
 
 
+struct MASTERWidget : ModuleWidget {
+	MASTERWidget(MASTER *module);
+};
+
+MASTERWidget::MASTERWidget(MASTER *module) : ModuleWidget(module) {
+	setPanel(SVG::load(assetPlugin(plugin, "res/MASTER.svg")));
 
 
-MASTERWidget::MASTERWidget() {
-	MASTER *module = new MASTER();
-	setModule(module);
-	box.size = Vec(15*6, 380);
-
-	{
-		SVGPanel *panel = new SVGPanel();
-		panel->box.size = box.size;
-		panel->setBackground(SVG::load(assetPlugin(plugin, "res/MASTER.svg")));
-		addChild(panel);
-	}
-
-	addChild(createScrew<ScrewSilver>(Vec(15, 0)));
-	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(createScrew<ScrewSilver>(Vec(15, 365)));
-	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 365)));
+	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
+	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
+	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
 
 
-    	addParam(createParam<RoundBlackKnob>(Vec(27, 247), module, MASTER::GAIN_PARAM, 0.0, 10.0, 5.0));
-	//addInput(createInput<PJ301MPort>(Vec(11, 221), module, MASTER::GAIN_INPUT));
+    	addParam(ParamWidget::create<RoundBlackKnob>(Vec(27, 247), module, MASTER::GAIN_PARAM, 0.0, 10.0, 5.0));
 
 
-     	addParam(createParam<LEDButton>(Vec(38, 208), module, MASTER::ON_PARAM, 0.0, 1.0, 0.0));
-	addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 212.4), module, MASTER::ON_LIGHT));
-	//addInput(createInput<PJ301MPort>(Vec(11, 211), module, MASTER::ONT_INPUT));
+     	addParam(ParamWidget::create<LEDButton>(Vec(38, 208), module, MASTER::ON_PARAM, 0.0, 1.0, 0.0));
+	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(42.4, 212.4), module, MASTER::ON_LIGHT));
     
 	
-	addOutput(createOutput<PJ301MPort>(Vec(54, 61), module, MASTER::LEFT_OUTPUT));
-	addOutput(createOutput<PJ301MPort>(Vec(54, 91), module, MASTER::RIGHT_OUTPUT));
+	addOutput(Port::create<PJ301MPort>(Vec(54, 61), Port::OUTPUT, module, MASTER::LEFT_OUTPUT));
+	addOutput(Port::create<PJ301MPort>(Vec(54, 91), Port::OUTPUT, module, MASTER::RIGHT_OUTPUT));
 
-	addOutput(createOutput<PJ301MPort>(Vec(11, 321), module, MASTER::LEFT_MAIN_OUTPUT));
-	addOutput(createOutput<PJ301MPort>(Vec(54, 321), module, MASTER::RIGHT_MAIN_OUTPUT));
+	addOutput(Port::create<PJ301MPort>(Vec(11, 321), Port::OUTPUT, module, MASTER::LEFT_MAIN_OUTPUT));
+	addOutput(Port::create<PJ301MPort>(Vec(54, 321), Port::OUTPUT, module, MASTER::RIGHT_MAIN_OUTPUT));
 
-	addInput(createInput<PJ301MPort>(Vec(11, 61), module, MASTER::LEFT_INPUT));
-	addInput(createInput<PJ301MPort>(Vec(11, 91), module, MASTER::RIGHT_INPUT));
+	addInput(Port::create<PJ301MPort>(Vec(11, 61), Port::INPUT, module, MASTER::LEFT_INPUT));
+	addInput(Port::create<PJ301MPort>(Vec(11, 91), Port::INPUT, module, MASTER::RIGHT_INPUT));
 
 
 	for (int i = 0; i < 11; i++) {
-		if (i<10) addChild(createLight<MediumLight<BlueLight>>(Vec(15, 242-i*12), module, MASTER::L_LEVEL_LIGHTS + i));
-			else addChild(createLight<MediumLight<RedLight>>(Vec(15, 242-i*12), module, MASTER::L_LEVEL_LIGHTS + i));
-		if (i<10) addChild(createLight<MediumLight<BlueLight>>(Vec(68, 242-i*12), module, MASTER::R_LEVEL_LIGHTS + i));
-			else addChild(createLight<MediumLight<RedLight>>(Vec(68, 242-i*12), module, MASTER::R_LEVEL_LIGHTS + i));
+		if (i<10) addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(15, 242-i*12), module, MASTER::L_LEVEL_LIGHTS + i));
+			else addChild(ModuleLightWidget::create<MediumLight<RedLight>>(Vec(15, 242-i*12), module, MASTER::L_LEVEL_LIGHTS + i));
+		if (i<10) addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(68, 242-i*12), module, MASTER::R_LEVEL_LIGHTS + i));
+			else addChild(ModuleLightWidget::create<MediumLight<RedLight>>(Vec(68, 242-i*12), module, MASTER::R_LEVEL_LIGHTS + i));
 	}
 	
 	
 }
+
+Model *modelMASTER = Model::create<MASTER, MASTERWidget>("cf", "MASTER", "Master", MIXER_TAG);

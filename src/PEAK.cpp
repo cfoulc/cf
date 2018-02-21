@@ -38,12 +38,11 @@ int sensiv = 10000;
 
 void PEAK::step() {
 
+	max_GAIN = roundf(params[GAIN_PARAM].value*10);
 
-max_GAIN = roundf(params[GAIN_PARAM].value*10);
+	affich = round(max_GAIN);
 
-affich = round(max_GAIN);
-
-if (inputs[IN1_INPUT].active)
+	if (inputs[IN1_INPUT].active)
 	{
 
         if (inputs[IN1_INPUT].value > params[TRESHOLD_PARAM].value)
@@ -64,26 +63,26 @@ if (inputs[IN1_INPUT].active)
         if (outputs[OUT1_OUTPUT].value >10) reman_o=sensiv;
         
 	}
-else
+	else
 	{
 	outputs[OUT1_OUTPUT].value = max_GAIN/10;
         lights[TRESHOLD_LIGHT].value = 0.0;
         lights[OVER_LIGHT].value = 0.0;
 	}
 
-if (reman_t >0) 
+	if (reman_t >0) 
 	{
 	reman_t--;
 	lights[TRESHOLD_LIGHT].value = 1;
 	} 
-else lights[TRESHOLD_LIGHT].value = 0.0;
+	else lights[TRESHOLD_LIGHT].value = 0.0;
 
-if (reman_o >0) 
+	if (reman_o >0) 
 	{
 	reman_o--;
 	lights[OVER_LIGHT].value = 1;
 	} 
-else lights[OVER_LIGHT].value = 0.0;
+	else lights[OVER_LIGHT].value = 0.0;
 }
 
 struct NumbDisplayWidget : TransparentWidget {
@@ -138,38 +137,28 @@ struct NumbDisplayWidget : TransparentWidget {
   }
 };
 
-PEAKWidget::PEAKWidget() {
-	PEAK *module = new PEAK();
-	setModule(module);
-	box.size = Vec(15*6, 380);
 
-	{
-		SVGPanel *panel = new SVGPanel();
-		panel->box.size = box.size;
-		panel->setBackground(SVG::load(assetPlugin(plugin, "res/PEAK.svg")));
-		addChild(panel);
-	}
+struct PEAKWidget : ModuleWidget {
+	PEAKWidget(PEAK *module);
+};
 
-	addChild(createScrew<ScrewSilver>(Vec(15, 0)));
-	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(createScrew<ScrewSilver>(Vec(15, 365)));
-	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 365)));
+PEAKWidget::PEAKWidget(PEAK *module) : ModuleWidget(module) {
+	setPanel(SVG::load(assetPlugin(plugin, "res/PEAK.svg")));
 
-    	addParam(createParam<RoundBlackKnob>(Vec(27, 97), module, PEAK::GAIN_PARAM, 0.0, 10.0, 1.0));
-   	//	addParam(createParam<LEDButton>(Vec(38, 137), module, PEAK::G_PARAM, 0.0, 1.0, 0.0));
- 		addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 141.4), module, PEAK::OVER_LIGHT));
+	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
+	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
+	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
 
-	addParam(createParam<RoundBlackKnob>(Vec(27, 227), module, PEAK::TRESHOLD_PARAM, 0.0, 10.0, 10.0));
-     	//   	addParam(createParam<LEDButton>(Vec(38, 207), module, PEAK::T_PARAM, 0.0, 1.0, 0.0));
-		addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 211.4), module, PEAK::TRESHOLD_LIGHT));
-    
-//	addParam(createParam<Trimpot>(Vec(37, 237), module, PEAK::TRIM1_PARAM, -10, 10.0, 0));
+    	addParam(ParamWidget::create<RoundBlackKnob>(Vec(27, 97), module, PEAK::GAIN_PARAM, 0.0f, 10.0f, 1.0f));
+ 		addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(42.4, 141.4), module, PEAK::OVER_LIGHT));
 
-//	addInput(createInput<PJ301MPort>(Vec(34, 270), module, PEAK::LIN1_INPUT));
+	addParam(ParamWidget::create<RoundBlackKnob>(Vec(27, 227), module, PEAK::TRESHOLD_PARAM, 0.0f, 10.0f, 10.0f));
+		addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(42.4, 211.4), module, PEAK::TRESHOLD_LIGHT));
 
-	addInput(createInput<PJ301MPort>(Vec(11, 321), module, PEAK::IN1_INPUT));
+	addInput(Port::create<PJ301MPort>(Vec(11, 321), Port::INPUT, module, PEAK::IN1_INPUT));
 
-	addOutput(createOutput<PJ301MPort>(Vec(54, 321), module, PEAK::OUT1_OUTPUT));
+	addOutput(Port::create<PJ301MPort>(Vec(54, 321), Port::OUTPUT, module, PEAK::OUT1_OUTPUT));
 
 NumbDisplayWidget *display = new NumbDisplayWidget();
 	display->box.pos = Vec(20,56);
@@ -179,3 +168,5 @@ NumbDisplayWidget *display = new NumbDisplayWidget();
 
 	
 }
+
+Model *modelPEAK = Model::create<PEAK, PEAKWidget>("cf", "PEAK", "Peak", LIMITER_TAG);

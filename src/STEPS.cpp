@@ -28,8 +28,8 @@ void STEPS::step() {
 
 if (inputs[LIN1_INPUT].active) 
 	{
-	max_steps = round(clampf(params[LEVEL1_PARAM].value + inputs[LIN1_INPUT].value*0.32*params[TRIM1_PARAM].value,1,32));
-	outputs[OUT1_OUTPUT].value = floor((inputs[IN1_INPUT].value * round(clampf(params[LEVEL1_PARAM].value + inputs[LIN1_INPUT].value*0.32*params[TRIM1_PARAM].value,1,32))) / 10.01) * (10 / round(clampf(params[LEVEL1_PARAM].value + inputs[LIN1_INPUT].value*0.32*params[TRIM1_PARAM].value,1,32))) ;
+	max_steps = round(clamp(params[LEVEL1_PARAM].value + inputs[LIN1_INPUT].value*0.32*params[TRIM1_PARAM].value,1.0f,32.0f));
+	outputs[OUT1_OUTPUT].value = floor((inputs[IN1_INPUT].value * round(clamp(params[LEVEL1_PARAM].value + inputs[LIN1_INPUT].value*0.32*params[TRIM1_PARAM].value,1.0f,32.0f))) / 10.01) * (10 / round(clamp(params[LEVEL1_PARAM].value + inputs[LIN1_INPUT].value*0.32*params[TRIM1_PARAM].value,1.0f,32.0f))) ;
 	} 
 	else 
 	{
@@ -86,31 +86,28 @@ struct NumbeDisplayWidget : TransparentWidget {
   }
 };
 
-STEPSWidget::STEPSWidget() {
-	STEPS *module = new STEPS();
-	setModule(module);
-	box.size = Vec(15*6, 380);
 
-	{
-		SVGPanel *panel = new SVGPanel();
-		panel->box.size = box.size;
-		panel->setBackground(SVG::load(assetPlugin(plugin, "res/STEPS.svg")));
-		addChild(panel);
-	}
 
-	addChild(createScrew<ScrewSilver>(Vec(15, 0)));
-	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(createScrew<ScrewSilver>(Vec(15, 365)));
-	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 365)));
+struct STEPSWidget : ModuleWidget {
+	STEPSWidget(STEPS *module);
+};
 
-	addParam(createParam<RoundBlackKnob>(Vec(27, 157), module, STEPS::LEVEL1_PARAM, 1.0, 32.0, 8.1));
-	addParam(createParam<Trimpot>(Vec(37, 207), module, STEPS::TRIM1_PARAM, -10, 10.0, 0));
+STEPSWidget::STEPSWidget(STEPS *module) : ModuleWidget(module) {
+	setPanel(SVG::load(assetPlugin(plugin, "res/STEPS.svg")));
 
-	addInput(createInput<PJ301MPort>(Vec(34, 250), module, STEPS::LIN1_INPUT));
+	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
+	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
+	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
 
-	addInput(createInput<PJ301MPort>(Vec(11, 321), module, STEPS::IN1_INPUT));
+	addParam(ParamWidget::create<RoundBlackKnob>(Vec(27, 157), module, STEPS::LEVEL1_PARAM, 1.0f, 32.0f, 8.1f));
+	addParam(ParamWidget::create<Trimpot>(Vec(37, 207), module, STEPS::TRIM1_PARAM, -10.0f, 10.0f, 0.0f));
 
-	addOutput(createOutput<PJ301MPort>(Vec(54, 321), module, STEPS::OUT1_OUTPUT));
+	addInput(Port::create<PJ301MPort>(Vec(34, 250), Port::INPUT, module, STEPS::LIN1_INPUT));
+
+	addInput(Port::create<PJ301MPort>(Vec(11, 321), Port::INPUT, module, STEPS::IN1_INPUT));
+
+	addOutput(Port::create<PJ301MPort>(Vec(54, 321), Port::OUTPUT, module, STEPS::OUT1_OUTPUT));
 
 NumbeDisplayWidget *display = new NumbeDisplayWidget();
 	display->box.pos = Vec(20,56);
@@ -120,3 +117,5 @@ NumbeDisplayWidget *display = new NumbeDisplayWidget();
 
 	
 }
+
+Model *modelSTEPS = Model::create<STEPS, STEPSWidget>("cf", "STEPS", "Steps", UTILITY_TAG);

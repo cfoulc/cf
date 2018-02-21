@@ -44,7 +44,7 @@ struct CUBE : Module {
 
 
 void CUBE::step() { 
-	gainX = 0.5; gainY = 0.5;
+	gainX = 0.5f; gainY = 0.5f;
 	if (inputs[X_INPUT].active) gainX=inputs[X_INPUT].value;
 	if (inputs[Y_INPUT].active) gainY=inputs[Y_INPUT].value;
 
@@ -138,22 +138,18 @@ struct CUBEDisplay : TransparentWidget {
 };
 
 
-CUBEWidget::CUBEWidget() {
-	CUBE *module = new CUBE();
-	setModule(module);
-	box.size = Vec(15*8, 380);
 
-	{
-		SVGPanel *panel = new SVGPanel();
-		panel->box.size = box.size;
-		panel->setBackground(SVG::load(assetPlugin(plugin, "res/CUBE.svg")));
-		addChild(panel);
+struct CUBEWidget : ModuleWidget {
+	CUBEWidget(CUBE *module);
+};
 
-	}
-	addChild(createScrew<ScrewSilver>(Vec(15, 0)));
-	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(createScrew<ScrewSilver>(Vec(15, 365)));
-	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 365)));
+CUBEWidget::CUBEWidget(CUBE *module) : ModuleWidget(module) {
+	setPanel(SVG::load(assetPlugin(plugin, "res/CUBE.svg")));
+
+	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
+	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
+	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
 
 	{
 		CUBEDisplay *display = new CUBEDisplay();
@@ -165,8 +161,10 @@ CUBEWidget::CUBEWidget() {
 		addChild(display);
 	}
 
-	addInput(createInput<PJ301MPort>(Vec(15, 321), module, CUBE::X_INPUT));
-	addInput(createInput<PJ301MPort>(Vec(47, 321), module, CUBE::Y_INPUT));
-	addOutput(createOutput<PJ301MPort>(Vec(80, 321), module, CUBE::X_OUTPUT));       
+	addInput(Port::create<PJ301MPort>(Vec(15, 321), Port::INPUT, module, CUBE::X_INPUT));
+	addInput(Port::create<PJ301MPort>(Vec(47, 321), Port::INPUT, module, CUBE::Y_INPUT));
+	addOutput(Port::create<PJ301MPort>(Vec(80, 321), Port::OUTPUT, module, CUBE::X_OUTPUT));       
 	
 }
+
+Model *modelCUBE = Model::create<CUBE, CUBEWidget>("cf", "CUBE", "Cube", LFO_TAG);

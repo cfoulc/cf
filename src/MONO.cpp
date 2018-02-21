@@ -55,10 +55,10 @@ float orp_gain ;
 int orp_affi ;
 
 
-	MONO() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {reset();}
+	MONO() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {onReset();}
 	void step() override;
 
-void reset() override {
+void onReset() override {
 			ON_STATE = true;
 			SOLO_STATE = false;
 			}
@@ -95,7 +95,7 @@ void MONO::step() {
 
 	if (!inputs[GAIN_INPUT].active)
 		{SIGNAL = SIGNAL * params[GAIN_PARAM].value/5.0 ;or_affi=0;}
-		else {SIGNAL = SIGNAL * clampf(inputs[GAIN_INPUT].value/5.0,0.0,2.0) ; or_affi=1;or_gain=clampf(inputs[GAIN_INPUT].value,0.0,10.0);}
+		else {SIGNAL = SIGNAL * clamp(inputs[GAIN_INPUT].value/5.0f,0.0f,2.0f) ; or_affi=1;or_gain=clamp(inputs[GAIN_INPUT].value,0.0f,10.0f);}
 
 	if (onTrigger.process(params[ON_PARAM].value)+oninTrigger.process(inputs[ONT_INPUT].value))
 			{if (ON_STATE == 0) ON_STATE = 1; else ON_STATE = 0;}
@@ -118,13 +118,13 @@ void MONO::step() {
 	
 
 	if (!inputs[PAN_INPUT].active) {
-			outputs[LEFT_OUTPUT].value = inputs[LEFT_INPUT].value + SIGNAL*(1-clampf(params[PAN_PARAM].value,0,1));
-			outputs[RIGHT_OUTPUT].value = inputs[RIGHT_INPUT].value + SIGNAL*(1-clampf(-params[PAN_PARAM].value,0,1));
+			outputs[LEFT_OUTPUT].value = inputs[LEFT_INPUT].value + SIGNAL*(1-clamp(params[PAN_PARAM].value,0.0f,1.0f));
+			outputs[RIGHT_OUTPUT].value = inputs[RIGHT_INPUT].value + SIGNAL*(1-clamp(-params[PAN_PARAM].value,0.0f,1.0f));
 			orp_affi = 0;
 		} else {
-			outputs[LEFT_OUTPUT].value = inputs[LEFT_INPUT].value + SIGNAL*(1-(clampf(inputs[PAN_INPUT].value,5,10)-5)/5);
-			outputs[RIGHT_OUTPUT].value = inputs[RIGHT_INPUT].value + SIGNAL*(1-(clampf(inputs[PAN_INPUT].value,0,5)+5)/5);
-			orp_affi = 1;orp_gain = clampf(inputs[PAN_INPUT].value,0.0,10.0);
+			outputs[LEFT_OUTPUT].value = inputs[LEFT_INPUT].value + SIGNAL*(1-(clamp(inputs[PAN_INPUT].value,5.0f,10.0f)-5)/5);
+			outputs[RIGHT_OUTPUT].value = inputs[RIGHT_INPUT].value + SIGNAL*(1-(clamp(inputs[PAN_INPUT].value,0.0f,5.0f)+5)/5);
+			orp_affi = 1;orp_gain = clamp(inputs[PAN_INPUT].value,0.0f,10.0f);
 		}
 
 	if (ON_STATE==1) lights[ON_LIGHT].value=true; else lights[ON_LIGHT].value=false;
@@ -175,27 +175,22 @@ struct MOTORPOTDisplay : TransparentWidget {
 	}
 };
 
+struct MONOWidget : ModuleWidget {
+	MONOWidget(MONO *module);
+};
 
-MONOWidget::MONOWidget() {
-	MONO *module = new MONO();
-	setModule(module);
-	box.size = Vec(15*6, 380);
-
-	{
-		SVGPanel *panel = new SVGPanel();
-		panel->box.size = box.size;
-		panel->setBackground(SVG::load(assetPlugin(plugin, "res/MONO.svg")));
-		addChild(panel);
-	}
-
-	addChild(createScrew<ScrewSilver>(Vec(15, 0)));
-	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(createScrew<ScrewSilver>(Vec(15, 365)));
-	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 365)));
+MONOWidget::MONOWidget(MONO *module) : ModuleWidget(module) {
+	setPanel(SVG::load(assetPlugin(plugin, "res/MONO.svg")));
 
 
-	addParam(createParam<Trimpot>(Vec(38, 127), module, MONO::PAN_PARAM, -1.0, 1.0, 0.0));
-	addInput(createInput<PJ301MPort>(Vec(11, 131), module, MONO::PAN_INPUT));
+	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
+	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
+	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
+
+
+	addParam(ParamWidget::create<Trimpot>(Vec(38, 127), module, MONO::PAN_PARAM, -1.0f, 1.0f, 0.0f));
+	addInput(Port::create<PJ301MPort>(Vec(11, 131), Port::INPUT, module, MONO::PAN_INPUT));
 	{
 		MOTORPOTDisplay *pdisplay = new MOTORPOTDisplay();
 		pdisplay->box.pos = Vec(47, 136);
@@ -205,8 +200,8 @@ MONOWidget::MONOWidget() {
 		addChild(pdisplay);
 	}
 
-    	addParam(createParam<RoundBlackKnob>(Vec(27, 247), module, MONO::GAIN_PARAM, 0.0, 10.0, 5.0));
-	addInput(createInput<PJ301MPort>(Vec(11, 281), module, MONO::GAIN_INPUT));
+    	addParam(ParamWidget::create<RoundBlackKnob>(Vec(27, 247), module, MONO::GAIN_PARAM, 0.0f, 10.0f, 5.0f));
+	addInput(Port::create<PJ301MPort>(Vec(11, 281), Port::INPUT, module, MONO::GAIN_INPUT));
 	{
 		MOTORPOTDisplay *display = new MOTORPOTDisplay();
 		display->box.pos = Vec(46, 266);
@@ -216,32 +211,34 @@ MONOWidget::MONOWidget() {
 		addChild(display);
 	}
 
-   	addParam(createParam<LEDButton>(Vec(38, 167), module, MONO::SOLO_PARAM, 0.0, 1.0, 0.0));
- 	addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 171.4), module, MONO::SOLO_LIGHT));
-	addInput(createInput<PJ301MPort>(Vec(11, 171), module, MONO::SOLOT_INPUT));
+   	addParam(ParamWidget::create<LEDButton>(Vec(38, 167), module, MONO::SOLO_PARAM, 0.0, 1.0, 0.0));
+ 	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(42.4, 171.4), module, MONO::SOLO_LIGHT));
+	addInput(Port::create<PJ301MPort>(Vec(11, 171), Port::INPUT, module, MONO::SOLOT_INPUT));
 
-     	addParam(createParam<LEDButton>(Vec(38, 208), module, MONO::ON_PARAM, 0.0, 1.0, 0.0));
-	addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 212.4), module, MONO::ON_LIGHT));
-	addInput(createInput<PJ301MPort>(Vec(11, 211), module, MONO::ONT_INPUT));
+     	addParam(ParamWidget::create<LEDButton>(Vec(38, 208), module, MONO::ON_PARAM, 0.0, 1.0, 0.0));
+	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(42.4, 212.4), module, MONO::ON_LIGHT));
+	addInput(Port::create<PJ301MPort>(Vec(11, 211), Port::INPUT, module, MONO::ONT_INPUT));
     
 
-	addInput(createInput<PJ301MPort>(Vec(11, 321), module, MONO::IN1_INPUT));
+	addInput(Port::create<PJ301MPort>(Vec(11, 321), Port::INPUT, module, MONO::IN1_INPUT));
 
-	addOutput(createOutput<PJ301MPort>(Vec(54, 321), module, MONO::OUT1_OUTPUT));
+	addOutput(Port::create<PJ301MPort>(Vec(54, 321), Port::OUTPUT, module, MONO::OUT1_OUTPUT));
 	
-	addOutput(createOutput<PJ301MPort>(Vec(54, 31), module, MONO::EXTSOLO_OUTPUT));
-	addOutput(createOutput<PJ301MPort>(Vec(54, 61), module, MONO::LEFT_OUTPUT));
-	addOutput(createOutput<PJ301MPort>(Vec(54, 91), module, MONO::RIGHT_OUTPUT));
+	addOutput(Port::create<PJ301MPort>(Vec(54, 31), Port::OUTPUT, module, MONO::EXTSOLO_OUTPUT));
+	addOutput(Port::create<PJ301MPort>(Vec(54, 61), Port::OUTPUT, module, MONO::LEFT_OUTPUT));
+	addOutput(Port::create<PJ301MPort>(Vec(54, 91), Port::OUTPUT, module, MONO::RIGHT_OUTPUT));
 
-	addInput(createInput<PJ301MPort>(Vec(11, 31), module, MONO::EXTSOLO_INPUT));
-	addInput(createInput<PJ301MPort>(Vec(11, 61), module, MONO::LEFT_INPUT));
-	addInput(createInput<PJ301MPort>(Vec(11, 91), module, MONO::RIGHT_INPUT));
+	addInput(Port::create<PJ301MPort>(Vec(11, 31), Port::INPUT, module, MONO::EXTSOLO_INPUT));
+	addInput(Port::create<PJ301MPort>(Vec(11, 61), Port::INPUT, module, MONO::LEFT_INPUT));
+	addInput(Port::create<PJ301MPort>(Vec(11, 91), Port::INPUT, module, MONO::RIGHT_INPUT));
 
 
 	for (int i = 0; i < 11; i++) {
-		if (i<10) addChild(createLight<MediumLight<BlueLight>>(Vec(70, 242-i*12), module, MONO::LEVEL_LIGHTS + i));
-			else addChild(createLight<MediumLight<RedLight>>(Vec(70, 242-i*12), module, MONO::LEVEL_LIGHTS + i));
+		if (i<10) addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(70, 242-i*12), module, MONO::LEVEL_LIGHTS + i));
+			else addChild(ModuleLightWidget::create<MediumLight<RedLight>>(Vec(70, 242-i*12), module, MONO::LEVEL_LIGHTS + i));
 	}
 	
 	
 }
+
+Model *modelMONO = Model::create<MONO, MONOWidget>("cf", "MONO", "Mono", MIXER_TAG);
