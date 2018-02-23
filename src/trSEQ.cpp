@@ -159,7 +159,7 @@ void trSEQ::step() {
 		int numSteps = clamp(static_cast<int>(round(params[STEPS_PARAM].value + inputs[STEPS_INPUT].value)), 1, 16);
 
 		index += 1;
-	
+
 		if (index >= numSteps) {
 			index = 0;
 		}
@@ -245,7 +245,7 @@ trSEQWidget::trSEQWidget(trSEQ *module) : ModuleWidget(module) {
 	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(103.4, 64.4), module, trSEQ::RESET_LIGHT));
 	addParam(ParamWidget::create<RoundSmallBlackSnapKnob>(Vec(132, 56), module, trSEQ::STEPS_PARAM, 1.0f, 16.0f, 16.0f));
 	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(289.4, 64.4), module, trSEQ::GATES_LIGHT));
-	
+
 	static const float portX[8] = {20, 58, 96, 135, 173, 212, 250, 289};
 
 
