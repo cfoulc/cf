@@ -156,7 +156,7 @@ void trSEQ::step() {
 
 	if (nextStep) {
 		// Advance step
-		int numSteps = clamp(round(params[STEPS_PARAM].value + inputs[STEPS_INPUT].value), 1, 16);
+		int numSteps = clamp(static_cast<int>(round(params[STEPS_PARAM].value + inputs[STEPS_INPUT].value)), 1, 16);
 
 		index += 1;
 	
