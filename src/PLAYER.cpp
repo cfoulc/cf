@@ -1,6 +1,6 @@
 #include "cf.hpp"
 #include "dsp/digital.hpp"
-#include "../ext/osdialog/osdialog.h"
+#include "../dep/osdialog/osdialog.h"
 #include "AudioFile.h"
 #include <vector>
 #include "cmath"
