@@ -8,6 +8,8 @@ struct LEDS : Module {
 		NUM_PARAMS = ON_PARAM + 100
 	};
 	enum InputIds {
+		RND_INPUT,
+		UP_INPUT,
 		NUM_INPUTS
 	};
 	enum OutputIds {
@@ -21,7 +23,9 @@ struct LEDS : Module {
 
 int wait = 0;
 bool ledState[100] = {};
-
+bool tempState[5] = {};
+SchmittTrigger rndTrigger;
+SchmittTrigger upTrigger;
 
 
 	LEDS() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
@@ -72,6 +76,22 @@ json_t *toJson() override {
 
 void LEDS::step() {
 
+	if (rndTrigger.process(inputs[RND_INPUT].value))
+			{for (int i = 0; i < 100; i++) 
+				{ledState[i] = (randomf() > 0.5);}
+			}
+
+	if (upTrigger.process(inputs[UP_INPUT].value))
+			{
+			for (int i = 0; i < 5; i++) 
+				{tempState[i] = ledState[i];}
+
+			for (int i = 0; i < 95; i++) 
+				{ledState[i] = ledState[i+5];}
+
+			for (int i = 0; i < 5; i++) 
+				{ledState[i+95] = tempState[i];}
+			}
 
 	if (wait == 0) {
 		for (int i = 0; i < 100; i++) {
@@ -112,10 +132,11 @@ LEDSWidget::LEDSWidget() {
 
 	for (int i = 0; i < 20; i++) {
 	for (int j = 0; j < 5; j++) {
-     		addParam(createParam<LButton>(Vec(j*15+10-0.8, i*15+45-0.8), module, LEDS::ON_PARAM + (i+j*20), 0.0, 1.0, 0.0));
-		addChild(createLight<MediumLight<BlueLight>>(Vec(j*15+10, i*15+45), module, LEDS::LED_LIGHT + (i+j*20)));
+     		addParam(createParam<LButton>(Vec(j*15+10-0.8, i*15+35-0.8), module, LEDS::ON_PARAM + (i*5+j), 0.0, 1.0, 0.0));
+		addChild(createLight<MediumLight<BlueLight>>(Vec(j*15+10, i*15+35), module, LEDS::LED_LIGHT + (i*5+j)));
 	}}
-
+	addInput(createInput<PJ301MPort>(Vec(11, 340), module, LEDS::RND_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(54, 340), module, LEDS::UP_INPUT));
 
 	
 	
