@@ -57,10 +57,10 @@ int or_affi ;
 float orp_gain ;
 int orp_affi ;
 
-	STEREO() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {onReset();}
+	STEREO() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {reset();}
 	void step() override;
 
-void onReset() override {
+void reset() override {
 			ON_STATE = true;
 			SOLO_STATE = false;
 			}
@@ -102,9 +102,9 @@ void STEREO::step() {
 		or_affi =0;
 		}
 		else {
-		SIGNAL1 = SIGNAL1 * clamp(inputs[GAIN_INPUT].value/5.0,0.0f,2.0f) ;
-		SIGNAL2 = SIGNAL2 * clamp(inputs[GAIN_INPUT].value/5.0,0.0f,2.0f) ;
-		or_affi=1;or_gain=clamp(inputs[GAIN_INPUT].value,0.0f,10.0f);
+		SIGNAL1 = SIGNAL1 * clampf(inputs[GAIN_INPUT].value/5.0,0.0,2.0) ;
+		SIGNAL2 = SIGNAL2 * clampf(inputs[GAIN_INPUT].value/5.0,0.0,2.0) ;
+		or_affi=1;or_gain=clampf(inputs[GAIN_INPUT].value,0.0,10.0);
 		}
 
 	if (onTrigger.process(params[ON_PARAM].value)+oninTrigger.process(inputs[ONT_INPUT].value))
@@ -126,17 +126,17 @@ void STEREO::step() {
 	
 
 	if (!inputs[PAN_INPUT].active) {
-			outputs[LEFT_OUTPUT].value = inputs[LEFT_INPUT].value + SIGNAL1*(1-clamp(params[PAN_PARAM].value,0.0f,1.0f));
-			outputs[RIGHT_OUTPUT].value = inputs[RIGHT_INPUT].value + SIGNAL2*(1-clamp(-params[PAN_PARAM].value,0.0f,1.0f));
-			outputs[TLEFT_OUTPUT].value = SIGNAL1*(1-clamp(params[PAN_PARAM].value,0.0f,1.0f));
-			outputs[TRIGHT_OUTPUT].value = SIGNAL2*(1-clamp(-params[PAN_PARAM].value,0.0f,1.0f));
+			outputs[LEFT_OUTPUT].value = inputs[LEFT_INPUT].value + SIGNAL1*(1-clampf(params[PAN_PARAM].value,0,1));
+			outputs[RIGHT_OUTPUT].value = inputs[RIGHT_INPUT].value + SIGNAL2*(1-clampf(-params[PAN_PARAM].value,0,1));
+			outputs[TLEFT_OUTPUT].value = SIGNAL1*(1-clampf(params[PAN_PARAM].value,0,1));
+			outputs[TRIGHT_OUTPUT].value = SIGNAL2*(1-clampf(-params[PAN_PARAM].value,0,1));
 			orp_affi = 0;
 		} else {
-			outputs[LEFT_OUTPUT].value = inputs[LEFT_INPUT].value + SIGNAL1*(1-(clamp(inputs[PAN_INPUT].value,5.0f,10.0f)-5)/5);
-			outputs[RIGHT_OUTPUT].value = inputs[RIGHT_INPUT].value + SIGNAL2*(1-(clamp(inputs[PAN_INPUT].value,0.0f,5.0f)+5)/5);
-			outputs[TLEFT_OUTPUT].value = SIGNAL1*(1-(clamp(inputs[PAN_INPUT].value,5.0f,10.0f)-5)/5);
-			outputs[TRIGHT_OUTPUT].value = SIGNAL2*(1-(clamp(inputs[PAN_INPUT].value,0.0f,5.0f)+5)/5);
-			orp_affi = 1;orp_gain = clamp(inputs[PAN_INPUT].value,0.0f,10.0f);
+			outputs[LEFT_OUTPUT].value = inputs[LEFT_INPUT].value + SIGNAL1*(1-(clampf(inputs[PAN_INPUT].value,5,10)-5)/5);
+			outputs[RIGHT_OUTPUT].value = inputs[RIGHT_INPUT].value + SIGNAL2*(1-(clampf(inputs[PAN_INPUT].value,0,5)+5)/5);
+			outputs[TLEFT_OUTPUT].value = SIGNAL1*(1-(clampf(inputs[PAN_INPUT].value,5,10)-5)/5);
+			outputs[TRIGHT_OUTPUT].value = SIGNAL2*(1-(clampf(inputs[PAN_INPUT].value,0,5)+5)/5);
+			orp_affi = 1;orp_gain = clampf(inputs[PAN_INPUT].value,0.0,10.0);
 		}
 
 	if (ON_STATE==1) lights[ON_LIGHT].value=true; else lights[ON_LIGHT].value=false;
@@ -188,22 +188,27 @@ struct MOTORPOTDisplay : TransparentWidget {
 };
 
 
-struct STEREOWidget : ModuleWidget {
-	STEREOWidget(STEREO *module);
-};
 
-STEREOWidget::STEREOWidget(STEREO *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/STEREO.svg")));
+STEREOWidget::STEREOWidget() {
+	STEREO *module = new STEREO();
+	setModule(module);
+	box.size = Vec(15*6, 380);
+
+	{
+		SVGPanel *panel = new SVGPanel();
+		panel->box.size = box.size;
+		panel->setBackground(SVG::load(assetPlugin(plugin, "res/STEREO.svg")));
+		addChild(panel);
+	}
+
+	addChild(createScrew<ScrewSilver>(Vec(15, 0)));
+	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(createScrew<ScrewSilver>(Vec(15, 365)));
+	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 365)));
 
 
-	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
-
-
-	addParam(ParamWidget::create<Trimpot>(Vec(38, 127), module, STEREO::PAN_PARAM, -1.0f, 1.0f, 0.0f));
-	addInput(Port::create<PJ301MPort>(Vec(11, 131), Port::INPUT, module, STEREO::PAN_INPUT));
+	addParam(createParam<Trimpot>(Vec(38, 127), module, STEREO::PAN_PARAM, -1.0, 1.0, 0.0));
+	addInput(createInput<PJ301MPort>(Vec(11, 131), module, STEREO::PAN_INPUT));
 	{
 		MOTORPOTDisplay *pdisplay = new MOTORPOTDisplay();
 		pdisplay->box.pos = Vec(47, 136);
@@ -213,8 +218,8 @@ STEREOWidget::STEREOWidget(STEREO *module) : ModuleWidget(module) {
 		addChild(pdisplay);
 	}
 
-    	addParam(ParamWidget::create<RoundBlackKnob>(Vec(27, 247), module, STEREO::GAIN_PARAM, 0.0f, 10.0f, 5.0f));
-	addInput(Port::create<PJ301MPort>(Vec(11, 281), Port::INPUT, module, STEREO::GAIN_INPUT));
+    	addParam(createParam<RoundBlackKnob>(Vec(27, 247), module, STEREO::GAIN_PARAM, 0.0, 10.0, 5.0));
+	addInput(createInput<PJ301MPort>(Vec(11, 281), module, STEREO::GAIN_INPUT));
 	{
 		MOTORPOTDisplay *display = new MOTORPOTDisplay();
 		display->box.pos = Vec(46, 266);
@@ -225,35 +230,33 @@ STEREOWidget::STEREOWidget(STEREO *module) : ModuleWidget(module) {
 	}
 
 
-   	addParam(ParamWidget::create<LEDButton>(Vec(38, 167), module, STEREO::SOLO_PARAM, 0.0f, 1.0f, 0.0f));
- 	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(42.4, 171.4), module, STEREO::SOLO_LIGHT));
-	addInput(Port::create<PJ301MPort>(Vec(11, 171), Port::INPUT, module, STEREO::SOLOT_INPUT));
+   	addParam(createParam<LEDButton>(Vec(38, 167), module, STEREO::SOLO_PARAM, 0.0, 1.0, 0.0));
+ 	addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 171.4), module, STEREO::SOLO_LIGHT));
+	addInput(createInput<PJ301MPort>(Vec(11, 171), module, STEREO::SOLOT_INPUT));
 
-     	addParam(ParamWidget::create<LEDButton>(Vec(38, 208), module, STEREO::ON_PARAM, 0.0f, 1.0f, 0.0f));
-	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(42.4, 212.4), module, STEREO::ON_LIGHT));
-	addInput(Port::create<PJ301MPort>(Vec(11, 211), Port::INPUT, module, STEREO::ONT_INPUT));
+     	addParam(createParam<LEDButton>(Vec(38, 208), module, STEREO::ON_PARAM, 0.0, 1.0, 0.0));
+	addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 212.4), module, STEREO::ON_LIGHT));
+	addInput(createInput<PJ301MPort>(Vec(11, 211), module, STEREO::ONT_INPUT));
     
 
-	addInput(Port::create<PJ301MPort>(Vec(11, 308), Port::INPUT, module, STEREO::IN1_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(11, 334), Port::INPUT, module, STEREO::IN2_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(11, 308), module, STEREO::IN1_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(11, 334), module, STEREO::IN2_INPUT));
 	
-	addOutput(Port::create<PJ301MPort>(Vec(54, 31), Port::OUTPUT, module, STEREO::EXTSOLO_OUTPUT));
-	addOutput(Port::create<PJ301MPort>(Vec(54, 61), Port::OUTPUT, module, STEREO::LEFT_OUTPUT));
-	addOutput(Port::create<PJ301MPort>(Vec(54, 91), Port::OUTPUT, module, STEREO::RIGHT_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(54, 31), module, STEREO::EXTSOLO_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(54, 61), module, STEREO::LEFT_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(54, 91), module, STEREO::RIGHT_OUTPUT));
 
-	addInput(Port::create<PJ301MPort>(Vec(11, 31), Port::INPUT, module, STEREO::EXTSOLO_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(11, 61), Port::INPUT, module, STEREO::LEFT_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(11, 91), Port::INPUT, module, STEREO::RIGHT_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(11, 31), module, STEREO::EXTSOLO_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(11, 61), module, STEREO::LEFT_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(11, 91), module, STEREO::RIGHT_INPUT));
 
-	addOutput(Port::create<PJ301MPort>(Vec(54, 308), Port::OUTPUT, module, STEREO::TLEFT_OUTPUT));
-	addOutput(Port::create<PJ301MPort>(Vec(54, 334), Port::OUTPUT, module, STEREO::TRIGHT_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(54, 308), module, STEREO::TLEFT_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(54, 334), module, STEREO::TRIGHT_OUTPUT));
 
 	for (int i = 0; i < 11; i++) {
-		if (i<10) addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(70, 242-i*12), module, STEREO::LEVEL_LIGHTS + i));
-			else addChild(ModuleLightWidget::create<MediumLight<RedLight>>(Vec(70, 242-i*12), module, STEREO::LEVEL_LIGHTS + i));
+		if (i<10) addChild(createLight<MediumLight<BlueLight>>(Vec(70, 242-i*12), module, STEREO::LEVEL_LIGHTS + i));
+			else addChild(createLight<MediumLight<RedLight>>(Vec(70, 242-i*12), module, STEREO::LEVEL_LIGHTS + i));
 	}
 	
 	
 }
-
-Model *modelSTEREO = Model::create<STEREO, STEREOWidget>("cf", "STEREO", "Stereo", MIXER_TAG);

@@ -44,9 +44,9 @@ bool ON_STATE = false;
 float or_gain ;
 int or_affi ;
 
-	METRO() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {onReset();}
+	METRO() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {reset();}
 	void step() override;
-void onReset() override {
+void reset() override {
 			ON_STATE = true;
 			
 			}
@@ -76,7 +76,7 @@ void METRO::step() {
 		max_METRO = floor(params[BPM_PARAM].value);
 		or_affi = 0;
 	} else {
-		max_METRO = round(clamp(inputs[BPM_INPUT].value *30,0.0f,300.0f));
+		max_METRO = round(clampf(inputs[BPM_INPUT].value *30,0,300));
 		or_affi = 1;
 		or_gain = max_METRO/30.0;
 	}
@@ -229,20 +229,25 @@ struct MOTORPOTDisplay : TransparentWidget {
 };
 
 
-struct METROWidget : ModuleWidget {
-	METROWidget(METRO *module);
-};
+METROWidget::METROWidget() {
+	METRO *module = new METRO();
+	setModule(module);
+	box.size = Vec(15*6, 380);
 
-METROWidget::METROWidget(METRO *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/METRO.svg")));
+	{
+		SVGPanel *panel = new SVGPanel();
+		panel->box.size = box.size;
+		panel->setBackground(SVG::load(assetPlugin(plugin, "res/METRO.svg")));
+		addChild(panel);
+	}
 
-	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
+	addChild(createScrew<ScrewSilver>(Vec(15, 0)));
+	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(createScrew<ScrewSilver>(Vec(15, 365)));
+	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 365)));
 
-	addParam(ParamWidget::create<RoundBlackKnob>(Vec(27, 107), module, METRO::BPM_PARAM, 0.0f, 301.0f, 120.1f));
-	addInput(Port::create<PJ301MPort>(Vec(11, 141), Port::INPUT, module, METRO::BPM_INPUT));
+	addParam(createParam<RoundBlackKnob>(Vec(27, 107), module, METRO::BPM_PARAM, 0.0, 301.0, 120.1));
+	addInput(createInput<PJ301MPort>(Vec(11, 141), module, METRO::BPM_INPUT));
 	{
 		MOTORPOTDisplay *display = new MOTORPOTDisplay();
 		display->box.pos = Vec(46, 126);
@@ -252,19 +257,20 @@ METROWidget::METROWidget(METRO *module) : ModuleWidget(module) {
 		addChild(display);
 	}
 
-     	addParam(ParamWidget::create<LEDButton>(Vec(38, 167), module, METRO::ON_PARAM, 0.0f, 1.0f, 0.0f));
-	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(42.4, 171.4), module, METRO::ON_LIGHT));
-	addInput(Port::create<PJ301MPort>(Vec(11, 171), Port::INPUT, module, METRO::ON_INPUT));
+     	addParam(createParam<LEDButton>(Vec(38, 167), module, METRO::ON_PARAM, 0.0, 1.0, 0.0));
+	addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 171.4), module, METRO::ON_LIGHT));
+	addInput(createInput<PJ301MPort>(Vec(11, 171), module, METRO::ON_INPUT));
 
-     	addParam(ParamWidget::create<LEDButton>(Vec(38, 197), module, METRO::RST_PARAM, 0.0f, 1.0f, 0.0f));
-	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(42.4, 201.4), module, METRO::MES_LIGHT));
+     	addParam(createParam<LEDButton>(Vec(38, 197), module, METRO::RST_PARAM, 0.0, 1.0, 0.0));
+	addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 201.4), module, METRO::MES_LIGHT));
+	//addOutput(createOutput<PJ301MPort>(Vec(54, 221), module, METRO::MES_OUTPUT));
 
-     	addParam(ParamWidget::create<LEDButton>(Vec(38, 227), module, METRO::BEAT_PARAM, 0.0f, 1.0f, 0.0f));
-	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(42.4, 231.4), module, METRO::BEAT_LIGHT));
-	addOutput(Port::create<PJ301MPort>(Vec(54, 265), Port::OUTPUT, module, METRO::BEAT_OUTPUT));
+     	addParam(createParam<LEDButton>(Vec(38, 227), module, METRO::BEAT_PARAM, 0.0, 1.0, 0.0));
+	addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 231.4), module, METRO::BEAT_LIGHT));
+	addOutput(createOutput<PJ301MPort>(Vec(54, 265), module, METRO::BEAT_OUTPUT));
 
-	addOutput(Port::create<PJ301MPort>(Vec(11, 321), Port::OUTPUT, module, METRO::START_OUTPUT));
-	addOutput(Port::create<PJ301MPort>(Vec(54, 321), Port::OUTPUT, module, METRO::OUT_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(11, 321), module, METRO::START_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(54, 321), module, METRO::OUT_OUTPUT));
 
 	NumDisplayWidget *display = new NumDisplayWidget();
 	display->box.pos = Vec(20,56);
@@ -274,6 +280,3 @@ METROWidget::METROWidget(METRO *module) : ModuleWidget(module) {
 
 	
 }
-
-
-Model *modelMETRO = Model::create<METRO, METROWidget>("cf", "METRO", "Metro", CLOCK_TAG);

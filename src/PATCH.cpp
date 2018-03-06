@@ -56,42 +56,44 @@ void PATCH::step() {
 	
 }
 
+PATCHWidget::PATCHWidget() {
+	PATCH *module = new PATCH();
+	setModule(module);
 
+	box.size = Vec(15*9, 380);
 
-struct PATCHWidget : ModuleWidget {
-	PATCHWidget(PATCH *module);
-};
+	{
+		SVGPanel *panel = new SVGPanel();
+		panel->box.size = box.size;
+		panel->setBackground(SVG::load(assetPlugin(plugin, "res/PATCH.svg")));
+		addChild(panel);
+	}
 
-PATCHWidget::PATCHWidget(PATCH *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/PATCH.svg")));
+	addChild(createScrew<ScrewSilver>(Vec(15, 0)));
+	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(createScrew<ScrewSilver>(Vec(15, 365)));
+	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 365)));
 
-	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
+	addInput(createInput<PJ301MPort>(Vec(10, 171), module, PATCH::L_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(40, 171), module, PATCH::R_INPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(70, 171), module, PATCH::L_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(100, 171), module, PATCH::R_OUTPUT));
 
-	addInput(Port::create<PJ301MPort>(Vec(10, 171), Port::INPUT, module, PATCH::L_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(40, 171), Port::INPUT, module, PATCH::R_INPUT));
-	addOutput(Port::create<PJ301MPort>(Vec(70, 171), Port::OUTPUT, module, PATCH::L_OUTPUT));
-	addOutput(Port::create<PJ301MPort>(Vec(100, 171), Port::OUTPUT, module, PATCH::R_OUTPUT));
+	addInput(createInput<PJ301MPort>(Vec(15, 61), module, PATCH::M1_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(55, 41), module, PATCH::M2_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(95, 71), module, PATCH::M3_INPUT));
 
-	addInput(Port::create<PJ301MPort>(Vec(15, 61), Port::INPUT, module, PATCH::M1_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(55, 41), Port::INPUT, module, PATCH::M2_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(95, 71), Port::INPUT, module, PATCH::M3_INPUT));
-
-	addOutput(Port::create<PJ301MPort>(Vec(40, 121), Port::OUTPUT, module, PATCH::M1_OUTPUT));
-	addOutput(Port::create<PJ301MPort>(Vec(55, 81), Port::OUTPUT, module, PATCH::M2_OUTPUT));
-	addOutput(Port::create<PJ301MPort>(Vec(80, 111), Port::OUTPUT, module, PATCH::M3_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(40, 121), module, PATCH::M1_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(55, 81), module, PATCH::M2_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(80, 111), module, PATCH::M3_OUTPUT));
 
 for (int i = 0; i < 8; i++) {
 
-	addInput(Port::create<PJ301MPort>(Vec(10+(i-4*floor(i/4))*30, 231+60*floor(i/4)), Port::INPUT, module, PATCH::IN_INPUT + i));
-	addOutput(Port::create<PJ301MPort>(Vec(10+(i-4*floor(i/4))*30, 261+60*floor(i/4)), Port::OUTPUT, module, PATCH::OUT_OUTPUT + i));
+	addInput(createInput<PJ301MPort>(Vec(10+(i-4*floor(i/4))*30, 231+60*floor(i/4)), module, PATCH::IN_INPUT + i));
+	addOutput(createOutput<PJ301MPort>(Vec(10+(i-4*floor(i/4))*30, 261+60*floor(i/4)), module, PATCH::OUT_OUTPUT + i));
 
 	
 }
 
 	
 }
-
-Model *modelPATCH = Model::create<PATCH, PATCHWidget>("cf", "PATCH", "Patch", UTILITY_TAG);

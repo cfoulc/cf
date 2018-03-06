@@ -28,12 +28,20 @@ struct DAVE : Module {
 void DAVE::step() {
 
 }
-struct DAVEWidget : ModuleWidget {
-	DAVEWidget(DAVE *module);
-};
 
-DAVEWidget::DAVEWidget(DAVE *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/DAVE.svg")));
+
+DAVEWidget::DAVEWidget() {
+	DAVE *module = new DAVE();
+	setModule(module);
+	box.size = Vec(15*8, 380);
+
+	{
+		SVGPanel *panel = new SVGPanel();
+		panel->box.size = box.size;
+		panel->setBackground(SVG::load(assetPlugin(plugin, "res/DAVE.svg")));
+		addChild(panel);
+	}
+
+
+
 }
-
-Model *modelDAVE = Model::create<DAVE, DAVEWidget>("cf", "DAVE", "Dave", BLANK_TAG);

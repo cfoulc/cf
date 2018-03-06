@@ -56,7 +56,7 @@ struct trSEQ : Module {
 	GateMode gateMode = TRIGGER;
 	PulseGenerator gatePulse;
 
-	trSEQ() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {onReset();}
+	trSEQ() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
 	void step() override;
 
 	json_t *toJson() override {
@@ -102,15 +102,15 @@ struct trSEQ : Module {
 			gateMode = (GateMode)json_integer_value(gateModeJ);
 	}
 
-	void onReset() override {
+	void reset() override {
 		for (int i = 0; i < 16; i++) {
 			gateState[i] = false;
 		}
 	}
 
-	void onRandomize() override {
+	void randomize() override {
 		for (int i = 0; i < 16; i++) {
-			gateState[i] = (randomUniform() > 0.5);
+			gateState[i] = (randomf() > 0.5);
 		}
 	}
 };
@@ -156,10 +156,10 @@ void trSEQ::step() {
 
 	if (nextStep) {
 		// Advance step
-		int numSteps = clamp(static_cast<int>(round(params[STEPS_PARAM].value + inputs[STEPS_INPUT].value)), 1, 16);
+		int numSteps = clampi(roundf(params[STEPS_PARAM].value + inputs[STEPS_INPUT].value), 1, 16);
 
 		index += 1;
-
+	
 		if (index >= numSteps) {
 			index = 0;
 		}
@@ -215,63 +215,56 @@ if (params[CLEAR_PARAM].value or inputs[CLEAR_INPUT].value>0) gateState[index] =
 	lights[GATES_LIGHT].value = gatesOn ? 1.0 : 0.0;
 	}
 
-struct PadButton : SVGSwitch, MomentarySwitch {
-	PadButton() {
-		addFrame(SVG::load(assetPlugin(plugin, "res/PadButton.svg")));
-		addFrame(SVG::load(assetPlugin(plugin, "res/PadButtonDown.svg")));
-		sw->wrap();
-		box.size = sw->box.size;
+
+trSEQWidget::trSEQWidget() {
+	trSEQ *module = new trSEQ();
+	setModule(module);
+	box.size = Vec(15*22, 380);
+
+	{
+		SVGPanel *panel = new SVGPanel();
+		panel->box.size = box.size;
+		panel->setBackground(SVG::load(assetPlugin(plugin, "res/trSEQ.svg")));
+		addChild(panel);
 	}
-};
 
+	addChild(createScrew<ScrewSilver>(Vec(15, 0)));
+	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(createScrew<ScrewSilver>(Vec(15, 365)));
+	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 365)));
 
-struct trSEQWidget : ModuleWidget {
-	trSEQWidget(trSEQ *module);
-	Menu *createContextMenu() override;
-};
-
-trSEQWidget::trSEQWidget(trSEQ *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/trSEQ.svg")));
-
-	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
-
-	addParam(ParamWidget::create<RoundSmallBlackKnob>(Vec(18, 56), module, trSEQ::CLOCK_PARAM, -2.0f, 6.0f, 2.0f));
-	addParam(ParamWidget::create<LEDButton>(Vec(60, 61-1), module, trSEQ::RUN_PARAM, 0.0f, 1.0f, 0.0f));
-	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(64.4, 64.4), module, trSEQ::RUNNING_LIGHT));
-	addParam(ParamWidget::create<LEDButton>(Vec(99, 61-1), module, trSEQ::RESET_PARAM, 0.0f, 1.0f, 0.0f));
-	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(103.4, 64.4), module, trSEQ::RESET_LIGHT));
-	addParam(ParamWidget::create<RoundSmallBlackSnapKnob>(Vec(132, 56), module, trSEQ::STEPS_PARAM, 1.0f, 16.0f, 16.0f));
-	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(289.4, 64.4), module, trSEQ::GATES_LIGHT));
-
+	addParam(createParam<RoundSmallBlackKnob>(Vec(18, 56), module, trSEQ::CLOCK_PARAM, -2.0, 6.0, 2.0));
+	addParam(createParam<LEDButton>(Vec(60, 61-1), module, trSEQ::RUN_PARAM, 0.0, 1.0, 0.0));
+	addChild(createLight<MediumLight<BlueLight>>(Vec(64.4, 64.4), module, trSEQ::RUNNING_LIGHT));
+	addParam(createParam<LEDButton>(Vec(99, 61-1), module, trSEQ::RESET_PARAM, 0.0, 1.0, 0.0));
+	addChild(createLight<MediumLight<BlueLight>>(Vec(103.4, 64.4), module, trSEQ::RESET_LIGHT));
+	addParam(createParam<RoundSmallBlackSnapKnob>(Vec(132, 56), module, trSEQ::STEPS_PARAM, 1.0, 16.0, 16.0));
+	addChild(createLight<MediumLight<BlueLight>>(Vec(289.4, 64.4), module, trSEQ::GATES_LIGHT));
+	
 	static const float portX[8] = {20, 58, 96, 135, 173, 212, 250, 289};
 
 
-	addParam(ParamWidget::create<PadButton>(Vec(portX[5]-26, 56), module, trSEQ::NOTESIN_PARAM, 0.0f, 1.0f, 0.0f));
-	addParam(ParamWidget::create<PadButton>(Vec(portX[6]-26, 56), module, trSEQ::CLEAR_PARAM, 0.0f, 1.0f, 0.0f));
-	addInput(Port::create<PJ301MPort>(Vec(portX[5]-24, 98), Port::INPUT, module, trSEQ::NOTESIN_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(portX[6]-24, 98), Port::INPUT, module, trSEQ::CLEAR_INPUT));
+	addParam(createParam<PadButton>(Vec(portX[5]-26, 56), module, trSEQ::NOTESIN_PARAM, 0.0, 1.0, 0.0));
+	addParam(createParam<PadButton>(Vec(portX[6]-26, 56), module, trSEQ::CLEAR_PARAM, 0.0, 1.0, 0.0));
+	addInput(createInput<PJ301MPort>(Vec(portX[5]-24, 98), module, trSEQ::NOTESIN_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(portX[6]-24, 98), module, trSEQ::CLEAR_INPUT));
 
 
-	addInput(Port::create<PJ301MPort>(Vec(portX[0]-1, 98), Port::INPUT, module, trSEQ::CLOCK_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(portX[1]-1, 98), Port::INPUT, module, trSEQ::EXT_CLOCK_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(portX[2]-1, 98), Port::INPUT, module, trSEQ::RESET_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(portX[3]-1, 98), Port::INPUT, module, trSEQ::STEPS_INPUT));
-	addOutput(Port::create<PJ301MPort>(Vec(portX[7]-6.5, 98), Port::OUTPUT, module, trSEQ::GATES_OUTPUT));
+	addInput(createInput<PJ301MPort>(Vec(portX[0]-1, 98), module, trSEQ::CLOCK_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(portX[1]-1, 98), module, trSEQ::EXT_CLOCK_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(portX[2]-1, 98), module, trSEQ::RESET_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(portX[3]-1, 98), module, trSEQ::STEPS_INPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(portX[7]-6.5, 98), module, trSEQ::GATES_OUTPUT));
 
 
 	for (int i = 0; i < 16; i++) {
 
-		addParam(ParamWidget::create<LEDButton>(Vec(i*19+12, 203-1), module, trSEQ::GATE_PARAM + i, 0.0f, 1.0f, 0.0f));
-		addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(i*19+16.4, 206.4), module, trSEQ::GATE_LIGHTS + i));
-		addInput(Port::create<PJ301MPort>(Vec(i*19+9, 247+ 40*(i%2)), Port::INPUT, module, trSEQ::GATE_INPUT + i));
+		addParam(createParam<LEDButton>(Vec(i*19+12, 203-1), module, trSEQ::GATE_PARAM + i, 0.0, 1.0, 0.0));
+		addChild(createLight<MediumLight<BlueLight>>(Vec(i*19+16.4, 206.4), module, trSEQ::GATE_LIGHTS + i));
+		addInput(createInput<PJ301MPort>(Vec(i*19+9, 247+ 40*(i%2)), module, trSEQ::GATE_INPUT + i));
 	}
 
 }
-
-
 
 struct trSEQGateModeItem : MenuItem {
 	trSEQ *trseq;
@@ -317,5 +310,3 @@ Menu *trSEQWidget::createContextMenu() {
 
 	return menu;
 }
-
-Model *modeltrSEQ = Model::create<trSEQ, trSEQWidget>("cf", "trSEQ", "trSEQ", SEQUENCER_TAG);
