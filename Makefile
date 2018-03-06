@@ -1,9 +1,16 @@
 SLUG = cf
-VERSION = 0.6.0
+VERSION = 0.5.14
+FLAGS += -D v050
 
-SOURCES += $(wildcard src/*.cpp)
+SOURCES = $(wildcard src/*.cpp)
 
-DISTRIBUTABLES += $(wildcard LICENSE*) res
+include ../../plugin.mk
 
-RACK_DIR ?= ../..
-include $(RACK_DIR)/plugin.mk
+.PHONY: dist
+dist: all
+	rm -rf dist
+	mkdir -p dist/$(SLUG)
+	cp LICENSE* dist/$(SLUG)/
+	cp $(TARGET) dist/$(SLUG)/
+	cp -R res dist/$(SLUG)/
+	cd dist && zip -5 -r $(SLUG)-$(VERSION)-$(ARCH).zip $(SLUG)
