@@ -20,6 +20,7 @@ void init(rack::Plugin *p) {
 	p->addModel(createModel<MONOWidget>("cf", "MONO", "Mono", MIXER_TAG));
 	p->addModel(createModel<STEREOWidget>("cf", "STEREO", "Stereo", MIXER_TAG));
 	p->addModel(createModel<MASTERWidget>("cf", "MASTER", "Master", MIXER_TAG));
+	p->addModel(createModel<SUBWidget>("cf", "SUB", "Sub", MIXER_TAG));
 	p->addModel(createModel<METROWidget>("cf", "METRO", "Metro", UTILITY_TAG));
 	p->addModel(createModel<EACHWidget>("cf", "EACH", "Each", UTILITY_TAG));
 	p->addModel(createModel<PATCHWidget>("cf", "PATCH", "Patch", UTILITY_TAG));

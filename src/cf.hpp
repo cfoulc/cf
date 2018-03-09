@@ -47,6 +47,9 @@ struct STEREOWidget : ModuleWidget {
 struct MASTERWidget : ModuleWidget {
 	MASTERWidget();
 };
+struct SUBWidget : ModuleWidget {
+	SUBWidget();
+};
 struct METROWidget : ModuleWidget {
 	METROWidget();
 };
