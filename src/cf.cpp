@@ -17,6 +17,8 @@ void init(rack::Plugin *p) {
    	p->addModel(createModel<FOURWidget>("cf", "FOUR", "Four", UTILITY_TAG));
 	p->addModel(createModel<CUBEWidget>("cf", "CUBE", "Cube", UTILITY_TAG));
 	p->addModel(createModel<trSEQWidget>("cf", "trSEQ", "trSEQ", SEQUENCER_TAG));
+	p->addModel(createModel<LEDSEQWidget>("cf", "LEDSEQ", "LedSEQ", SEQUENCER_TAG));
+	p->addModel(createModel<L3DS3QWidget>("cf", "L3DS3Q", "L3dS3Q", SEQUENCER_TAG));
 	p->addModel(createModel<MONOWidget>("cf", "MONO", "Mono", MIXER_TAG));
 	p->addModel(createModel<STEREOWidget>("cf", "STEREO", "Stereo", MIXER_TAG));
 	p->addModel(createModel<MASTERWidget>("cf", "MASTER", "Master", MIXER_TAG));

@@ -31,7 +31,12 @@ struct trSEQWidget : ModuleWidget {
 	trSEQWidget();
 Menu *createContextMenu() override;
 };
-
+struct LEDSEQWidget : ModuleWidget {
+	LEDSEQWidget();
+};
+struct L3DS3QWidget : ModuleWidget {
+	L3DS3QWidget();
+};
 struct DAVEWidget : ModuleWidget {
 	DAVEWidget();
 };
