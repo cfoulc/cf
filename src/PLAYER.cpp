@@ -30,6 +30,7 @@ struct PLAYER : Module {
 		SPD_PARAM,
 		NEXT_PARAM,
 		PREV_PARAM,
+		OSC_PARAM,
 		NUM_PARAMS 
 	};
 	enum InputIds {
@@ -47,6 +48,7 @@ struct PLAYER : Module {
 		NUM_OUTPUTS
 	};
 	enum LightIds {
+		OSC_LIGHT,
 		NUM_LIGHTS
 	};
 	
@@ -65,11 +67,13 @@ struct PLAYER : Module {
 	SchmittTrigger prevTrigger;
 	SchmittTrigger nextinTrigger;
 	SchmittTrigger previnTrigger;
+	SchmittTrigger oscTrigger;
 	vector <string> fichier;
 
 	int sampnumber = 0;
 	int retard = 0;
 	bool reload = false ;
+	bool oscState = false ;
 
 
 	PLAYER() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) { }
@@ -84,6 +88,7 @@ struct PLAYER : Module {
 		json_t *rootJ = json_object();
 		// lastPath
 		json_object_set_new(rootJ, "lastPath", json_string(lastPath.c_str()));	
+json_object_set_new(rootJ, "oscstate", json_integer(oscState));
 		return rootJ;
 	}
 
@@ -96,6 +101,10 @@ struct PLAYER : Module {
 			loadSample(lastPath);
 			
 		}
+	json_t *oscstateJ = json_object_get(rootJ, "oscstate");
+		if (oscstateJ)
+			oscState = json_integer_value(oscstateJ);
+			lights[OSC_LIGHT].value=oscState;
 	}
 };
 
@@ -180,7 +189,11 @@ void PLAYER::step() {
 			} 
 	} else fileDesc = "right click to load .wav or .aif sample";
 
+if (oscTrigger.process(params[OSC_PARAM].value))
+			{oscState =!oscState;lights[OSC_LIGHT].value=oscState;}
+
 	// Play
+if (!oscState) {
     bool gated = inputs[GATE_INPUT].value > 0;
     
     if (inputs[POS_INPUT].active)
@@ -221,6 +234,28 @@ void PLAYER::step() {
 	    outputs[OUT_OUTPUT].value = 0;outputs[OUT2_OUTPUT].value = 0;
 	}
        if (!inputs[TRIG_INPUT].active) {if (gated == false) {play = false; outputs[OUT_OUTPUT].value = 0;outputs[OUT2_OUTPUT].value = 0;}}
+	} else {
+	
+	if (((floor(samplePos) < audioFile.getNumSamplesPerChannel()) && (floor(samplePos) >= 0))) {
+		if (audioFile.getNumChannels() == 1) {
+			outputs[OUT_OUTPUT].value = 5 * audioFile.samples[0][floor(samplePos)];
+			outputs[OUT2_OUTPUT].value = 5 * audioFile.samples[0][floor(samplePos)];}
+		else if (audioFile.getNumChannels() ==2) {
+			outputs[OUT_OUTPUT].value = 5 * audioFile.samples[0][floor(samplePos)];
+			outputs[OUT2_OUTPUT].value = 5 * audioFile.samples[1][floor(samplePos)];
+        		}
+		if (inputs[SPD_INPUT].active)
+        samplePos = samplePos+1+(params[LSPEED_PARAM].value +inputs[SPD_INPUT].value * params[TSPEED_PARAM].value) /3;
+        else {
+            samplePos = samplePos+1+(params[LSPEED_PARAM].value) /3;
+            inputs[SPD_INPUT].value = 0 ;}
+	}
+	else
+	{ 
+		samplePos=0;
+	}
+
+	}
 }
 
 struct PLAYERDisplay : TransparentWidget {
@@ -347,6 +382,9 @@ PLAYERWidget::PLAYERWidget() {
 	addInput(createInput<PJ301MPort>(Vec(portX0[0], 275), module, PLAYER::TRIG_INPUT));
 	addParam(createParam<upButton>(Vec(43, 95), module, PLAYER::PREV_PARAM, 0.0, 1.0, 0.0));
 	addParam(createParam<downButton>(Vec(73, 95), module, PLAYER::NEXT_PARAM, 0.0, 1.0, 0.0));
+
+	addParam(createParam<LEDButton>(Vec(13, 210), module, PLAYER::OSC_PARAM, 0.0, 1.0, 0.0));
+		addChild(createLight<MediumLight<BlueLight>>(Vec(17.4, 214.4), module, PLAYER::OSC_LIGHT));
 }
 
 struct PLAYERItem : MenuItem {
