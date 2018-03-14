@@ -1,19 +1,10 @@
 #include "cf.hpp"
 #include "dsp/digital.hpp"
-#include "../ext/osdialog/osdialog.h"
+#include "../dep/osdialog/osdialog.h"
 #include "AudioFile.h"
 #include <vector>
 #include "cmath"
-//#include <sys/dir.h>
 #include <dirent.h>
-#include <algorithm> //----added by Joakim Lindbom
-
-
-//#ifndef WIN32
-
-//    #include <sys/types.h>
-
-//#endif
 
 
 using namespace std;
@@ -30,7 +21,6 @@ struct PLAYER : Module {
 		SPD_PARAM,
 		NEXT_PARAM,
 		PREV_PARAM,
-		OSC_PARAM,
 		NUM_PARAMS 
 	};
 	enum InputIds {
@@ -48,7 +38,6 @@ struct PLAYER : Module {
 		NUM_OUTPUTS
 	};
 	enum LightIds {
-		OSC_LIGHT,
 		NUM_LIGHTS
 	};
 	
@@ -67,13 +56,11 @@ struct PLAYER : Module {
 	SchmittTrigger prevTrigger;
 	SchmittTrigger nextinTrigger;
 	SchmittTrigger previnTrigger;
-	SchmittTrigger oscTrigger;
 	vector <string> fichier;
 
 	int sampnumber = 0;
 	int retard = 0;
 	bool reload = false ;
-	bool oscState = false ;
 
 
 	PLAYER() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) { }
@@ -88,7 +75,6 @@ struct PLAYER : Module {
 		json_t *rootJ = json_object();
 		// lastPath
 		json_object_set_new(rootJ, "lastPath", json_string(lastPath.c_str()));	
-json_object_set_new(rootJ, "oscstate", json_integer(oscState));
 		return rootJ;
 	}
 
@@ -101,10 +87,6 @@ json_object_set_new(rootJ, "oscstate", json_integer(oscState));
 			loadSample(lastPath);
 			
 		}
-	json_t *oscstateJ = json_object_get(rootJ, "oscstate");
-		if (oscstateJ)
-			oscState = json_integer_value(oscstateJ);
-			lights[OSC_LIGHT].value=oscState;
 	}
 };
 
@@ -149,16 +131,6 @@ void PLAYER::loadSample(std::string path) {
 					}
 				
 				}
-
-//----added by Joakim Lindbom
-		sort(fichier.begin(), fichier.end());  // Linux and OSX needs this to get files in right order
-            for (int o=0;o<int(fichier.size()-1); o++) {
-                if ((dir + "/" + fichier[o])==path) {
-                    sampnumber = o;
-                }
-            }
-//---------------
-
 			closedir(rep);
 			reload = false;
 		}
@@ -187,18 +159,14 @@ void PLAYER::step() {
 			if (sampnumber > 0) sampnumber=sampnumber-1; else sampnumber =int(fichier.size()-1);
 			loadSample(dir + "/" + fichier[sampnumber]);
 			} 
-	} else fileDesc = "right click to load .wav or .aif sample";
-
-if (oscTrigger.process(params[OSC_PARAM].value))
-			{oscState =!oscState;lights[OSC_LIGHT].value=oscState;}
+	} else fileDesc = "right click to load \n .wav or .aif sample \n :)";
 
 	// Play
-if (!oscState) {
     bool gated = inputs[GATE_INPUT].value > 0;
     
     if (inputs[POS_INPUT].active)
-    startPos = clampf((params[LSTART_PARAM].value + inputs[POS_INPUT].value * params[TSTART_PARAM].value),0.0,10.0)*audioFile.getNumSamplesPerChannel()/10;
-    else {startPos = clampf((params[LSTART_PARAM].value),0.0,10.0)*audioFile.getNumSamplesPerChannel()/10;
+    startPos = clamp((params[LSTART_PARAM].value + inputs[POS_INPUT].value * params[TSTART_PARAM].value),0.0f,10.0f)*audioFile.getNumSamplesPerChannel()/10;
+    else {startPos = clamp((params[LSTART_PARAM].value),0.0f,10.0f)*audioFile.getNumSamplesPerChannel()/10;
         inputs[POS_INPUT].value = 0 ;
     }
     
@@ -234,29 +202,24 @@ if (!oscState) {
 	    outputs[OUT_OUTPUT].value = 0;outputs[OUT2_OUTPUT].value = 0;
 	}
        if (!inputs[TRIG_INPUT].active) {if (gated == false) {play = false; outputs[OUT_OUTPUT].value = 0;outputs[OUT2_OUTPUT].value = 0;}}
-	} else {
-	
-	if (((floor(samplePos) < audioFile.getNumSamplesPerChannel()) && (floor(samplePos) >= 0))) {
-		if (audioFile.getNumChannels() == 1) {
-			outputs[OUT_OUTPUT].value = 5 * audioFile.samples[0][floor(samplePos)];
-			outputs[OUT2_OUTPUT].value = 5 * audioFile.samples[0][floor(samplePos)];}
-		else if (audioFile.getNumChannels() ==2) {
-			outputs[OUT_OUTPUT].value = 5 * audioFile.samples[0][floor(samplePos)];
-			outputs[OUT2_OUTPUT].value = 5 * audioFile.samples[1][floor(samplePos)];
-        		}
-		if (inputs[SPD_INPUT].active)
-        samplePos = samplePos+1+(params[LSPEED_PARAM].value +inputs[SPD_INPUT].value * params[TSPEED_PARAM].value) /3;
-        else {
-            samplePos = samplePos+1+(params[LSPEED_PARAM].value) /3;
-            inputs[SPD_INPUT].value = 0 ;}
-	}
-	else
-	{ 
-		samplePos=0;
-	}
-
-	}
 }
+
+struct upButton : SVGSwitch, MomentarySwitch {
+	upButton() {
+		addFrame(SVG::load(assetPlugin(plugin, "res/upButton.svg")));
+		addFrame(SVG::load(assetPlugin(plugin, "res/upButtonDown.svg")));
+		sw->wrap();
+		box.size = sw->box.size;
+	}
+};
+struct downButton : SVGSwitch, MomentarySwitch {
+	downButton() {
+		addFrame(SVG::load(assetPlugin(plugin, "res/downButton.svg")));
+		addFrame(SVG::load(assetPlugin(plugin, "res/downButtonDown.svg")));
+		sw->wrap();
+		box.size = sw->box.size;
+	}
+};
 
 struct PLAYERDisplay : TransparentWidget {
 	PLAYER *module;
@@ -337,22 +300,20 @@ struct PLAYERDisplay : TransparentWidget {
 	}
 };
 
-PLAYERWidget::PLAYERWidget() {
-	PLAYER *module = new PLAYER();
-	setModule(module);
-	box.size = Vec(15*9, 380);
 
-	{
-		SVGPanel *panel = new SVGPanel();
-		panel->box.size = box.size;
-		panel->setBackground(SVG::load(assetPlugin(plugin, "res/PLAYER.svg")));
-		addChild(panel);
-	}
 
-	addChild(createScrew<ScrewSilver>(Vec(15, 0)));
-	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(createScrew<ScrewSilver>(Vec(15, 365)));
-	addChild(createScrew<ScrewSilver>(Vec(box.size.x-30, 365)));
+struct PLAYERWidget : ModuleWidget {
+	PLAYERWidget(PLAYER *module);
+	Menu *createContextMenu() override;
+};
+
+PLAYERWidget::PLAYERWidget(PLAYER *module) : ModuleWidget(module) {
+	setPanel(SVG::load(assetPlugin(plugin, "res/PLAYER.svg")));
+
+	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
+	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
+	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
 	
 	{
 		PLAYERDisplay *display = new PLAYERDisplay();
@@ -364,27 +325,23 @@ PLAYERWidget::PLAYERWidget() {
 		
 	static const float portX0[4] = {10, 40, 70, 100};
 	
-	//addParam(createParam<CKD6>(Vec(portX0[1]-5, 244), module, PLAYER::PLAY_PARAM, 0.0, 4.0, 0.0));
 
-	addParam(createParam<RoundBlackKnob>(Vec(23, 230), module, PLAYER::LSTART_PARAM, 0.0, 10.0, 0));
-	addParam(createParam<RoundBlackKnob>(Vec(73, 230), module, PLAYER::LSPEED_PARAM, -5.0, 5.0, 0));
-	addParam(createParam<Trimpot>(Vec(42, 278), module, PLAYER::TSTART_PARAM, -1.0, 1.0, 0));
-	addParam(createParam<Trimpot>(Vec(73, 278), module, PLAYER::TSPEED_PARAM, -1.0, 1.0, 0));
+	addParam(ParamWidget::create<RoundBlackKnob>(Vec(23, 230), module, PLAYER::LSTART_PARAM, 0.0f, 10.0f, 0.0f));
+	addParam(ParamWidget::create<RoundBlackKnob>(Vec(73, 230), module, PLAYER::LSPEED_PARAM, -5.0f, 5.0f, 0.0f));
+	addParam(ParamWidget::create<Trimpot>(Vec(42, 278), module, PLAYER::TSTART_PARAM, -1.0f, 1.0f, 0.0f));
+	addParam(ParamWidget::create<Trimpot>(Vec(73, 278), module, PLAYER::TSPEED_PARAM, -1.0f, 1.0f, 0.0f));
 
-	addInput(createInput<PJ301MPort>(Vec(portX0[0], 321), module, PLAYER::GATE_INPUT));
-	addInput(createInput<PJ301MPort>(Vec(portX0[1], 321), module, PLAYER::POS_INPUT));
-  	addInput(createInput<PJ301MPort>(Vec(portX0[2], 321), module, PLAYER::SPD_INPUT));
-	addOutput(createOutput<PJ301MPort>(Vec(portX0[3], 275), module, PLAYER::OUT_OUTPUT));
-	addOutput(createOutput<PJ301MPort>(Vec(portX0[3], 321), module, PLAYER::OUT2_OUTPUT));
+	addInput(Port::create<PJ301MPort>(Vec(portX0[0], 321), Port::INPUT, module, PLAYER::GATE_INPUT));
+	addInput(Port::create<PJ301MPort>(Vec(portX0[1], 321), Port::INPUT, module, PLAYER::POS_INPUT));
+  	addInput(Port::create<PJ301MPort>(Vec(portX0[2], 321), Port::INPUT, module, PLAYER::SPD_INPUT));
+	addOutput(Port::create<PJ301MPort>(Vec(portX0[3], 275), Port::OUTPUT, module, PLAYER::OUT_OUTPUT));
+	addOutput(Port::create<PJ301MPort>(Vec(portX0[3], 321), Port::OUTPUT, module, PLAYER::OUT2_OUTPUT));
 
-	addInput(createInput<PJ301MPort>(Vec(portX0[0], 91), module, PLAYER::PREV_INPUT));
-	addInput(createInput<PJ301MPort>(Vec(portX0[3], 91), module, PLAYER::NEXT_INPUT));
-	addInput(createInput<PJ301MPort>(Vec(portX0[0], 275), module, PLAYER::TRIG_INPUT));
-	addParam(createParam<upButton>(Vec(43, 95), module, PLAYER::PREV_PARAM, 0.0, 1.0, 0.0));
-	addParam(createParam<downButton>(Vec(73, 95), module, PLAYER::NEXT_PARAM, 0.0, 1.0, 0.0));
-
-	addParam(createParam<LEDButton>(Vec(13, 210), module, PLAYER::OSC_PARAM, 0.0, 1.0, 0.0));
-		addChild(createLight<MediumLight<BlueLight>>(Vec(17.4, 214.4), module, PLAYER::OSC_LIGHT));
+	addInput(Port::create<PJ301MPort>(Vec(portX0[0], 91), Port::INPUT, module, PLAYER::PREV_INPUT));
+	addInput(Port::create<PJ301MPort>(Vec(portX0[3], 91), Port::INPUT, module, PLAYER::NEXT_INPUT));
+	addInput(Port::create<PJ301MPort>(Vec(portX0[0], 275), Port::INPUT, module, PLAYER::TRIG_INPUT));
+	addParam(ParamWidget::create<upButton>(Vec(43, 95), module, PLAYER::PREV_PARAM, 0.0f, 1.0f, 0.0f));
+	addParam(ParamWidget::create<downButton>(Vec(73, 95), module, PLAYER::NEXT_PARAM, 0.0f, 1.0f, 0.0f));
 }
 
 struct PLAYERItem : MenuItem {
@@ -420,3 +377,5 @@ Menu *PLAYERWidget::createContextMenu() {
 
 	return menu;
 }
+
+Model *modelPLAYER = Model::create<PLAYER, PLAYERWidget>("cf", "PLAYER", "Player", SAMPLER_TAG);
