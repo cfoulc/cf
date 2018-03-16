@@ -1,6 +1,6 @@
 #include "cf.hpp"
 #include "dsp/digital.hpp"
-#include "../dep/osdialog/osdialog.h"
+#include "osdialog.h"
 #include "AudioFile.h"
 #include <vector>
 #include "cmath"
@@ -21,7 +21,7 @@ struct PLAYER : Module {
 		SPD_PARAM,
 		NEXT_PARAM,
 		PREV_PARAM,
-		NUM_PARAMS 
+		NUM_PARAMS
 	};
 	enum InputIds {
 		GATE_INPUT,
@@ -40,7 +40,7 @@ struct PLAYER : Module {
 	enum LightIds {
 		NUM_LIGHTS
 	};
-	
+
 	bool play = false;
 	string lastPath = "";
 	AudioFile<double> audioFile;
@@ -66,15 +66,15 @@ struct PLAYER : Module {
 	PLAYER() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) { }
 
 	void step() override;
-	
+
 	void loadSample(std::string path);
-	
+
 	// persistence
-	
+
 	json_t *toJson() override {
 		json_t *rootJ = json_object();
 		// lastPath
-		json_object_set_new(rootJ, "lastPath", json_string(lastPath.c_str()));	
+		json_object_set_new(rootJ, "lastPath", json_string(lastPath.c_str()));
 		return rootJ;
 	}
 
@@ -85,7 +85,7 @@ struct PLAYER : Module {
 			lastPath = json_string_value(lastPathJ);
 			reload = true ;
 			loadSample(lastPath);
-			
+
 		}
 	}
 };
@@ -129,7 +129,7 @@ void PLAYER::loadSample(std::string path) {
 					if ((dir + "/" + name)==path) {sampnumber = i;}
 					i=i+1;
 					}
-				
+
 				}
 			closedir(rep);
 			reload = false;
@@ -137,7 +137,7 @@ void PLAYER::loadSample(std::string path) {
 			lastPath = path;
 	}
 	else {
-		
+
 		fileLoaded = false;
 	}
 }
@@ -151,25 +151,25 @@ void PLAYER::step() {
 			if (sampnumber < int(fichier.size()-1)) sampnumber=sampnumber+1; else sampnumber =0;
 			loadSample(dir + "/" + fichier[sampnumber]);
 			}
-				
-			
+
+
 		if (prevTrigger.process(params[PREV_PARAM].value)+previnTrigger.process(inputs[PREV_INPUT].value))
 			{retard = 1000;
 			std::string dir = lastPath.empty() ? assetLocal("") : extractDirectory(lastPath);
 			if (sampnumber > 0) sampnumber=sampnumber-1; else sampnumber =int(fichier.size()-1);
 			loadSample(dir + "/" + fichier[sampnumber]);
-			} 
+			}
 	} else fileDesc = "right click to load \n .wav or .aif sample \n :)";
 
 	// Play
     bool gated = inputs[GATE_INPUT].value > 0;
-    
+
     if (inputs[POS_INPUT].active)
     startPos = clamp((params[LSTART_PARAM].value + inputs[POS_INPUT].value * params[TSTART_PARAM].value),0.0f,10.0f)*audioFile.getNumSamplesPerChannel()/10;
     else {startPos = clamp((params[LSTART_PARAM].value),0.0f,10.0f)*audioFile.getNumSamplesPerChannel()/10;
         inputs[POS_INPUT].value = 0 ;
     }
-    
+
     if (!inputs[TRIG_INPUT].active) {
 	if (playGater.process(inputs[GATE_INPUT].value)) {
 		play = true;
@@ -181,7 +181,7 @@ void PLAYER::step() {
 		samplePos = startPos;
 		}
 	}
-    
+
 	if ((play) && ((floor(samplePos) < audioFile.getNumSamplesPerChannel()) && (floor(samplePos) >= 0))) {
 		if (audioFile.getNumChannels() == 1) {
 			outputs[OUT_OUTPUT].value = 5 * audioFile.samples[0][floor(samplePos)];
@@ -197,7 +197,7 @@ void PLAYER::step() {
             inputs[SPD_INPUT].value = 0 ;}
 	}
 	else
-	{ 
+	{
 		play = false;
 	    outputs[OUT_OUTPUT].value = 0;outputs[OUT2_OUTPUT].value = 0;
 	}
@@ -229,14 +229,14 @@ struct PLAYERDisplay : TransparentWidget {
 	PLAYERDisplay() {
 		font = Font::load(assetPlugin(plugin, "res/DejaVuSansMono.ttf"));
 	}
-	
+
 	void draw(NVGcontext *vg) override {
 		nvgFontSize(vg, 12);
 		nvgFontFaceId(vg, font->handle);
 		nvgTextLetterSpacing(vg, -2);
-		nvgFillColor(vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));	
+		nvgFillColor(vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
 		nvgTextBox(vg, 5, 5,120, module->fileDesc.c_str(), NULL);
-		
+
 		// Draw ref line
 		nvgStrokeColor(vg, nvgRGBA(0xff, 0xff, 0xff, 0x40));
 		{
@@ -246,7 +246,7 @@ struct PLAYERDisplay : TransparentWidget {
 			nvgClosePath(vg);
 		}
 		nvgStroke(vg);
-		
+
 		if (module->fileLoaded) {
 			// Draw play line
 			nvgStrokeColor(vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff));
@@ -258,7 +258,7 @@ struct PLAYERDisplay : TransparentWidget {
 				nvgClosePath(vg);
 			}
 			nvgStroke(vg);
-            
+
             // Draw start line
 			nvgStrokeColor(vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff));
             nvgStrokeWidth(vg, 1.5);
@@ -269,8 +269,8 @@ struct PLAYERDisplay : TransparentWidget {
 				nvgClosePath(vg);
 			}
 			nvgStroke(vg);
-            
-			
+
+
 			// Draw waveform
 			nvgStrokeColor(vg, nvgRGBA(0xe1, 0x02, 0x78, 0xc0));
 			nvgSave(vg);
@@ -293,9 +293,9 @@ struct PLAYERDisplay : TransparentWidget {
 			nvgMiterLimit(vg, 2.0);
 			nvgStrokeWidth(vg, 1.5);
 			nvgGlobalCompositeOperation(vg, NVG_LIGHTER);
-			nvgStroke(vg);			
+			nvgStroke(vg);
 			nvgResetScissor(vg);
-			nvgRestore(vg);	
+			nvgRestore(vg);
 		}
 	}
 };
@@ -314,7 +314,7 @@ PLAYERWidget::PLAYERWidget(PLAYER *module) : ModuleWidget(module) {
 	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
 	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
 	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
-	
+
 	{
 		PLAYERDisplay *display = new PLAYERDisplay();
 		display->module = module;
@@ -322,9 +322,9 @@ PLAYERWidget::PLAYERWidget(PLAYER *module) : ModuleWidget(module) {
 		display->box.size = Vec(130, 250);
 		addChild(display);
 	}
-		
+
 	static const float portX0[4] = {10, 40, 70, 100};
-	
+
 
 	addParam(ParamWidget::create<RoundBlackKnob>(Vec(23, 230), module, PLAYER::LSTART_PARAM, 0.0f, 10.0f, 0.0f));
 	addParam(ParamWidget::create<RoundBlackKnob>(Vec(73, 230), module, PLAYER::LSPEED_PARAM, -5.0f, 5.0f, 0.0f));
@@ -347,7 +347,7 @@ PLAYERWidget::PLAYERWidget(PLAYER *module) : ModuleWidget(module) {
 struct PLAYERItem : MenuItem {
 	PLAYER *player;
 	void onAction(EventAction &e) override {
-		
+
 		std::string dir = player->lastPath.empty() ? assetLocal("") : extractDirectory(player->lastPath);
 		char *path = osdialog_file(OSDIALOG_OPEN, dir.c_str(), NULL, NULL);
 		if (path) {
