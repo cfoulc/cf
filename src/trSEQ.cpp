@@ -238,7 +238,7 @@ trSEQWidget::trSEQWidget(trSEQ *module) : ModuleWidget(module) {
 	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
 	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
 
-	addParam(ParamWidget::create<RoundBlackSnapKnob>(Vec(18, 56), module, trSEQ::CLOCK_PARAM, -2.0f, 6.0f, 2.0f));
+	addParam(ParamWidget::create<RoundBlackKnob>(Vec(18, 56), module, trSEQ::CLOCK_PARAM, -2.0f, 6.0f, 2.0f));
 	addParam(ParamWidget::create<LEDButton>(Vec(60, 61-1), module, trSEQ::RUN_PARAM, 0.0f, 1.0f, 0.0f));
 	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(64.4, 64.4), module, trSEQ::RUNNING_LIGHT));
 	addParam(ParamWidget::create<LEDButton>(Vec(99, 61-1), module, trSEQ::RESET_PARAM, 0.0f, 1.0f, 0.0f));
