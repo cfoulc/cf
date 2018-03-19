@@ -241,7 +241,7 @@ METROWidget::METROWidget(METRO *module) : ModuleWidget(module) {
 	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
 	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
 
-	addParam(ParamWidget::create<RoundBlackKnob>(Vec(27, 107), module, METRO::BPM_PARAM, 0.0f, 301.0f, 120.1f));
+	addParam(ParamWidget::create<RoundLargeBlackKnob>(Vec(27, 107), module, METRO::BPM_PARAM, 0.0f, 301.0f, 120.1f));
 	addInput(Port::create<PJ301MPort>(Vec(11, 141), Port::INPUT, module, METRO::BPM_INPUT));
 	{
 		MOTORPOTDisplay *display = new MOTORPOTDisplay();

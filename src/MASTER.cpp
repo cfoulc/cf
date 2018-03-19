@@ -120,7 +120,7 @@ MASTERWidget::MASTERWidget(MASTER *module) : ModuleWidget(module) {
 	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
 
 
-    	addParam(ParamWidget::create<RoundBlackKnob>(Vec(27, 247), module, MASTER::GAIN_PARAM, 0.0, 10.0, 5.0));
+    	addParam(ParamWidget::create<RoundLargeBlackKnob>(Vec(27, 247), module, MASTER::GAIN_PARAM, 0.0, 10.0, 5.0));
 
 
      	addParam(ParamWidget::create<LEDButton>(Vec(38, 208), module, MASTER::ON_PARAM, 0.0, 1.0, 0.0));

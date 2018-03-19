@@ -213,7 +213,7 @@ STEREOWidget::STEREOWidget(STEREO *module) : ModuleWidget(module) {
 		addChild(pdisplay);
 	}
 
-    	addParam(ParamWidget::create<RoundBlackKnob>(Vec(27, 247), module, STEREO::GAIN_PARAM, 0.0f, 10.0f, 5.0f));
+    	addParam(ParamWidget::create<RoundLargeBlackKnob>(Vec(27, 247), module, STEREO::GAIN_PARAM, 0.0f, 10.0f, 5.0f));
 	addInput(Port::create<PJ301MPort>(Vec(11, 281), Port::INPUT, module, STEREO::GAIN_INPUT));
 	{
 		MOTORPOTDisplay *display = new MOTORPOTDisplay();

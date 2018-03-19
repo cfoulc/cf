@@ -150,10 +150,10 @@ PEAKWidget::PEAKWidget(PEAK *module) : ModuleWidget(module) {
 	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
 	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
 
-    	addParam(ParamWidget::create<RoundBlackKnob>(Vec(27, 97), module, PEAK::GAIN_PARAM, 0.0f, 10.0f, 1.0f));
+    	addParam(ParamWidget::create<RoundLargeBlackKnob>(Vec(27, 97), module, PEAK::GAIN_PARAM, 0.0f, 10.0f, 1.0f));
  		addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(42.4, 141.4), module, PEAK::OVER_LIGHT));
 
-	addParam(ParamWidget::create<RoundBlackKnob>(Vec(27, 227), module, PEAK::TRESHOLD_PARAM, 0.0f, 10.0f, 10.0f));
+	addParam(ParamWidget::create<RoundLargeBlackKnob>(Vec(27, 227), module, PEAK::TRESHOLD_PARAM, 0.0f, 10.0f, 10.0f));
 		addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(42.4, 211.4), module, PEAK::TRESHOLD_LIGHT));
 
 	addInput(Port::create<PJ301MPort>(Vec(11, 321), Port::INPUT, module, PEAK::IN1_INPUT));

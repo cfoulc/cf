@@ -178,7 +178,7 @@ EACHWidget::EACHWidget(EACH *module) : ModuleWidget(module) {
 	addOutput(Port::create<PJ301MPort>(Vec(54, 321), Port::OUTPUT, module, EACH::DOUZE_OUTPUT));
 	addOutput(Port::create<PJ301MPort>(Vec(35, 235), Port::OUTPUT, module, EACH::BEAT_OUTPUT));
 
-	addParam(ParamWidget::create<RoundBlackKnob>(Vec(27, 107), module, EACH::DIV_PARAM, 1.0f, 12.1f, 3.1f));
+	addParam(ParamWidget::create<RoundLargeBlackKnob>(Vec(27, 107), module, EACH::DIV_PARAM, 1.0f, 12.1f, 3.1f));
 	addInput(Port::create<PJ301MPort>(Vec(11, 141), Port::INPUT, module, EACH::DIV_INPUT));
 	{
 		MOTORPOTDisplay *display = new MOTORPOTDisplay();

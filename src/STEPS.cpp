@@ -100,7 +100,7 @@ STEPSWidget::STEPSWidget(STEPS *module) : ModuleWidget(module) {
 	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
 	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
 
-	addParam(ParamWidget::create<RoundBlackKnob>(Vec(27, 157), module, STEPS::LEVEL1_PARAM, 1.0f, 32.0f, 8.1f));
+	addParam(ParamWidget::create<RoundLargeBlackKnob>(Vec(27, 157), module, STEPS::LEVEL1_PARAM, 1.0f, 32.0f, 8.1f));
 	addParam(ParamWidget::create<Trimpot>(Vec(37, 207), module, STEPS::TRIM1_PARAM, -10.0f, 10.0f, 0.0f));
 
 	addInput(Port::create<PJ301MPort>(Vec(34, 250), Port::INPUT, module, STEPS::LIN1_INPUT));

@@ -13,6 +13,8 @@ void init(rack::Plugin *p) {
 	p->manual = "https://github.com/cfoulc/cf/blob/master/README.md";
 
 	p->addModel(modeltrSEQ);
+	p->addModel(modelLEDSEQ);
+	p->addModel(modelL3DS3Q);
 	p->addModel(modelPLAYER);
 	p->addModel(modelSTEPS);
 	p->addModel(modelMETRO);
@@ -22,8 +24,10 @@ void init(rack::Plugin *p) {
 	p->addModel(modelMONO);
 	p->addModel(modelSTEREO);
 	p->addModel(modelMASTER);
+	p->addModel(modelSUB);
 	p->addModel(modelCUBE);
 	p->addModel(modelPATCH);
+	p->addModel(modelLEDS);
 	p->addModel(modelDAVE);
 
 }
