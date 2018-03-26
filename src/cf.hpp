@@ -12,6 +12,7 @@ extern Plugin *plugin;
 extern Model *modeltrSEQ;
 extern Model *modelLEDSEQ;
 extern Model *modelL3DS3Q;
+extern Model *modelSLIDERSEQ;
 extern Model *modelPLAYER;
 extern Model *modelSTEPS;
 extern Model *modelMETRO;

@@ -108,7 +108,7 @@ void PLAYER::loadSample(std::string path) {
 		for (int i=0; i < audioFile.getNumSamplesPerChannel(); i = i + floor(audioFile.getNumSamplesPerChannel()/130)) {
 			displayBuff.push_back(audioFile.samples[0][i]);
 		}
-		fileDesc = extractFilename(path)+ "\n";
+		fileDesc = stringFilename(path)+ "\n";
 		fileDesc += std::to_string(audioFile.getSampleRate())+ " Hz" + " - ";                 //"\n";
 		fileDesc += std::to_string(audioFile.getBitDepth())+ " bits" + " \n";
 	//	fileDesc += std::to_string(audioFile.getNumSamplesPerChannel())+ " smp" +"\n";
@@ -120,7 +120,7 @@ void PLAYER::loadSample(std::string path) {
 		if (reload) {
 			DIR* rep = NULL;
 			struct dirent* dirp = NULL;
-			std::string dir = path.empty() ? assetLocal("") : extractDirectory(path);
+			std::string dir = path.empty() ? assetLocal("") : stringDirectory(path);
 
 			rep = opendir(dir.c_str());
 			int i = 0;
@@ -144,7 +144,7 @@ void PLAYER::loadSample(std::string path) {
 				}
 
 //----added by Joakim Lindbom
-		sort(fichier.begin(), fichier.end());  // Linux and OSX needs this to get files in right order
+		sort(fichier.begin(), fichier.end());  // Linux needs this to get files in right order
             for (int o=0;o<int(fichier.size()-1); o++) {
                 if ((dir + "/" + fichier[o])==path) {
                     sampnumber = o;
@@ -168,7 +168,7 @@ void PLAYER::step() {
 	if (fileLoaded) {
 		if (nextTrigger.process(params[NEXT_PARAM].value)+nextinTrigger.process(inputs[NEXT_INPUT].value))
 			{
-			std::string dir = lastPath.empty() ? assetLocal("") : extractDirectory(lastPath);
+			std::string dir = lastPath.empty() ? assetLocal("") : stringDirectory(lastPath);
 			if (sampnumber < int(fichier.size()-1)) sampnumber=sampnumber+1; else sampnumber =0;
 			loadSample(dir + "/" + fichier[sampnumber]);
 			}
@@ -176,7 +176,7 @@ void PLAYER::step() {
 			
 		if (prevTrigger.process(params[PREV_PARAM].value)+previnTrigger.process(inputs[PREV_INPUT].value))
 			{retard = 1000;
-			std::string dir = lastPath.empty() ? assetLocal("") : extractDirectory(lastPath);
+			std::string dir = lastPath.empty() ? assetLocal("") : stringDirectory(lastPath);
 			if (sampnumber > 0) sampnumber=sampnumber-1; else sampnumber =int(fichier.size()-1);
 			loadSample(dir + "/" + fichier[sampnumber]);
 			} 
@@ -230,6 +230,8 @@ if (!oscState) {
 } else {
 	
 	if (((floor(samplePos) < audioFile.getNumSamplesPerChannel()) && (floor(samplePos) >= 0))) {
+		if (playTrigger.process(inputs[TRIG_INPUT].value)) samplePos = 0;
+
 		if (audioFile.getNumChannels() == 1) {
 			outputs[OUT_OUTPUT].value = 5 * audioFile.samples[0][floor(samplePos)];
 			outputs[OUT2_OUTPUT].value = 5 * audioFile.samples[0][floor(samplePos)];}
@@ -399,7 +401,7 @@ struct PLAYERItem : MenuItem {
 	PLAYER *player;
 	void onAction(EventAction &e) override {
 		
-		std::string dir = player->lastPath.empty() ? assetLocal("") : extractDirectory(player->lastPath);
+		std::string dir = player->lastPath.empty() ? assetLocal("") : stringDirectory(player->lastPath);
 		char *path = osdialog_file(OSDIALOG_OPEN, dir.c_str(), NULL, NULL);
 		if (path) {
 			player->play = false;
