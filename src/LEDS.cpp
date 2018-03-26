@@ -138,4 +138,4 @@ LEDSWidget::LEDSWidget(LEDS *module) : ModuleWidget(module) {
 	
 }
 
-Model *modelLEDS = Model::create<LEDS, LEDSWidget>("cf", "LEDS", "Leds", UTILITY_TAG);
+Model *modelLEDS = Model::create<LEDS, LEDSWidget>("cf", "LEDS", "Leds", VISUAL_TAG);
