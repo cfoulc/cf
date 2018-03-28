@@ -62,25 +62,29 @@ void fromJson(json_t *rootJ) override {
 
 void SLIDERSEQ::step() {
 
+	
+
+	if (upTrigger.process(inputs[UP_INPUT].value))
+			{
+				if (pas <15) pas = pas+1; else pas =0;
+			}
+
 	if (rstTrigger.process(inputs[RST_INPUT].value))
 			{
 			pas = 0;
 			}
 
-	if (upTrigger.process(inputs[UP_INPUT].value))
-			{
-				outputs[TR_OUTPUT].value=params[LVL_PARAM +pas].value*10-OFFSET_STATE*5.0;
-				if (pas <15) pas = pas+1; else pas =0;
-			}
 	for (int i = 0; i < 16; i++)
 			{
-			if (i==pas) lights[LED_LIGHT +i].value=2; else lights[LED_LIGHT +i].value= 0;
+			if (i==pas) lights[LED_LIGHT +i].value=1; else lights[LED_LIGHT +i].value= 0;
 			}
 
 	if (offsetTrigger.process(params[OFFSET_PARAM].value))
 			{if (OFFSET_STATE == 0) OFFSET_STATE = 1; else OFFSET_STATE = 0;}
 
 	if (OFFSET_STATE==1) lights[OFFSET_LIGHT].value=true; else lights[OFFSET_LIGHT].value=false;
+
+	outputs[TR_OUTPUT].value=params[LVL_PARAM +pas].value*10-OFFSET_STATE*5.0;
 
 }
 
