@@ -14,6 +14,8 @@ extern Model *modelLEDSEQ;
 extern Model *modelL3DS3Q;
 extern Model *modelSLIDERSEQ;
 extern Model *modelPLAYER;
+extern Model *modelPLAY;
+extern Model *modelCHOKE;
 extern Model *modelSTEPS;
 extern Model *modelMETRO;
 extern Model *modelEACH;

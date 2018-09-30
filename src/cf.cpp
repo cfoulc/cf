@@ -17,6 +17,8 @@ void init(rack::Plugin *p) {
 	p->addModel(modelL3DS3Q);
 	p->addModel(modelSLIDERSEQ);
 	p->addModel(modelPLAYER);
+	p->addModel(modelPLAY);
+	p->addModel(modelCHOKE);
 	p->addModel(modelSTEPS);
 	p->addModel(modelMETRO);
 	p->addModel(modelEACH);

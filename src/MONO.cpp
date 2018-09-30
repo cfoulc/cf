@@ -175,6 +175,7 @@ struct MOTORPOTDisplay : TransparentWidget {
 	}
 };
 
+
 struct MONOWidget : ModuleWidget {
 	MONOWidget(MONO *module);
 };
