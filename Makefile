@@ -1,5 +1,5 @@
 SLUG = cf
-VERSION = 0.6.2
+VERSION = 0.6.3
 
 SOURCES += $(wildcard src/*.cpp)
 
