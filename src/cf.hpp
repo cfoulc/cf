@@ -25,6 +25,7 @@ extern Model *modelMONO;
 extern Model *modelSTEREO;
 extern Model *modelMASTER;
 extern Model *modelSUB;
+extern Model *modelBUFFER;
 extern Model *modelCUBE;
 extern Model *modelPATCH;
 extern Model *modelLEDS;

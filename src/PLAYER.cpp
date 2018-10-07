@@ -32,6 +32,7 @@ struct PLAYER : Module {
 	PREV_INPUT,
 	NEXT_INPUT,
 		TRIG_INPUT,
+		VO_INPUT,
 		NUM_INPUTS
 	};
 	enum OutputIds {
@@ -216,9 +217,9 @@ if (!oscState) {
 			outputs[OUT2_OUTPUT].value = 5 * audioFile.samples[1][floor(samplePos)];
         		}
 		if (inputs[SPD_INPUT].active)
-        samplePos = samplePos+1+(params[LSPEED_PARAM].value +inputs[SPD_INPUT].value * params[TSPEED_PARAM].value) /3;
+        samplePos = samplePos+powf(2.0, inputs[VO_INPUT].value)+(params[LSPEED_PARAM].value +inputs[SPD_INPUT].value * params[TSPEED_PARAM].value) /3;
         else {
-            samplePos = samplePos+1+(params[LSPEED_PARAM].value) /3;
+            samplePos = samplePos+powf(2.0, inputs[VO_INPUT].value)+(params[LSPEED_PARAM].value) /3;
             inputs[SPD_INPUT].value = 0 ;}
 	}
 	else
@@ -240,9 +241,9 @@ if (!oscState) {
 			outputs[OUT2_OUTPUT].value = 5 * audioFile.samples[1][floor(samplePos)];
         		}
 		if (inputs[SPD_INPUT].active)
-        samplePos = samplePos+1+(params[LSPEED_PARAM].value +inputs[SPD_INPUT].value * params[TSPEED_PARAM].value) /3;
+        samplePos = samplePos+powf(2.0, inputs[VO_INPUT].value)+(params[LSPEED_PARAM].value +inputs[SPD_INPUT].value * params[TSPEED_PARAM].value) /3;
         else {
-            samplePos = samplePos+1+(params[LSPEED_PARAM].value) /3;
+            samplePos = samplePos+powf(2.0, inputs[VO_INPUT].value)+(params[LSPEED_PARAM].value) /3;
             inputs[SPD_INPUT].value = 0 ;}
 	}
 	else
@@ -375,8 +376,8 @@ PLAYERWidget::PLAYERWidget(PLAYER *module) : ModuleWidget(module) {
 	static const float portX0[4] = {10, 40, 70, 100};
 	
 
-	addParam(ParamWidget::create<RoundLargeBlackKnob>(Vec(23, 230), module, PLAYER::LSTART_PARAM, 0.0f, 10.0f, 0.0f));
-	addParam(ParamWidget::create<RoundLargeBlackKnob>(Vec(73, 230), module, PLAYER::LSPEED_PARAM, -5.0f, 5.0f, 0.0f));
+	addParam(ParamWidget::create<RoundLargeBlackKnob>(Vec(23, 235), module, PLAYER::LSTART_PARAM, 0.0f, 10.0f, 0.0f));
+	addParam(ParamWidget::create<RoundLargeBlackKnob>(Vec(73, 235), module, PLAYER::LSPEED_PARAM, -5.0f, 5.0f, 0.0f));
 	addParam(ParamWidget::create<Trimpot>(Vec(42, 278), module, PLAYER::TSTART_PARAM, -1.0f, 1.0f, 0.0f));
 	addParam(ParamWidget::create<Trimpot>(Vec(73, 278), module, PLAYER::TSPEED_PARAM, -1.0f, 1.0f, 0.0f));
 
@@ -392,9 +393,9 @@ PLAYERWidget::PLAYERWidget(PLAYER *module) : ModuleWidget(module) {
 	addParam(ParamWidget::create<upButton>(Vec(43, 95), module, PLAYER::PREV_PARAM, 0.0f, 1.0f, 0.0f));
 	addParam(ParamWidget::create<downButton>(Vec(73, 95), module, PLAYER::NEXT_PARAM, 0.0f, 1.0f, 0.0f));
 
-	addParam(ParamWidget::create<LEDButton>(Vec(11, 210), module, PLAYER::OSC_PARAM, 0.0, 1.0, 0.0));
-		addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(15.4, 214.4), module, PLAYER::OSC_LIGHT));
-
+	addParam(ParamWidget::create<LEDButton>(Vec(104, 212), module, PLAYER::OSC_PARAM, 0.0, 1.0, 0.0));
+		addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(108.4, 216.4), module, PLAYER::OSC_LIGHT));
+	addInput(Port::create<PJ301MPort>(Vec(portX0[0], 210), Port::INPUT, module, PLAYER::VO_INPUT));
 }
 
 struct PLAYERItem : MenuItem {

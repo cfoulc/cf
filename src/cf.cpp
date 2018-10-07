@@ -28,6 +28,7 @@ void init(rack::Plugin *p) {
 	p->addModel(modelSTEREO);
 	p->addModel(modelMASTER);
 	p->addModel(modelSUB);
+	p->addModel(modelBUFFER);
 	p->addModel(modelCUBE);
 	p->addModel(modelPATCH);
 	p->addModel(modelLEDS);

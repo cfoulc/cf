@@ -158,9 +158,10 @@ void PLAY::step() {
 			}
 		}
     
-	if ((run) && ((floor(samplePos) < audioFile.getNumSamplesPerChannel()) && (floor(samplePos) >= 0))) 
-		{
-		outputs[OUT_OUTPUT].value = 5 * audioFile.samples[0][floor(samplePos)];
+	if ((run) && ((abs(floor(samplePos)) < audioFile.getNumSamplesPerChannel()))) 
+		{ if (samplePos>=0) 
+			outputs[OUT_OUTPUT].value = 5 * audioFile.samples[0][floor(samplePos)];
+		  else outputs[OUT_OUTPUT].value = 5 * audioFile.samples[0][floor(audioFile.getNumSamplesPerChannel()-1+samplePos)];
 		samplePos = samplePos+1+(params[LSPEED_PARAM].value) /3;
 		}
 		else
