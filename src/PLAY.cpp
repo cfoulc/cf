@@ -1,7 +1,7 @@
 #include "cf.hpp"
 #include "dsp/digital.hpp"
 #include "osdialog.h"
-#include "AudioFile.h"
+#include "dr_wav.h"
 #include <vector>
 #include "cmath"
 #include <dirent.h>
@@ -32,10 +32,17 @@ struct PLAY : Module {
 		NUM_LIGHTS
 	};
 	
+
+	unsigned int channels;
+	unsigned int sampleRate;
+	drwav_uint64 totalSampleCount;
+
+	vector<vector<float>> playBuffer;
+	bool loading = false;
+
 	bool run = false;
 
 	string lastPath = "";
-	AudioFile<double> audioFile;
 	float samplePos = 0;
 	string fileDesc;
 	bool fileLoaded = false;
@@ -47,7 +54,9 @@ struct PLAY : Module {
 	SchmittTrigger nextTrigger;
 	SchmittTrigger prevTrigger;
 
-PLAY() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) { }
+PLAY() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
+		playBuffer.resize(1);
+		playBuffer[0].resize(0); }
 
 	void step() override;
 	
@@ -75,7 +84,26 @@ PLAY() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) { }
 };
 
 void PLAY::loadSample(std::string path) {
-	if (audioFile.load (path.c_str())) {
+
+		loading = true;
+		unsigned int c;
+  		unsigned int sr;
+  		drwav_uint64 sc;
+		float* pSampleData;
+		pSampleData = drwav_open_and_read_file_f32(path.c_str(), &c, &sr, &sc);
+
+	if (pSampleData != NULL) {
+		channels = c;
+		sampleRate = sr;
+		playBuffer[0].clear();
+		for (unsigned int i=0; i < sc; i = i + c) {
+			playBuffer[0].push_back(pSampleData[i]);
+			
+		}
+		totalSampleCount = playBuffer[0].size();
+		drwav_free(pSampleData);
+loading = false;
+
 		fileLoaded = true;
 		
 		fileDesc = stringFilename(path);
@@ -93,10 +121,6 @@ void PLAY::loadSample(std::string path) {
 
 				std::size_t found = name.find(".wav",name.length()-5);
 				if (found==std::string::npos) found = name.find(".WAV",name.length()-5);
-				if (found==std::string::npos) found = name.find(".aif",name.length()-5);
-				if (found==std::string::npos) found = name.find(".AIF",name.length()-5);
-				if (found==std::string::npos) found = name.find(".aiff",name.length()-5);
-				if (found==std::string::npos) found = name.find(".AIFF",name.length()-5);
 
   				if (found!=std::string::npos) {
 					fichier.push_back(name);
@@ -158,10 +182,10 @@ void PLAY::step() {
 			}
 		}
     
-	if ((run) && ((abs(floor(samplePos)) < audioFile.getNumSamplesPerChannel()))) 
+	if ((!loading) && (run) && ((abs(floor(samplePos)) < totalSampleCount))) 
 		{ if (samplePos>=0) 
-			outputs[OUT_OUTPUT].value = 5 * audioFile.samples[0][floor(samplePos)];
-		  else outputs[OUT_OUTPUT].value = 5 * audioFile.samples[0][floor(audioFile.getNumSamplesPerChannel()-1+samplePos)];
+			outputs[OUT_OUTPUT].value = 5 * playBuffer[0][floor(samplePos)];
+		  else outputs[OUT_OUTPUT].value = 5 * playBuffer[0][floor(totalSampleCount-1+samplePos)];
 		samplePos = samplePos+1+(params[LSPEED_PARAM].value) /3;
 		}
 		else
