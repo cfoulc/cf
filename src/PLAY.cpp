@@ -224,21 +224,17 @@ struct PLAYDisplay : TransparentWidget {
 	}
 	
 	void draw(NVGcontext *vg) override {
+		std::string to_display = "";
+		for (int i=0; i<14; i++) to_display = to_display + module->fileDesc[i];
 		nvgFontSize(vg, 24);
 		nvgFontFaceId(vg, font->handle);
 		nvgTextLetterSpacing(vg, 0);
 		nvgFillColor(vg, nvgRGBA(0x4c, 0xc7, 0xf3, 0xff));
 		nvgRotate(vg, -M_PI / 2.0f);	
-		nvgTextBox(vg, 5, 5,350, module->fileDesc.c_str(), NULL);
+		nvgTextBox(vg, 5, 5,350, to_display.c_str(), NULL);
 	}
 };
 
-struct cache : SVGScrew {
-	cache() {
-		sw->setSVG(SVG::load(assetPlugin(plugin, "res/cach.svg")));
-		box.size = sw->box.size;
-	}
-};
 
 struct PLAYWidget : ModuleWidget {
 	PLAYWidget(PLAY *module);
@@ -253,11 +249,11 @@ PLAYWidget::PLAYWidget(PLAY *module) : ModuleWidget(module) {
 	{
 		PLAYDisplay *gdisplay = new PLAYDisplay();
 		gdisplay->module = module;
-		gdisplay->box.pos = Vec(18, 258);
+		gdisplay->box.pos = Vec(18, 253);
 		gdisplay->box.size = Vec(130, 250);
 		addChild(gdisplay);
 	}
-	addChild(Widget::create<cache>(Vec(0, 0)));
+
 	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
 	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
 

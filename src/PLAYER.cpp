@@ -210,7 +210,7 @@ void PLAYER::step() {
 			if (sampnumber > 0) sampnumber=sampnumber-1; else sampnumber =int(fichier.size()-1);
 			loadSample(dir + "/" + fichier[sampnumber]);
 			} 
-	} else fileDesc = "right click to load \n .wav or .aif sample \n :)";
+	} else fileDesc = "right click to load \n .wav sample \n :)";
 
 if (oscTrigger.process(params[OSC_PARAM].value))
 			{oscState =!oscState;lights[OSC_LIGHT].value=oscState;}

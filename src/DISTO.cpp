@@ -88,6 +88,7 @@ struct DISTODisplay : TransparentWidget {
 			nvgFill(vg);
 			//nvgClosePath(vg);
 		}
+nvgGlobalCompositeOperation(vg, NVG_LIGHTER);
 		nvgStroke(vg);
 
 	}
