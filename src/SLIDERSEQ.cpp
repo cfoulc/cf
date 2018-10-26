@@ -25,7 +25,6 @@ POS_INPUT,
 	};
 
 
-
 int pas = 0;
 bool OFFSET_STATE = false ;
 
@@ -123,9 +122,6 @@ struct SLDisplay : TransparentWidget {
 			nvgRoundedRect(vg, xx*15-6,65+yy*125-6, 16.5,22.5,4.0);
 			nvgFillColor(vg, nvgRGBA(0x4c, 0xc7, 0xf3, 0x10));
 			nvgFill(vg);
-		
-			
-		
 
 	}
 };

@@ -16,6 +16,8 @@ void init(rack::Plugin *p) {
 	p->addModel(modelLEDSEQ);
 	p->addModel(modelL3DS3Q);
 	p->addModel(modelSLIDERSEQ);
+	p->addModel(modelVARIABLE);
+	p->addModel(modelALGEBRA);
 	p->addModel(modelPLAYER);
 	p->addModel(modelPLAY);
 	p->addModel(modelCHOKE);

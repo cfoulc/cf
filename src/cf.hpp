@@ -13,6 +13,8 @@ extern Model *modeltrSEQ;
 extern Model *modelLEDSEQ;
 extern Model *modelL3DS3Q;
 extern Model *modelSLIDERSEQ;
+extern Model *modelVARIABLE;
+extern Model *modelALGEBRA;
 extern Model *modelPLAYER;
 extern Model *modelPLAY;
 extern Model *modelCHOKE;
