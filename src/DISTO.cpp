@@ -71,7 +71,8 @@ struct DISTODisplay : TransparentWidget {
 
 	float *xxxx;
 	int *llll;
-	//int bpos = 0;
+	float bu[5] = {};
+	int ind = 0;
 
 	DISTODisplay() {
 	
@@ -79,18 +80,19 @@ struct DISTODisplay : TransparentWidget {
 	}
 	
 	void draw(NVGcontext *vg) {
-
-		
-		{nvgStrokeColor(vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff));
+		bu[ind] = *xxxx ;
+		for (int i = 0 ; i<5 ; i++){
+		{//nvgStrokeColor(vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff));
 			nvgBeginPath(vg);
-			nvgCircle(vg, 0,0, *xxxx);
+			nvgCircle(vg, 0,0, bu[i]);
 			nvgFillColor(vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff));
+			nvgGlobalCompositeOperation(vg, NVG_LIGHTER);
 			nvgFill(vg);
-			//nvgClosePath(vg);
+			nvgClosePath(vg);
 		}
-nvgGlobalCompositeOperation(vg, NVG_LIGHTER);
-		nvgStroke(vg);
-
+		}
+		//nvgStroke(vg);
+		if (ind<4) ind = ind +1; else ind = 0;
 	}
 };
 

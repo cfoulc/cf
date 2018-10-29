@@ -7,15 +7,10 @@ using namespace std;
 
 struct ALGEBRA : Module {
 	enum ParamIds {
-		TR1_PARAM,
-		TR2_PARAM,
-		PAN_PARAM,
 		OP_PARAM,
-		NUM_PARAMS = OP_PARAM+4
+		NUM_PARAMS = OP_PARAM+6
 	};
 	enum InputIds {
-		TRIG1_INPUT,
-		TRIG2_INPUT,
 		IN1_INPUT,
 		IN2_INPUT,
 		NUM_INPUTS
