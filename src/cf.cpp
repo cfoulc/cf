@@ -30,6 +30,7 @@ void init(rack::Plugin *p) {
 	p->addModel(modelSTEREO);
 	p->addModel(modelMASTER);
 	p->addModel(modelSUB);
+	p->addModel(modelCUTS);
 	p->addModel(modelBUFFER);
 	p->addModel(modelDISTO);
 	p->addModel(modelCUBE);
