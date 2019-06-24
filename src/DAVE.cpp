@@ -1,7 +1,7 @@
 
 
 
-#include "cf.hpp"
+#include "plugin.hpp"
 
 
 struct DAVE : Module {
@@ -19,21 +19,20 @@ struct DAVE : Module {
 	};
 
 
-	DAVE() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS) {}
-	void step() override;
+	DAVE() {
+		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS);
+	}
 
 };
 
 
-void DAVE::step() {
 
-}
 struct DAVEWidget : ModuleWidget {
-	DAVEWidget(DAVE *module);
+	DAVEWidget(DAVE *module) {
+setModule(module);
+setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/DAVE.svg")));
+}
 };
 
-DAVEWidget::DAVEWidget(DAVE *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/DAVE.svg")));
-}
 
-Model *modelDAVE = Model::create<DAVE, DAVEWidget>("cf", "DAVE", "Dave", BLANK_TAG);
+Model *modelDAVE = createModel<DAVE, DAVEWidget>("DAVE");

@@ -1,13 +1,10 @@
-#include "cf.hpp"
+#include "plugin.hpp"
 
 
 struct PEAK : Module {
 	enum ParamIds {
 		TRESHOLD_PARAM,
-		TRIM1_PARAM,
-        GAIN_PARAM,
-        G_PARAM,
-        T_PARAM,
+        	GAIN_PARAM,
 		NUM_PARAMS
 	};
 	enum InputIds {
@@ -27,18 +24,20 @@ struct PEAK : Module {
 		NUM_LIGHTS
 	};
 float max_GAIN = 1.0 ;
-int affich = 1.0 ;
+int affich = 1 ;
 int reman_t = 0;
 int reman_o = 0;
 int sensiv = 10000;
 
 
-	PEAK() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
-	void step() override;
-};
+	PEAK() {
+		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+		configParam(GAIN_PARAM, 0.0f, 10.0f, 1.0f, "Gain");
+		configParam(TRESHOLD_PARAM, 0.0f, 10.0f, 10.0f, "Treshold");
+}
 
 
-void PEAK::step() {
+void process(const ProcessArgs &args) override {
 
 	max_GAIN = roundf(params[GAIN_PARAM].value*10);
 
@@ -116,94 +115,95 @@ void PEAK::step() {
 	lights[OVER_LIGHT].value = 1;
 	} 
 	else lights[OVER_LIGHT].value = 0.0;
-}
+};
+};
 
 struct NumbDisplayWidget : TransparentWidget {
-
-  int *value;
+PEAK *module;
+//  float *value=0;
   std::shared_ptr<Font> font;
 
   NumbDisplayWidget() {
-    font = Font::load(assetPlugin(plugin, "res/Segment7Standard.ttf"));
+    font = APP->window->loadFont(asset::plugin(pluginInstance, "res/Segment7Standard.ttf"));
   };
 
-  void draw(NVGcontext *vg) {
+  void draw(const DrawArgs &args) override {
+int st = module ? module->affich : 0;
     // Background
     NVGcolor backgroundColor = nvgRGB(0x44, 0x44, 0x44);
     NVGcolor borderColor = nvgRGB(0x10, 0x10, 0x10);
-    nvgBeginPath(vg);
-    nvgRoundedRect(vg, 0.0, 0.0, box.size.x, box.size.y, 4.0);
-    nvgFillColor(vg, backgroundColor);
-    nvgFill(vg);
-    nvgStrokeWidth(vg, 1.0);
-    nvgStrokeColor(vg, borderColor);
-    nvgStroke(vg);
+    nvgBeginPath(args.vg);
+    nvgRoundedRect(args.vg, 0.0, 0.0, box.size.x, box.size.y, 4.0);
+    nvgFillColor(args.vg, backgroundColor);
+    nvgFill(args.vg);
+    nvgStrokeWidth(args.vg, 1.0);
+    nvgStrokeColor(args.vg, borderColor);
+    nvgStroke(args.vg);
 
-    nvgFontSize(vg, 18);
-    nvgFontFaceId(vg, font->handle);
-    nvgTextLetterSpacing(vg, 2.5);
+    nvgFontSize(args.vg, 18);
+    nvgFontFaceId(args.vg, font->handle);
+    nvgTextLetterSpacing(args.vg, 2.5);
 
-    std::string to_display = std::to_string(*value);
+    std::string to_display = std::to_string(st);
+    if (st<10) to_display = '0' + to_display;
+if (st<100) to_display = ' ' + to_display;
 
-
-    while(to_display.length()<3) to_display = '0' + to_display;
 
     Vec textPos = Vec(6.0f, 17.0f);
 
     NVGcolor textColor = nvgRGB(0xdf, 0xd2, 0x2c);
-    nvgFillColor(vg, nvgTransRGBA(textColor, 16));
-    nvgText(vg, textPos.x, textPos.y, "~~~", NULL);
+    nvgFillColor(args.vg, nvgTransRGBA(textColor, 16));
+    nvgText(args.vg, textPos.x, textPos.y, "~~~", NULL);
 
     textColor = nvgRGB(0xda, 0xe9, 0x29);
 
-    nvgFillColor(vg, nvgTransRGBA(textColor, 16));
-    nvgText(vg, textPos.x, textPos.y, "\\\\\\", NULL);
+    nvgFillColor(args.vg, nvgTransRGBA(textColor, 16));
+    nvgText(args.vg, textPos.x, textPos.y, "\\\\\\", NULL);
 
 
     textColor = nvgRGB(0x28, 0xb0, 0xf3);
-    nvgFillColor(vg, textColor);
-    nvgText(vg, textPos.x, textPos.y, to_display.c_str(), NULL);
-    nvgFillColor(vg, textColor);
-    nvgText(vg, textPos.x+1, textPos.y, " . ", NULL);
-    nvgText(vg, textPos.x+1, textPos.y-1, " . ", NULL);
+    nvgFillColor(args.vg, textColor);
+    nvgText(args.vg, textPos.x, textPos.y, to_display.c_str(), NULL);
+    nvgFillColor(args.vg, textColor);
+    nvgText(args.vg, textPos.x+1, textPos.y, " . ", NULL);
+    nvgText(args.vg, textPos.x+1, textPos.y-1, " . ", NULL);
 
   }
 };
 
 
 struct PEAKWidget : ModuleWidget {
-	PEAKWidget(PEAK *module);
-};
+	PEAKWidget(PEAK *module) {
+setModule(module);
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/PEAK.svg")));
 
-PEAKWidget::PEAKWidget(PEAK *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/PEAK.svg")));
+	addChild(createWidget<ScrewSilver>(Vec(15, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 365)));
 
-	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
+    	addParam(createParam<RoundLargeBlackKnob>(Vec(27, 97), module, PEAK::GAIN_PARAM));
+ 		addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 141.4), module, PEAK::OVER_LIGHT));
 
-    	addParam(ParamWidget::create<RoundLargeBlackKnob>(Vec(27, 97), module, PEAK::GAIN_PARAM, 0.0f, 10.0f, 1.0f));
- 		addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(42.4, 141.4), module, PEAK::OVER_LIGHT));
+	addParam(createParam<RoundLargeBlackKnob>(Vec(27, 227), module, PEAK::TRESHOLD_PARAM));
+		addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 211.4), module, PEAK::TRESHOLD_LIGHT));
 
-	addParam(ParamWidget::create<RoundLargeBlackKnob>(Vec(27, 227), module, PEAK::TRESHOLD_PARAM, 0.0f, 10.0f, 10.0f));
-		addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(42.4, 211.4), module, PEAK::TRESHOLD_LIGHT));
+	addInput(createInput<PJ301MPort>(Vec(11, 308), module, PEAK::IN1_INPUT));
 
-	addInput(Port::create<PJ301MPort>(Vec(11, 308), Port::INPUT, module, PEAK::IN1_INPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(54, 308), module, PEAK::OUT1_OUTPUT));
 
-	addOutput(Port::create<PJ301MPort>(Vec(54, 308), Port::OUTPUT, module, PEAK::OUT1_OUTPUT));
+	addInput(createInput<PJ301MPort>(Vec(11, 334), module, PEAK::IN2_INPUT));
 
-	addInput(Port::create<PJ301MPort>(Vec(11, 334), Port::INPUT, module, PEAK::IN2_INPUT));
-
-	addOutput(Port::create<PJ301MPort>(Vec(54, 334), Port::OUTPUT, module, PEAK::OUT2_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(54, 334), module, PEAK::OUT2_OUTPUT));
 
 NumbDisplayWidget *display = new NumbDisplayWidget();
 	display->box.pos = Vec(20,56);
 	display->box.size = Vec(50, 20);
-	display->value = &module->affich;
+	//display->value = &module->affich;
+	display->module = module;
 	addChild(display);
 
 	
 }
-
-Model *modelPEAK = Model::create<PEAK, PEAKWidget>("cf", "PEAK", "Peak", LIMITER_TAG);
+};
+Model *modelPEAK = createModel<PEAK, PEAKWidget>("PEAK");

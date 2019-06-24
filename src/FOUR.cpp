@@ -1,4 +1,4 @@
-#include "cf.hpp"
+#include "plugin.hpp"
 #include "dsp/digital.hpp"
 
 struct FOUR : Module {
@@ -28,13 +28,18 @@ bool muteState[8] = {};
 int solo = 0;
 int cligno = 0;
 
-SchmittTrigger muteTrigger[8];
-SchmittTrigger soloTrigger[8];
+dsp::SchmittTrigger muteTrigger[8];
+dsp::SchmittTrigger soloTrigger[8];
 
 
-FOUR() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {onReset();}
-
-void step() override;
+	FOUR() {
+		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+	for (int i = 0; i < 4; i++) {
+		configParam(M_PARAM + i, 0.0f, 1.0f, 0.0f, "Mute");
+		configParam(S_PARAM + i, 0.0f, 1.0f, 0.0f, "Solo");
+	}
+	onReset();
+}
 
 void onReset() override {
 		for (int i = 0; i < 4; i++) {
@@ -48,11 +53,11 @@ void onReset() override {
 
 void onRandomize() override {
 		for (int i = 0; i < 8; i++) {
-			muteState[i] = (randomUniform() < 0.5);
+			muteState[i] = (random::uniform() < 0.5);
 		}
 	}
 
-json_t *toJson() override {
+json_t *dataToJson() override {
 		json_t *rootJ = json_object();
 		
 		// states
@@ -68,7 +73,7 @@ json_t *toJson() override {
 		return rootJ;
 		}
 
-void fromJson(json_t *rootJ) override {
+void dataFromJson(json_t *rootJ) override {
 		
 		// states
 		json_t *mutestatesJ = json_object_get(rootJ, "mutestates");
@@ -87,10 +92,10 @@ void fromJson(json_t *rootJ) override {
 	}
 
 
-};
 
 
-void FOUR::step() {
+
+void process(const ProcessArgs &args) override {
 		
 	for (int i = 0; i < 4; i++) {
 	
@@ -122,39 +127,39 @@ void FOUR::step() {
 
 	
 }
-
-struct FOURWidget : ModuleWidget {
-	FOURWidget(FOUR *module);
 };
 
-FOURWidget::FOURWidget(FOUR *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/FOUR.svg")));
+struct FOURWidget : ModuleWidget {
+	FOURWidget(FOUR *module) {
+		setModule(module);
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/FOUR.svg")));
 
 	int y = 56;
 
 
-	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 365)));
 
 	for (int i = 0; i < 4; i++) {
 
-	  addInput(Port::create<PJ301MPort>(Vec(15, y),Port::INPUT, module, FOUR::IN_INPUT + i));
+	  addInput(createInput<PJ301MPort>(Vec(15, y), module, FOUR::IN_INPUT + i));
 
-	  addInput(Port::create<PJ301MPort>(Vec(21, y+25),Port::INPUT, module, FOUR::TRS_INPUT + i));
-        	addParam(ParamWidget::create<LEDButton>(Vec(45, y+4), module, FOUR::S_PARAM + i, 0.0f, 1.0f, 0.0f));
-		addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(45+4.4, y+8.4), module, FOUR::S_LIGHT + i));
+	  addInput(createInput<PJ301MPort>(Vec(21, y+25), module, FOUR::TRS_INPUT + i));
+        	addParam(createParam<LEDButton>(Vec(45, y+4), module, FOUR::S_PARAM + i));
+		addChild(createLight<MediumLight<BlueLight>>(Vec(45+4.4, y+8.4), module, FOUR::S_LIGHT + i));
 
-	  addInput(Port::create<PJ301MPort>(Vec(46, y+31),Port::INPUT, module, FOUR::TRM_INPUT + i));
-   		addParam(ParamWidget::create<LEDButton>(Vec(70, y+4), module, FOUR::M_PARAM + i, 0.0f, 1.0f, 0.0f));
- 		addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(70+4.4, y+8.4), module, FOUR::M_LIGHT + i));
+	  addInput(createInput<PJ301MPort>(Vec(46, y+31), module, FOUR::TRM_INPUT + i));
+   		addParam(createParam<LEDButton>(Vec(70, y+4), module, FOUR::M_PARAM + i));
+ 		addChild(createLight<MediumLight<BlueLight>>(Vec(70+4.4, y+8.4), module, FOUR::M_LIGHT + i));
 
-	  addOutput(Port::create<PJ301MPort>(Vec(95, y), Port::OUTPUT, module, FOUR::OUT_OUTPUT + i));
+	  addOutput(createOutput<PJ301MPort>(Vec(95, y), module, FOUR::OUT_OUTPUT + i));
 
 	  y = y + 75 ;
 	}
 	
 }
+};
 
-Model *modelFOUR = Model::create<FOUR, FOURWidget>("cf", "FOUR", "Four", UTILITY_TAG);
+Model *modelFOUR = createModel<FOUR, FOURWidget>("FOUR");

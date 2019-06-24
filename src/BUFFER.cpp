@@ -1,5 +1,5 @@
 
-#include "cf.hpp"
+#include "plugin.hpp"
 #include "dsp/digital.hpp"
 
 
@@ -35,13 +35,19 @@ struct BUFFER : Module {
 	int l_affi ;
 
 	bool MODE_STATE = false ;
-	SchmittTrigger modeTrigger;
+	dsp::SchmittTrigger modeTrigger;
 
 
-BUFFER() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
-	void step() override;
+BUFFER() {
+		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+		configParam(MODE_PARAM, 0.0, 1.0, 0.0, "Mode");
+		configParam(FB_PARAM, 0.0f, 1.0f, 0.5f, "Feedback");
+		configParam(LENGTH_PARAM, 0.0f, 1.0f, 0.5f, "LENGTH");
 
-json_t *toJson() override {
+}
+
+
+json_t *dataToJson() override {
 		json_t *rootJ = json_object();
 		
 
@@ -49,7 +55,7 @@ json_t *toJson() override {
 		return rootJ;
 		}
 
-void fromJson(json_t *rootJ) override {
+void dataFromJson(json_t *rootJ) override {
 		
 
 		json_t *modestateJ = json_object_get(rootJ, "modestate");
@@ -58,11 +64,11 @@ void fromJson(json_t *rootJ) override {
 	
 	}
 
-};
 
 
 
-void BUFFER::step() { 
+
+void process(const ProcessArgs &args) override { 
 
 	if (modeTrigger.process(params[MODE_PARAM].value)) 
 			{if (MODE_STATE == 0) MODE_STATE = 1; else MODE_STATE = 0;}
@@ -106,117 +112,114 @@ if (!MODE_STATE) {
 
 }
 
-
+};
 
 struct BUFFERDisplay : TransparentWidget {
-
-	float *xxxx;
-	int *llll;
-	float *dbuf[10000] = {};
+	BUFFER *module;
 
 	BUFFERDisplay() {
 	
 		
 	}
 	
-	void draw(NVGcontext *vg) {
-		nvgStrokeWidth(vg,1.2);
-		nvgStrokeColor(vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff ));
+	void draw(const DrawArgs &args) override {
+if (module) {
+		nvgStrokeWidth(args.vg,1.2);
+		nvgStrokeColor(args.vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff ));
 		{
-			nvgBeginPath(vg);
-			nvgMoveTo(vg, clamp(*dbuf[int(*xxxx)]*4.0f,-45.0f,45.0f),0.0f);
-			for (int i=1;i<*llll; i++) {if ((*xxxx-i)>0) nvgLineTo(vg, clamp(*dbuf[int(*xxxx)-i]*4.0f,-45.0f,45.0f), -200.0*(i+1)/(*llll)); 
-							       else nvgLineTo(vg, clamp(*dbuf[9999+int(*xxxx)-i]*4.0f,-45.0f,45.0f), -200.0*(i+1)/(*llll));
+			nvgBeginPath(args.vg);
+			nvgMoveTo(args.vg, clamp(module->buf[int(module->x)]*4.0f,-45.0f,45.0f),0.0f);
+			for (int i=1;i<module->length; i++) {if ((module->x-i)>0) nvgLineTo(args.vg, clamp(module->buf[int(module->x)-i]*4.0f,-45.0f,45.0f), -200.0*(i+1)/(module->length)); 
+							       else nvgLineTo(args.vg, clamp(module->buf[9999+int(module->x)-i]*4.0f,-45.0f,45.0f), -200.0*(i+1)/(module->length));
 								}
-			//nvgClosePath(vg);
 		}
-		nvgLineCap(vg, NVG_ROUND);
-		nvgMiterLimit(vg, 20.0f);
-		nvgGlobalCompositeOperation(vg, NVG_LIGHTER);
-		nvgStroke(vg);
+		nvgLineCap(args.vg, NVG_ROUND);
+		nvgMiterLimit(args.vg, 20.0f);
+		nvgGlobalCompositeOperation(args.vg, NVG_LIGHTER);
+		nvgStroke(args.vg);
 
 	}
 };
+};
 
-struct MOTORPOTDisplay : TransparentWidget {
+struct MBDisplay : TransparentWidget {
+	BUFFER *module;
 
-	float d;
-	float *gainX ;
-	int *affich;
-
-	MOTORPOTDisplay() {
+	MBDisplay() {
 		
 	}
 	
-	void draw(NVGcontext *vg) {
-		if (*affich==1) {
-		float xx = d*sin(-(*gainX*0.17+0.15)*M_PI) ;
-		float yy = d*cos((*gainX*0.17+0.15)*M_PI) ;
+	void draw(const DrawArgs &args) override {
+
+float gainX = module ? module->l_gain : 1.0f;
+int affich = module ? module->l_affi : 0;
+float d=9.3f;
+
+		if (affich==1) {
+		float xx = d*sin(-(gainX*0.17+0.15)*M_PI) ;
+		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;
 
 		
-			nvgBeginPath(vg);
-			nvgCircle(vg, 0,0, d);
-			nvgFillColor(vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
-			nvgFill(vg);	
+			nvgBeginPath(args.vg);
+			nvgCircle(args.vg, 0,0, d);
+			nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			nvgFill(args.vg);	
 		
-			nvgStrokeWidth(vg,1.2);
-			nvgStrokeColor(vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			nvgStrokeWidth(args.vg,1.2);
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
 			{
-				nvgBeginPath(vg);
-				nvgMoveTo(vg, 0,0);
-				nvgLineTo(vg, xx,yy);
-				nvgClosePath(vg);
+				nvgBeginPath(args.vg);
+				nvgMoveTo(args.vg, 0,0);
+				nvgLineTo(args.vg, xx,yy);
+				nvgClosePath(args.vg);
 			}
-			nvgStroke(vg);
+			nvgStroke(args.vg);
 		}
 
 	}
 };
 
+
+///////////////////
+
 struct BUFFERWidget : ModuleWidget {
-	BUFFERWidget(BUFFER *module);
-};
+	BUFFERWidget(BUFFER *module) {
+		setModule(module);
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/BUFFER.svg")));
 
-BUFFERWidget::BUFFERWidget(BUFFER *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/BUFFER.svg")));
 
-	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 365)));
 
 	{
 		BUFFERDisplay *bdisplay = new BUFFERDisplay();
 		bdisplay->box.pos = Vec(60, 270);
-			bdisplay->xxxx = &module->x ;
-			bdisplay->llll = &module->length ;
-			for (int i=0;i<10000;i++) {
-				bdisplay->dbuf[i] = &module->buf[i] ;	
-			}	
+		bdisplay->module = module ;
 		addChild(bdisplay);
 	}
 
 
-     	addParam(ParamWidget::create<LEDButton>(Vec(19, 35), module, BUFFER::MODE_PARAM, 0.0, 1.0, 0.0));
-	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(23.4, 39.4), module, BUFFER::MODE_LIGHT));
+     	addParam(createParam<LEDButton>(Vec(19, 35), module, BUFFER::MODE_PARAM));
+	addChild(createLight<MediumLight<BlueLight>>(Vec(23.4, 39.4), module, BUFFER::MODE_LIGHT));
 
-	addInput(Port::create<PJ301MPort>(Vec(15, 321), Port::INPUT, module, BUFFER::IN_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(15, 321), module, BUFFER::IN_INPUT));
 
-	addInput(Port::create<PJ301MPort>(Vec(47, 321), Port::INPUT, module, BUFFER::FB_INPUT));
-	addParam(ParamWidget::create<Trimpot>(Vec(50.4, 284), module, BUFFER::FB_PARAM, 0.0f, 1.0f, 0.5f));
+	addInput(createInput<PJ301MPort>(Vec(47, 321), module, BUFFER::FB_INPUT));
+	addParam(createParam<Trimpot>(Vec(50.4, 284), module, BUFFER::FB_PARAM));
 
-	addInput(Port::create<PJ301MPort>(Vec(80, 321), Port::INPUT, module, BUFFER::LENGTH_INPUT));
-	addParam(ParamWidget::create<Trimpot>(Vec(83.4, 284), module, BUFFER::LENGTH_PARAM, 0.0f, 1.0f, 0.5f)); 
+	addInput(createInput<PJ301MPort>(Vec(80, 321), module, BUFFER::LENGTH_INPUT));
+	addParam(createParam<Trimpot>(Vec(83.4, 284), module, BUFFER::LENGTH_PARAM)); 
 	{
-		MOTORPOTDisplay *pdisplay = new MOTORPOTDisplay();
+		MBDisplay *pdisplay = new MBDisplay();
 		pdisplay->box.pos = Vec(92.8, 293.2);
-		pdisplay->d = 9.3;
-		pdisplay->gainX = &module->l_gain;
-		pdisplay->affich = &module->l_affi;
+		pdisplay->module = module;
 		addChild(pdisplay);
 	}
-	addOutput(Port::create<PJ301MPort>(Vec(80, 31), Port::OUTPUT, module, BUFFER::X_OUTPUT)); 
+	addOutput(createOutput<PJ301MPort>(Vec(80, 31), module, BUFFER::X_OUTPUT)); 
 	
 }
+};
 
-Model *modelBUFFER = Model::create<BUFFER, BUFFERWidget>("cf", "BUFFER", "Buffer", DELAY_TAG);
+Model *modelBUFFER = createModel<BUFFER, BUFFERWidget>("BUFFER");

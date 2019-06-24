@@ -1,4 +1,4 @@
-#include "cf.hpp"
+#include "plugin.hpp"
 #include "dsp/digital.hpp"
 
 
@@ -38,17 +38,23 @@ float or2_gain ;
 int or_affi ;
 int or2_affi ;
 bool LINK_STATE = false ;
-SchmittTrigger linkTrigger;
+dsp::SchmittTrigger linkTrigger;
 
 
-	SUB() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {reset();}
-	void step() override;
+	SUB() {
+		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+		configParam(LINK_PARAM, 0.0f, 1.0f, 0.0f);
+		configParam(GAIN_PARAM, 0.0f, 10.0f, 0.0f, "Gain");
+		configParam(GAIN2_PARAM, 0.0f, 10.0f, 0.0f, "Gain");
+		onReset();
+}
 
-void reset() override {
+
+void onReset() override {
 			LINK_STATE = false;
 			}
 
-json_t *toJson() override {
+json_t *dataToJson() override {
 		json_t *rootJ = json_object();
 		// solo
 		json_object_set_new(rootJ, "linkstate", json_integer(LINK_STATE));
@@ -56,7 +62,7 @@ json_t *toJson() override {
 		return rootJ;
 		}
 
-void fromJson(json_t *rootJ) override {
+void dataFromJson(json_t *rootJ) override {
 		// solo
 		json_t *linkstateJ = json_object_get(rootJ, "linkstate");
 		if (linkstateJ)
@@ -65,10 +71,10 @@ void fromJson(json_t *rootJ) override {
 	
 	}
 
-};
 
 
-void SUB::step() {
+
+void process(const ProcessArgs &args) override {
 
 	if (linkTrigger.process(params[LINK_PARAM].value))
 			{LINK_STATE=!LINK_STATE;}
@@ -104,37 +110,77 @@ void SUB::step() {
 
 
 }
+};
 
-struct MOTORPOTDisplay : TransparentWidget {
+struct MDisplay : TransparentWidget {
+	SUB *module;
 
-	float d;
-	float *gainX ;
-	int *affich;
-
-	MOTORPOTDisplay() {
+	MDisplay() {
 		
 	}
 	
-	void draw(NVGcontext *vg) {
-		if (*affich==1) {
-		float xx = d*sin(-(*gainX*0.17+0.15)*M_PI) ;
-		float yy = d*cos((*gainX*0.17+0.15)*M_PI) ;
+	void draw(const DrawArgs &args) override {
+
+float gainX = module ? module->or_gain : 1.0f;
+int affich = module ? module->or_affi : 0;
+float d=19.1;
+
+		if (affich==1) {
+		float xx = d*sin(-(gainX*0.17+0.15)*M_PI) ;
+		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;
 
 		
-			nvgBeginPath(vg);
-			nvgCircle(vg, 0,0, d);
-			nvgFillColor(vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
-			nvgFill(vg);	
+			nvgBeginPath(args.vg);
+			nvgCircle(args.vg, 0,0, d);
+			nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			nvgFill(args.vg);	
 		
-			nvgStrokeWidth(vg,1.2);
-			nvgStrokeColor(vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			nvgStrokeWidth(args.vg,1.2);
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
 			{
-				nvgBeginPath(vg);
-				nvgMoveTo(vg, 0,0);
-				nvgLineTo(vg, xx,yy);
-				nvgClosePath(vg);
+				nvgBeginPath(args.vg);
+				nvgMoveTo(args.vg, 0,0);
+				nvgLineTo(args.vg, xx,yy);
+				nvgClosePath(args.vg);
 			}
-			nvgStroke(vg);
+			nvgStroke(args.vg);
+		}
+
+	}
+};
+
+struct MSDisplay : TransparentWidget {
+	SUB *module;
+
+	MSDisplay() {
+		
+	}
+	
+	void draw(const DrawArgs &args) override {
+
+float gainX = module ? module->or2_gain : 1.0f;
+int affich = module ? module->or2_affi : 0;
+float d=19.1;
+
+		if (affich==1) {
+		float xx = d*sin(-(gainX*0.17+0.15)*M_PI) ;
+		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;
+
+		
+			nvgBeginPath(args.vg);
+			nvgCircle(args.vg, 0,0, d);
+			nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			nvgFill(args.vg);	
+		
+			nvgStrokeWidth(args.vg,1.2);
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			{
+				nvgBeginPath(args.vg);
+				nvgMoveTo(args.vg, 0,0);
+				nvgLineTo(args.vg, xx,yy);
+				nvgClosePath(args.vg);
+			}
+			nvgStroke(args.vg);
 		}
 
 	}
@@ -142,70 +188,65 @@ struct MOTORPOTDisplay : TransparentWidget {
 
 
 struct SUBWidget : ModuleWidget {
-	SUBWidget(SUB *module);
-};
+	SUBWidget(SUB *module){
+		setModule(module);
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/SUB.svg")));
 
-SUBWidget::SUBWidget(SUB *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/SUB.svg")));
+	addChild(createWidget<ScrewSilver>(Vec(15, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 365)));
 
-	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
-
-     	addParam(ParamWidget::create<LEDButton>(Vec(22, 179), module, SUB::LINK_PARAM, 0.0, 1.0, 0.0));
-	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(26.5, 182.5), module, SUB::LINK_LIGHT));
+     	addParam(createParam<LEDButton>(Vec(22, 179), module, SUB::LINK_PARAM));
+	addChild(createLight<MediumLight<BlueLight>>(Vec(26.5, 182.5), module, SUB::LINK_LIGHT));
 
 
-    	addParam(ParamWidget::create<RoundLargeBlackKnob>(Vec(27, 247), module, SUB::GAIN2_PARAM, 0.0, 10.0, 0.0));
-	addInput(Port::create<PJ301MPort>(Vec(11, 281), Port::INPUT, module, SUB::GAIN2_INPUT));
+    	addParam(createParam<RoundLargeBlackKnob>(Vec(27, 247), module, SUB::GAIN2_PARAM));
+	addInput(createInput<PJ301MPort>(Vec(11, 281), module, SUB::GAIN2_INPUT));
 	{
-		MOTORPOTDisplay *display2 = new MOTORPOTDisplay();
+		MSDisplay *display2 = new MSDisplay();
 		display2->box.pos = Vec(46, 266);
-		display2->d = 19.1;
-		display2->gainX = &module->or2_gain;
-		display2->affich = &module->or2_affi;
+		display2->module = module;
 		addChild(display2);
 	}
 
     
 
-	addInput(Port::create<PJ301MPort>(Vec(11, 321), Port::INPUT, module, SUB::IN2_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(11, 321), module, SUB::IN2_INPUT));
 
-	addOutput(Port::create<PJ301MPort>(Vec(54, 321), Port::OUTPUT, module, SUB::OUT2_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(54, 321), module, SUB::OUT2_OUTPUT));
 	
 
-	addOutput(Port::create<PJ301MPort>(Vec(54, 61+152), Port::OUTPUT, module, SUB::M2_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(54, 61+152), module, SUB::M2_OUTPUT));
 
 
-	addInput(Port::create<PJ301MPort>(Vec(11, 61+152), Port::INPUT, module, SUB::M2_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(11, 61+152), module, SUB::M2_INPUT));
 
 
 
-    	addParam(ParamWidget::create<RoundLargeBlackKnob>(Vec(27, 247-182), module, SUB::GAIN_PARAM, 0.0, 10.0, 0.0));
-	addInput(Port::create<PJ301MPort>(Vec(11, 281-182), Port::INPUT, module, SUB::GAIN_INPUT));
+    	addParam(createParam<RoundLargeBlackKnob>(Vec(27, 247-182), module, SUB::GAIN_PARAM));
+	addInput(createInput<PJ301MPort>(Vec(11, 281-182), module, SUB::GAIN_INPUT));
 	{
-		MOTORPOTDisplay *display = new MOTORPOTDisplay();
+		MDisplay *display = new MDisplay();
 		display->box.pos = Vec(46, 266-182);
-		display->d = 19.1;
-		display->gainX = &module->or_gain;
-		display->affich = &module->or_affi;
+		display->module = module;
 		addChild(display);
 	}
 
     
 
-	addInput(Port::create<PJ301MPort>(Vec(11, 321-182), Port::INPUT, module, SUB::IN1_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(11, 321-182), module, SUB::IN1_INPUT));
 
-	addOutput(Port::create<PJ301MPort>(Vec(54, 321-182), Port::OUTPUT, module, SUB::OUT1_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(54, 321-182), module, SUB::OUT1_OUTPUT));
 	
 
-	addOutput(Port::create<PJ301MPort>(Vec(54, 31), Port::OUTPUT, module, SUB::M1_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(54, 31), module, SUB::M1_OUTPUT));
 
 
-	addInput(Port::create<PJ301MPort>(Vec(11, 31), Port::INPUT, module, SUB::M1_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(11, 31), module, SUB::M1_INPUT));
 
 	
 }
+};
 
-Model *modelSUB = Model::create<SUB, SUBWidget>("cf", "SUB", "Sub", MIXER_TAG);
+Model *modelSUB = createModel<SUB, SUBWidget>("SUB");

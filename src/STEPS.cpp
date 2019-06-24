@@ -1,5 +1,4 @@
-#include "cf.hpp"
-
+#include "plugin.hpp"
 
 struct STEPS : Module {
 	enum ParamIds {
@@ -16,14 +15,16 @@ struct STEPS : Module {
 		OUT1_OUTPUT,
 		NUM_OUTPUTS
 	};
-int max_steps = 8 ;
 
-	STEPS() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS) {}
-	void step() override;
-};
+float max_steps = 8 ;
 
+	STEPS() {
+		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS);
+		configParam(LEVEL1_PARAM, 1.0f, 32.0f, 8.1f, "Steps");
+		configParam(TRIM1_PARAM, -10.0f, 10.0f, 0.0f, "Trim");
+}
 
-void STEPS::step() {
+void process(const ProcessArgs &args) override {
 
 
 if (inputs[LIN1_INPUT].active) 
@@ -36,86 +37,92 @@ if (inputs[LIN1_INPUT].active)
 	max_steps = round(params[LEVEL1_PARAM].value);
 	outputs[OUT1_OUTPUT].value = floor((inputs[IN1_INPUT].value * round(params[LEVEL1_PARAM].value)) / 10.01) * (10 / round(params[LEVEL1_PARAM].value)) ; 
 	}
-}
+};
+
+
+};
 
 struct NumbeDisplayWidget : TransparentWidget {
+	STEPS *module;
 
-  int *value;
   std::shared_ptr<Font> font;
 
   NumbeDisplayWidget() {
-    font = Font::load(assetPlugin(plugin, "res/Segment7Standard.ttf"));
+    font = APP->window->loadFont(asset::plugin(pluginInstance, "res/Segment7Standard.ttf"));
   };
 
-  void draw(NVGcontext *vg) {
+  void draw(const DrawArgs &args) override {
+int st = module ? module->max_steps : 0;
     // Background
     NVGcolor backgroundColor = nvgRGB(0x44, 0x44, 0x44);
     NVGcolor borderColor = nvgRGB(0x10, 0x10, 0x10);
-    nvgBeginPath(vg);
-    nvgRoundedRect(vg, 0.0, 0.0, box.size.x, box.size.y, 4.0);
-    nvgFillColor(vg, backgroundColor);
-    nvgFill(vg);
-    nvgStrokeWidth(vg, 1.0);
-    nvgStrokeColor(vg, borderColor);
-    nvgStroke(vg);
+    nvgBeginPath(args.vg);
+    nvgRoundedRect(args.vg, 0.0, 0.0, box.size.x, box.size.y, 4.0);
+    nvgFillColor(args.vg, backgroundColor);
+    nvgFill(args.vg);
+    nvgStrokeWidth(args.vg, 1.0);
+    nvgStrokeColor(args.vg, borderColor);
+    nvgStroke(args.vg);
 
-    nvgFontSize(vg, 18);
-    nvgFontFaceId(vg, font->handle);
-    nvgTextLetterSpacing(vg, 2.5);
+    nvgFontSize(args.vg, 18);
+    nvgFontFaceId(args.vg, font->handle);
+    nvgTextLetterSpacing(args.vg, 2.5);
 
-    std::string to_display = std::to_string(*value);
+ std::string to_display = std::to_string(st);
 
+//char d_string[10];
+// if(st) sprintf(d_string,"%6i",st);
 
-    while(to_display.length()<3) to_display = ' ' + to_display;
+  while(to_display.length()<3) to_display = ' ' + to_display;
 
     Vec textPos = Vec(6.0f, 17.0f);
 
     NVGcolor textColor = nvgRGB(0xdf, 0xd2, 0x2c);
-    nvgFillColor(vg, nvgTransRGBA(textColor, 16));
-    nvgText(vg, textPos.x, textPos.y, "~~~", NULL);
+    nvgFillColor(args.vg, nvgTransRGBA(textColor, 16));
+    nvgText(args.vg, textPos.x, textPos.y, "~~~", NULL);
 
     textColor = nvgRGB(0xda, 0xe9, 0x29);
 
-    nvgFillColor(vg, nvgTransRGBA(textColor, 16));
-    nvgText(vg, textPos.x, textPos.y, "\\\\\\", NULL);
+    nvgFillColor(args.vg, nvgTransRGBA(textColor, 16));
+    nvgText(args.vg, textPos.x, textPos.y, "\\\\\\", NULL);
 
 
     textColor = nvgRGB(0x28, 0xb0, 0xf3);
-    nvgFillColor(vg, textColor);
-    nvgText(vg, textPos.x, textPos.y, to_display.c_str(), NULL);
+    nvgFillColor(args.vg, textColor);
+    nvgText(args.vg, textPos.x, textPos.y, to_display.c_str(), NULL);
+//nvgText(args.vg, textPos.x, textPos.y, d_string, NULL);
   }
 };
 
-
-
 struct STEPSWidget : ModuleWidget {
-	STEPSWidget(STEPS *module);
-};
+	STEPSWidget(STEPS *module) {
+		setModule(module);
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/STEPS.svg")));
 
-STEPSWidget::STEPSWidget(STEPS *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/STEPS.svg")));
 
-	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 365)));
 
-	addParam(ParamWidget::create<RoundLargeBlackKnob>(Vec(27, 157), module, STEPS::LEVEL1_PARAM, 1.0f, 32.0f, 8.1f));
-	addParam(ParamWidget::create<Trimpot>(Vec(37, 207), module, STEPS::TRIM1_PARAM, -10.0f, 10.0f, 0.0f));
+	addParam(createParam<RoundLargeBlackKnob>(Vec(27, 157), module, STEPS::LEVEL1_PARAM));
 
-	addInput(Port::create<PJ301MPort>(Vec(34, 250), Port::INPUT, module, STEPS::LIN1_INPUT));
+	addParam(createParam<Trimpot>(Vec(37, 207), module, STEPS::TRIM1_PARAM));
 
-	addInput(Port::create<PJ301MPort>(Vec(11, 321), Port::INPUT, module, STEPS::IN1_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(34, 250), module, STEPS::LIN1_INPUT));
 
-	addOutput(Port::create<PJ301MPort>(Vec(54, 321), Port::OUTPUT, module, STEPS::OUT1_OUTPUT));
+	addInput(createInput<PJ301MPort>(Vec(11, 321), module, STEPS::IN1_INPUT));
+
+	addOutput(createOutput<PJ301MPort>(Vec(54, 321), module, STEPS::OUT1_OUTPUT));
+
 
 NumbeDisplayWidget *display = new NumbeDisplayWidget();
 	display->box.pos = Vec(20,56);
 	display->box.size = Vec(50, 20);
-	display->value = &module->max_steps;
+	display->module = module;
 	addChild(display);
-
 	
 }
+};
 
-Model *modelSTEPS = Model::create<STEPS, STEPSWidget>("cf", "STEPS", "Steps", UTILITY_TAG);
+Model *modelSTEPS = createModel<STEPS, STEPSWidget>("STEPS");

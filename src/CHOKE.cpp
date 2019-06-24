@@ -1,4 +1,4 @@
-#include "cf.hpp"
+#include "plugin.hpp"
 #include "dsp/digital.hpp"
 
 
@@ -7,8 +7,6 @@ using namespace std;
 
 struct CHOKE : Module {
 	enum ParamIds {
-		TR1_PARAM,
-		TR2_PARAM,
 		PAN_PARAM,
 		NUM_PARAMS 
 	};
@@ -29,20 +27,16 @@ struct CHOKE : Module {
 	};
 	
 	bool play = false;
-	SchmittTrigger tr1Trigger;
-	SchmittTrigger tr2Trigger;
+	dsp::SchmittTrigger tr1Trigger;
+	dsp::SchmittTrigger tr2Trigger;
 
-CHOKE() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) { }
-
-	void step() override;
-	
-
-};
+CHOKE()  { 
+		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+		configParam(PAN_PARAM, -1.0f, 1.0f, 0.0f, "Pan");
+}
 
 
-
-
-void CHOKE::step() {
+void process(const ProcessArgs &args) override {
 
 	if (tr1Trigger.process(inputs[TRIG1_INPUT].value))
 		{
@@ -59,39 +53,36 @@ void CHOKE::step() {
 			else outputs[OUT_OUTPUT].value = inputs[IN1_INPUT].value*(1-clamp(params[PAN_PARAM].value,0.0f,1.0f)); 
 		
 
-lights[L2_LIGHT].value=play;
+	lights[L2_LIGHT].value=play;
 }
-
+};
 
 
 
 struct CHOKEWidget : ModuleWidget {
-	CHOKEWidget(CHOKE *module);
- //void step() override;
-
-};
-
-CHOKEWidget::CHOKEWidget(CHOKE *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/CHOKE.svg")));
+	CHOKEWidget(CHOKE *module) {
+	setModule(module);
+	
+	setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/CHOKE.svg")));
 
 
-	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 365)));
 
- 	addParam(ParamWidget::create<Trimpot>(Vec(6, 298), module, CHOKE::PAN_PARAM, -1.0f, 1.0f, 0.0f));
+ 	addParam(createParam<Trimpot>(Vec(6, 298), module, CHOKE::PAN_PARAM));
 
-	addInput(Port::create<PJ301MPort>(Vec(3, 61), Port::INPUT, module, CHOKE::IN1_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(3, 91), Port::INPUT, module, CHOKE::TRIG1_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(3, 61), module, CHOKE::IN1_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(3, 91), module, CHOKE::TRIG1_INPUT));
 
-	addInput(Port::create<PJ301MPort>(Vec(3, 181), Port::INPUT, module, CHOKE::IN2_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(3, 211), Port::INPUT, module, CHOKE::TRIG2_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(3, 181), module, CHOKE::IN2_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(3, 211), module, CHOKE::TRIG2_INPUT));
 
- addChild(ModuleLightWidget::create<LargeLight<BlueLight>>(Vec(8, 276), module, CHOKE::L2_LIGHT));
+	addChild(createLight<LargeLight<BlueLight>>(Vec(8, 276), module, CHOKE::L2_LIGHT));
 
-	addOutput(Port::create<PJ301MPort>(Vec(3, 321), Port::OUTPUT, module, CHOKE::OUT_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(3, 321), module, CHOKE::OUT_OUTPUT));
 
 }
+};
 
 
-
-Model *modelCHOKE = Model::create<CHOKE, CHOKEWidget>("cf", "CHOKE", "Choke", UTILITY_TAG);
+Model *modelCHOKE = createModel<CHOKE, CHOKEWidget>("CHOKE");

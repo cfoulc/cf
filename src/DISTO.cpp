@@ -1,5 +1,5 @@
 
-#include "cf.hpp"
+#include "plugin.hpp"
 #include "dsp/digital.hpp"
 
 
@@ -30,14 +30,14 @@ struct DISTO : Module {
 	float gain_gain ;
 	int gain_affi ;
 
-	DISTO() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS) {}
-	void step() override;
+	DISTO(){
+		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS);
+		configParam(GAIN_PARAM, 0.0f, 10.0f, 0.2f, "Gain");
+		configParam(FOLD_PARAM, 0.0f, 10.0f, 0.0f, "Fold");
+}
 
-};
 
-
-
-void DISTO::step() { 
+void process(const ProcessArgs &args) override {
 
 	if (inputs[FOLD_INPUT].active) {
 		fold_affi =true; fold_gain = clamp(inputs[FOLD_INPUT].value,-0.001,10.001) ;} 
@@ -56,125 +56,183 @@ void DISTO::step() {
 					if (x>5.0f) x=5.0f-(x-5.0f)*fold_gain/5.0;
 					if ((x>=-5.0) & (x<=5.0)) i=1000; if (i==99) x=0;}
 	
-	outputs[X_OUTPUT].value=clamp(x,-5.0f,5.0f);
+
+	//float fold;
+        //const float bias = (x < 0) ? -5.f : 5.f;
+        //int phase = int((x + bias) / 10.f);
+        //bool isEven = !(phase & 1);
+        //if (isEven) {
+        //    fold = x - 10.f * phase;
+        //} else {
+        //    fold = -x + 10.f * phase;
+        //}
+
+ 	//x = ((int(x/5.0)%2)*2-1)*(x%5) + (int(x/5.0)%2)*5.0 ;
+
+	//int xa ; float xb, xc;
+	//xa=int(x/5.0) ;
+	//xb=int(xa-2.0*int(xa/2.0)) ;
+	//if (xb == 0) xc = (x-5*xa) ; else xc= xb*5.0 - abs(xb)*(x-5*xa) ;                //+5.0*(2*xb-1) ;
+
+	outputs[X_OUTPUT].value=x;                                                         //clamp(x,-5.0f,5.0f); 
 
 }
+};
 
-struct cachecl : SVGScrew {
+struct cachecl : SvgScrew {
 	cachecl() {
-		sw->setSVG(SVG::load(assetPlugin(plugin, "res/distocach.svg")));
+		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/distocach.svg")));
 		box.size = sw->box.size;
 	}
 };
 
 struct DISTODisplay : TransparentWidget {
+	DISTO *module;
 
-	float *xxxx;
-	int *llll;
-	float bu[5] = {};
+		float bu[5] = {};
 	int ind = 0;
+		
 
 	DISTODisplay() {
-	
-		
+
 	}
 	
-	void draw(NVGcontext *vg) {
-		bu[ind] = *xxxx ;
+	void draw(const DrawArgs &args) override {
+
+
+
+float xxxx = module ? module->y : 1.0f;
+
+
+		bu[ind] = xxxx ;
 		for (int i = 0 ; i<5 ; i++){
-		{//nvgStrokeColor(vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff));
-			nvgBeginPath(vg);
-			nvgCircle(vg, 0,0, bu[i]);
-			nvgFillColor(vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff));
-			nvgGlobalCompositeOperation(vg, NVG_LIGHTER);
-			nvgFill(vg);
-			nvgClosePath(vg);
+		{//nvgStrokeColor(args.vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff));
+			nvgBeginPath(args.vg);
+			nvgCircle(args.vg, 0,0, bu[i]);
+			nvgFillColor(args.vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff));
+			nvgGlobalCompositeOperation(args.vg, NVG_LIGHTER);
+			nvgFill(args.vg);
+			nvgClosePath(args.vg);
 		}
 		}
-		//nvgStroke(vg);
+		//nvgStroke(args.vg);
 		if (ind<4) ind = ind +1; else ind = 0;
 	}
 };
 
-struct MOTORPOTDisplay : TransparentWidget {
+struct MOGAINDisplay : TransparentWidget {
+	DISTO *module;
 
-	float d;
-	float *gainX ;
-	int *affich;
-
-	MOTORPOTDisplay() {
+	MOGAINDisplay() {
 		
 	}
 	
-	void draw(NVGcontext *vg) {
-		if (*affich==1) {
-		float xx = d*sin(-(*gainX*0.17+0.15)*M_PI) ;
-		float yy = d*cos((*gainX*0.17+0.15)*M_PI) ;
+	void draw(const DrawArgs &args) override {
+
+float gainX = module ? module->gain_gain : 1.0f;
+int affich = module ? module->gain_affi : 0;
+float d=9.3;
+
+		if (affich==1) {
+		float xx = d*sin(-(gainX*0.17+0.15)*M_PI) ;
+		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;
 
 		
-			nvgBeginPath(vg);
-			nvgCircle(vg, 0,0, d);
-			nvgFillColor(vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
-			nvgFill(vg);	
+			nvgBeginPath(args.vg);
+			nvgCircle(args.vg, 0,0, d);
+			nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			nvgFill(args.vg);	
 		
-			nvgStrokeWidth(vg,1.2);
-			nvgStrokeColor(vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			nvgStrokeWidth(args.vg,1.2);
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
 			{
-				nvgBeginPath(vg);
-				nvgMoveTo(vg, 0,0);
-				nvgLineTo(vg, xx,yy);
-				nvgClosePath(vg);
+				nvgBeginPath(args.vg);
+				nvgMoveTo(args.vg, 0,0);
+				nvgLineTo(args.vg, xx,yy);
+				nvgClosePath(args.vg);
 			}
-			nvgStroke(vg);
+			nvgStroke(args.vg);
+		}
+
+	}
+};
+
+struct MOFOLDDisplay : TransparentWidget {
+	DISTO *module;
+
+	MOFOLDDisplay() {
+		
+	}
+	
+	void draw(const DrawArgs &args) override {
+
+float gainX = module ? module->fold_gain : 1.0f;
+int affich = module ? module->fold_affi : 0;
+float d=9.3;
+
+		if (affich==1) {
+		float xx = d*sin(-(gainX*0.17+0.15)*M_PI) ;
+		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;
+
+		
+			nvgBeginPath(args.vg);
+			nvgCircle(args.vg, 0,0, d);
+			nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			nvgFill(args.vg);	
+		
+			nvgStrokeWidth(args.vg,1.2);
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			{
+				nvgBeginPath(args.vg);
+				nvgMoveTo(args.vg, 0,0);
+				nvgLineTo(args.vg, xx,yy);
+				nvgClosePath(args.vg);
+			}
+			nvgStroke(args.vg);
 		}
 
 	}
 };
 
 struct DISTOWidget : ModuleWidget {
-	DISTOWidget(DISTO *module);
-};
+	DISTOWidget(DISTO *module){
+		setModule(module);
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/DISTO.svg")));
 
-DISTOWidget::DISTOWidget(DISTO *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/DISTO.svg")));
 
-	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 365)));
 
 	{
 		DISTODisplay *distdisplay = new DISTODisplay();
 			distdisplay->box.pos = Vec(60, 170);
-			distdisplay->xxxx = &module->y ;
-			distdisplay->llll = &module->length ;	
+			distdisplay->module = module ;	
 		addChild(distdisplay);
 	}
 
-	addInput(Port::create<PJ301MPort>(Vec(15, 321), Port::INPUT, module, DISTO::IN_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(15, 321), module, DISTO::IN_INPUT));
 
-	addInput(Port::create<PJ301MPort>(Vec(47, 321), Port::INPUT, module, DISTO::GAIN_INPUT));
-	addParam(ParamWidget::create<Trimpot>(Vec(50.4, 284), module, DISTO::GAIN_PARAM, 0.0f, 10.0f, 0.2f));
+	addInput(createInput<PJ301MPort>(Vec(47, 321), module, DISTO::GAIN_INPUT));
+	addParam(createParam<Trimpot>(Vec(50.4, 284), module, DISTO::GAIN_PARAM));
 	{
-		MOTORPOTDisplay *gaindisplay = new MOTORPOTDisplay();
+		MOGAINDisplay *gaindisplay = new MOGAINDisplay();
 		gaindisplay->box.pos = Vec(59.8, 293.2);
-		gaindisplay->d = 9.3;
-		gaindisplay->gainX = &module->gain_gain;
-		gaindisplay->affich = &module->gain_affi;
+		gaindisplay->module = module;
 		addChild(gaindisplay);
 	}
-	addInput(Port::create<PJ301MPort>(Vec(80, 321), Port::INPUT, module, DISTO::FOLD_INPUT));
-	addParam(ParamWidget::create<Trimpot>(Vec(83.4, 284), module, DISTO::FOLD_PARAM, 0.0f, 10.0f, 0.0f)); 
+	addInput(createInput<PJ301MPort>(Vec(80, 321), module, DISTO::FOLD_INPUT));
+	addParam(createParam<Trimpot>(Vec(83.4, 284), module, DISTO::FOLD_PARAM)); 
 	{
-		MOTORPOTDisplay *folddisplay = new MOTORPOTDisplay();
+		MOFOLDDisplay *folddisplay = new MOFOLDDisplay();
 		folddisplay->box.pos = Vec(92.8, 293.2);
-		folddisplay->d = 9.3;
-		folddisplay->gainX = &module->fold_gain;
-		folddisplay->affich = &module->fold_affi;
+		folddisplay->module = module;
 		addChild(folddisplay);
 	}
-	addOutput(Port::create<PJ301MPort>(Vec(80, 31), Port::OUTPUT, module, DISTO::X_OUTPUT)); 
-		addChild(Widget::create<cachecl>(Vec(0, 0)));
+	addOutput(createOutput<PJ301MPort>(Vec(80, 31), module, DISTO::X_OUTPUT)); 
+		addChild(createWidget<cachecl>(Vec(0, 0)));
 }
+};
 
-Model *modelDISTO = Model::create<DISTO, DISTOWidget>("cf", "DISTO", "Disto", DISTORTION_TAG);
+Model *modelDISTO = createModel<DISTO, DISTOWidget>("DISTO");

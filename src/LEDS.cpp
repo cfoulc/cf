@@ -1,4 +1,4 @@
-#include "cf.hpp"
+#include "plugin.hpp"
 #include "dsp/digital.hpp"
 
 
@@ -24,15 +24,20 @@ struct LEDS : Module {
 int wait = 0;
 bool ledState[100] = {};
 bool tempState[5] = {};
-SchmittTrigger rndTrigger;
-SchmittTrigger upTrigger;
-SchmittTrigger ledTrigger[100];
+dsp::SchmittTrigger rndTrigger;
+dsp::SchmittTrigger upTrigger;
+dsp::SchmittTrigger ledTrigger[100];
 
 
-	LEDS() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
-	void step() override;
+	LEDS() {
+		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+		for (int i = 0; i < 100; i++) {
+			configParam(ON_PARAM + i, 0.f, 1.f, 0.f);
+		}
+}
 
-json_t *toJson() override {
+
+json_t *dataToJson() override {
 		json_t *rootJ = json_object();
 
 		// leds
@@ -46,7 +51,7 @@ json_t *toJson() override {
 		return rootJ;
 	}
 
-	void fromJson(json_t *rootJ) override {
+	void dataFromJson(json_t *rootJ) override {
 
 		// leds
 		json_t *ledsJ = json_object_get(rootJ, "leds");
@@ -60,26 +65,26 @@ json_t *toJson() override {
 
 	}
 
-	void reset() override {
+	void onReset() override {
 		for (int i = 0; i < 100; i++) {
 			ledState[i] = false;
 		}
 	}
 
-	void randomize() override {
+	void onRandomize() override {
 		for (int i = 0; i < 100; i++) {
-			ledState[i] = (randomUniform() > 0.5);
+			ledState[i] = (random::uniform() > 0.5);
 		}
 	}
 
-};
 
 
-void LEDS::step() {
+
+void process(const ProcessArgs &args) override {
 
 	if (rndTrigger.process(inputs[RND_INPUT].value))
 			{for (int i = 0; i < 100; i++) 
-				{ledState[i] = (randomUniform() > 0.5);}
+				{ledState[i] = (random::uniform() > 0.5);}
 			}
 
 	if (upTrigger.process(inputs[UP_INPUT].value))
@@ -102,41 +107,39 @@ void LEDS::step() {
 		}
 
 
-}
+};
+};
 
-
-struct LButton : SVGSwitch, MomentarySwitch {
+struct LButton : app::SvgSwitch {
 	LButton() {
-		addFrame(SVG::load(assetPlugin(plugin, "res/L.svg")));
-		addFrame(SVG::load(assetPlugin(plugin, "res/Ldown.svg")));
-		sw->wrap();
-		box.size = sw->box.size;
+		momentary = true;
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/L.svg")));
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Ldown.svg")));
 	}
 };
 
 struct LEDSWidget : ModuleWidget {
-	LEDSWidget(LEDS *module);
-};
-
-LEDSWidget::LEDSWidget(LEDS *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/LEDS.svg")));
+	LEDSWidget(LEDS *module) {
+		setModule(module);
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/LEDS.svg")));
 
 
-	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 365)));
 
 	for (int i = 0; i < 20; i++) {
 	for (int j = 0; j < 5; j++) {
-     		addParam(ParamWidget::create<LButton>(Vec(j*15+10-0.8, i*15+35-0.8), module, LEDS::ON_PARAM + (i*5+j), 0.0, 1.0, 0.0));
-		addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(j*15+10, i*15+35), module, LEDS::LED_LIGHT + (i*5+j)));
+     		addParam(createParam<LButton>(Vec(j*15+10-0.8, i*15+35-0.8), module, LEDS::ON_PARAM + (i*5+j)));
+		addChild(createLight<MediumLight<BlueLight>>(Vec(j*15+10, i*15+35), module, LEDS::LED_LIGHT + (i*5+j)));
 	}}
-	addInput(Port::create<PJ301MPort>(Vec(11, 340), Port::INPUT, module, LEDS::RND_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(54, 340), Port::INPUT, module, LEDS::UP_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(11, 340), module, LEDS::RND_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(54, 340), module, LEDS::UP_INPUT));
 
 	
 	
-}
+};
+};
 
-Model *modelLEDS = Model::create<LEDS, LEDSWidget>("cf", "LEDS", "Leds", VISUAL_TAG);
+Model *modelLEDS = createModel<LEDS, LEDSWidget>("LEDS");

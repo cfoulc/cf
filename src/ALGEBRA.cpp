@@ -1,4 +1,4 @@
-#include "cf.hpp"
+#include "plugin.hpp"
 #include "dsp/digital.hpp"
 
 
@@ -25,13 +25,17 @@ struct ALGEBRA : Module {
 	};
 	
 	int OP_STATE = 0 ;
-	SchmittTrigger trTrigger[6];
+	dsp::SchmittTrigger trTrigger[6];
 
-ALGEBRA() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) { }
+ALGEBRA() { 
+	config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+	for (int i = 0; i < 6; i++) {
+			configParam(OP_PARAM + i, 0.f, 1.f, 0.f);
+		}
+}
 
-	void step() override;
 	
-json_t *toJson() override {
+json_t *dataToJson() override {
 		json_t *rootJ = json_object();
 		
 
@@ -39,7 +43,7 @@ json_t *toJson() override {
 		return rootJ;
 		}
 
-void fromJson(json_t *rootJ) override {
+void dataFromJson(json_t *rootJ) override {
 		
 
 		json_t *opstateJ = json_object_get(rootJ, "opstate");
@@ -47,12 +51,12 @@ void fromJson(json_t *rootJ) override {
 			OP_STATE = json_integer_value(opstateJ);
 	
 	}
-};
 
 
 
 
-void ALGEBRA::step() {
+
+void process(const ProcessArgs &args) override {
 	for (int i=0; i<6; i++) {
 		if (trTrigger[i].process(params[OP_PARAM+i].value)) OP_STATE= i;
 		if (OP_STATE == i) lights[LED_LIGHT+i].value=1; else lights[LED_LIGHT+i].value=0;
@@ -71,94 +75,76 @@ void ALGEBRA::step() {
 			}
 
 }
-
-struct plusButton : SVGSwitch, MomentarySwitch {
+};
+struct plusButton : app::SvgSwitch {
 	plusButton() {
-		addFrame(SVG::load(assetPlugin(plugin, "res/plusButton.svg")));
-		addFrame(SVG::load(assetPlugin(plugin, "res/plusButton.svg")));
-		sw->wrap();
-		box.size = sw->box.size;
+		momentary = true;
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/plusButton.svg")));
 	}
 };
-struct minusButton : SVGSwitch, MomentarySwitch {
+struct minusButton : app::SvgSwitch {
 	minusButton() {
-		addFrame(SVG::load(assetPlugin(plugin, "res/minusButton.svg")));
-		addFrame(SVG::load(assetPlugin(plugin, "res/minusButton.svg")));
-		sw->wrap();
-		box.size = sw->box.size;
+		momentary = true;
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/minusButton.svg")));
 	}
 };
-struct multButton : SVGSwitch, MomentarySwitch {
+struct multButton : app::SvgSwitch {
 	multButton() {
-		addFrame(SVG::load(assetPlugin(plugin, "res/multButton.svg")));
-		addFrame(SVG::load(assetPlugin(plugin, "res/multButton.svg")));
-		sw->wrap();
-		box.size = sw->box.size;
-	}
+		momentary = true;
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/multButton.svg")));	}
 };
-struct divButton : SVGSwitch, MomentarySwitch {
+struct divButton : app::SvgSwitch {
 	divButton() {
-		addFrame(SVG::load(assetPlugin(plugin, "res/divButton.svg")));
-		addFrame(SVG::load(assetPlugin(plugin, "res/divButton.svg")));
-		sw->wrap();
-		box.size = sw->box.size;
+		momentary = true;
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/divButton.svg")));
 	}
 };
-struct maxButton : SVGSwitch, MomentarySwitch {
+struct maxButton : app::SvgSwitch {
 	maxButton() {
-		addFrame(SVG::load(assetPlugin(plugin, "res/maxButton.svg")));
-		addFrame(SVG::load(assetPlugin(plugin, "res/maxButton.svg")));
-		sw->wrap();
-		box.size = sw->box.size;
+		momentary = true;
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/maxButton.svg")));
 	}
 };
-struct minButton : SVGSwitch, MomentarySwitch {
+struct minButton : app::SvgSwitch {
 	minButton() {
-		addFrame(SVG::load(assetPlugin(plugin, "res/minButton.svg")));
-		addFrame(SVG::load(assetPlugin(plugin, "res/minButton.svg")));
-		sw->wrap();
-		box.size = sw->box.size;
+		momentary = true;
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/minButton.svg")));
 	}
 };
 
 struct ALGEBRAWidget : ModuleWidget {
-	ALGEBRAWidget(ALGEBRA *module);
- //void step() override;
+	ALGEBRAWidget(ALGEBRA *module){
+		setModule(module);
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/ALGEBRA.svg")));
 
-};
-
-ALGEBRAWidget::ALGEBRAWidget(ALGEBRA *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/ALGEBRA.svg")));
-
-
-	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 365)));
 
 
-	addInput(Port::create<PJ301MPort>(Vec(3, 31), Port::INPUT, module, ALGEBRA::IN1_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(3, 95), Port::INPUT, module, ALGEBRA::IN2_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(3, 31), module, ALGEBRA::IN1_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(3, 95), module, ALGEBRA::IN2_INPUT));
 
 	int i = 0;
-		addChild(ModuleLightWidget::create<LargeLight<BlueLight>>(Vec(3+4.4, i*24+133+4.4), module, ALGEBRA::LED_LIGHT + i));
-     		addParam(ParamWidget::create<plusButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i, 0.0, 1.0, 0.0)); i=i+1;
-		addChild(ModuleLightWidget::create<LargeLight<BlueLight>>(Vec(3+4.4, i*24+133+4.4), module, ALGEBRA::LED_LIGHT + i));
-     		addParam(ParamWidget::create<minusButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i, 0.0, 1.0, 0.0)); i=i+1;
-		addChild(ModuleLightWidget::create<LargeLight<BlueLight>>(Vec(3+4.4, i*24+133+4.4), module, ALGEBRA::LED_LIGHT + i));
-     		addParam(ParamWidget::create<multButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i, 0.0, 1.0, 0.0)); i=i+1;
-		addChild(ModuleLightWidget::create<LargeLight<BlueLight>>(Vec(3+4.4, i*24+133+4.4), module, ALGEBRA::LED_LIGHT + i));
-     		addParam(ParamWidget::create<divButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i, 0.0, 1.0, 0.0)); i=i+1;
-		addChild(ModuleLightWidget::create<LargeLight<BlueLight>>(Vec(3+4.4, i*24+133+4.4), module, ALGEBRA::LED_LIGHT + i));
-     		addParam(ParamWidget::create<maxButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i, 0.0, 1.0, 0.0)); i=i+1;
-		addChild(ModuleLightWidget::create<LargeLight<BlueLight>>(Vec(3+4.4, i*24+133+4.4), module, ALGEBRA::LED_LIGHT + i));
-     		addParam(ParamWidget::create<minButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i, 0.0, 1.0, 0.0));
+		addChild(createLight<LargeLight<BlueLight>>(Vec(3+4.4, i*24+133+4.4), module, ALGEBRA::LED_LIGHT + i));
+     		addParam(createParam<plusButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i)); i=i+1;
+		addChild(createLight<LargeLight<BlueLight>>(Vec(3+4.4, i*24+133+4.4), module, ALGEBRA::LED_LIGHT + i));
+     		addParam(createParam<minusButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i)); i=i+1;
+		addChild(createLight<LargeLight<BlueLight>>(Vec(3+4.4, i*24+133+4.4), module, ALGEBRA::LED_LIGHT + i));
+     		addParam(createParam<multButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i)); i=i+1;
+		addChild(createLight<LargeLight<BlueLight>>(Vec(3+4.4, i*24+133+4.4), module, ALGEBRA::LED_LIGHT + i));
+     		addParam(createParam<divButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i)); i=i+1;
+		addChild(createLight<LargeLight<BlueLight>>(Vec(3+4.4, i*24+133+4.4), module, ALGEBRA::LED_LIGHT + i));
+     		addParam(createParam<maxButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i)); i=i+1;
+		addChild(createLight<LargeLight<BlueLight>>(Vec(3+4.4, i*24+133+4.4), module, ALGEBRA::LED_LIGHT + i));
+     		addParam(createParam<minButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i));
 		
 	
 
 
-	addOutput(Port::create<PJ301MPort>(Vec(3, 321), Port::OUTPUT, module, ALGEBRA::OUT_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(3, 321), module, ALGEBRA::OUT_OUTPUT));
 	
 }
+};
 
 
-
-Model *modelALGEBRA = Model::create<ALGEBRA, ALGEBRAWidget>("cf", "ALGEBRA", "Algebra", UTILITY_TAG);
+Model *modelALGEBRA = createModel<ALGEBRA, ALGEBRAWidget>("ALGEBRA");

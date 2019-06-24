@@ -1,5 +1,5 @@
 
-#include "cf.hpp"
+#include "plugin.hpp"
 #include "dsp/digital.hpp"
 
 
@@ -36,14 +36,12 @@ struct CUBE : Module {
 	float gainY = 1.0;
 	
 
-	CUBE() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS) {}
-	void step() override;
-
-};
-
+	CUBE() {
+		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS);
+}
 
 
-void CUBE::step() { 
+void process(const ProcessArgs &args) override {
 	gainX = 0.5f; gainY = 0.5f;
 	if (inputs[X_INPUT].active) gainX=inputs[X_INPUT].value;
 	if (inputs[Y_INPUT].active) gainY=inputs[Y_INPUT].value;
@@ -63,108 +61,104 @@ void CUBE::step() {
 			z[i] = d * cos(theta);
         	}
 		
-	if (frameX<100) frameX=frameX+gainX/engineGetSampleRate(); else frameX=0;
-	if (frameY<100) frameY=frameY+gainY/engineGetSampleRate(); else frameY=0;
+	if (frameX<100) frameX=frameX+gainX* args.sampleTime; else frameX=0;
+	if (frameY<100) frameY=frameY+gainY* args.sampleTime; else frameY=0;
 
 
 	outputs[X_OUTPUT].value=z[0]*5.0;
-}
+};
+};
 
 struct CUBEDisplay : TransparentWidget {
+	CUBE *module;
 
-	float *xxxx[8] = {};
-	float *yyyy[8] = {};
 
 	CUBEDisplay() {
-		
+
 	}
 	
-	void draw(NVGcontext *vg) {
-
-		nvgStrokeColor(vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff));
+  void draw(const DrawArgs &args) override {
+if (module) {
+		nvgStrokeColor(args.vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff));
 		{
-			nvgBeginPath(vg);
-			nvgMoveTo(vg, *xxxx[0]*20,*yyyy[0]*20);
-			nvgLineTo(vg, *xxxx[1]*20,*yyyy[1]*20);
-			nvgLineTo(vg, *xxxx[2]*20,*yyyy[2]*20);
-			nvgLineTo(vg, *xxxx[3]*20,*yyyy[3]*20);
-			nvgClosePath(vg);
+			nvgBeginPath(args.vg);
+			nvgMoveTo(args.vg, module->x[0]*20,module->y[0]*20);
+			nvgLineTo(args.vg, module->x[1]*20,module->y[1]*20);
+			nvgLineTo(args.vg, module->x[2]*20,module->y[2]*20);
+			nvgLineTo(args.vg, module->x[3]*20,module->y[3]*20);
+			nvgClosePath(args.vg);
 		}
-		nvgStroke(vg);
-
-		{
-			nvgBeginPath(vg);
-			nvgMoveTo(vg, *xxxx[4]*20,*yyyy[4]*20);
-			nvgLineTo(vg, *xxxx[5]*20,*yyyy[5]*20);
-			nvgLineTo(vg, *xxxx[6]*20,*yyyy[6]*20);
-			nvgLineTo(vg, *xxxx[7]*20,*yyyy[7]*20);
-			nvgClosePath(vg);
-		}
-		nvgStroke(vg);
+		nvgStroke(args.vg);
 
 		{
-			nvgBeginPath(vg);
-			nvgMoveTo(vg, *xxxx[0]*20,*yyyy[0]*20);
-			nvgLineTo(vg, *xxxx[4]*20,*yyyy[4]*20);
-			nvgClosePath(vg);
+			nvgBeginPath(args.vg);
+			nvgMoveTo(args.vg, module->x[4]*20,module->y[4]*20);
+			nvgLineTo(args.vg, module->x[5]*20,module->y[5]*20);
+			nvgLineTo(args.vg, module->x[6]*20,module->y[6]*20);
+			nvgLineTo(args.vg, module->x[7]*20,module->y[7]*20);
+			nvgClosePath(args.vg);
 		}
-		nvgStroke(vg);
+		nvgStroke(args.vg);
 
 		{
-			nvgBeginPath(vg);
-			nvgMoveTo(vg, *xxxx[1]*20,*yyyy[1]*20);
-			nvgLineTo(vg, *xxxx[5]*20,*yyyy[5]*20);
-			nvgClosePath(vg);
+			nvgBeginPath(args.vg);
+			nvgMoveTo(args.vg, module->x[0]*20,module->y[0]*20);
+			nvgLineTo(args.vg, module->x[4]*20,module->y[4]*20);
+			nvgClosePath(args.vg);
 		}
-		nvgStroke(vg);
+		nvgStroke(args.vg);
 
 		{
-			nvgBeginPath(vg);
-			nvgMoveTo(vg, *xxxx[2]*20,*yyyy[2]*20);
-			nvgLineTo(vg, *xxxx[6]*20,*yyyy[6]*20);
-			nvgClosePath(vg);
+			nvgBeginPath(args.vg);
+			nvgMoveTo(args.vg, module->x[1]*20,module->y[1]*20);
+			nvgLineTo(args.vg, module->x[5]*20,module->y[5]*20);
+			nvgClosePath(args.vg);
 		}
-		nvgStroke(vg);
+		nvgStroke(args.vg);
 
 		{
-			nvgBeginPath(vg);
-			nvgMoveTo(vg, *xxxx[3]*20,*yyyy[3]*20);
-			nvgLineTo(vg, *xxxx[7]*20,*yyyy[7]*20);
-			nvgClosePath(vg);
+			nvgBeginPath(args.vg);
+			nvgMoveTo(args.vg, module->x[2]*20,module->y[2]*20);
+			nvgLineTo(args.vg, module->x[6]*20,module->y[6]*20);
+			nvgClosePath(args.vg);
 		}
-		nvgStroke(vg);
+		nvgStroke(args.vg);
 
-	}
+		{
+			nvgBeginPath(args.vg);
+			nvgMoveTo(args.vg, module->x[3]*20,module->y[3]*20);
+			nvgLineTo(args.vg, module->x[7]*20,module->y[7]*20);
+			nvgClosePath(args.vg);
+		}
+		nvgStroke(args.vg);
+
+	};};
 };
 
 
 
 struct CUBEWidget : ModuleWidget {
-	CUBEWidget(CUBE *module);
-};
+	CUBEWidget(CUBE *module) {
+		setModule(module);
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/CUBE.svg")));
 
-CUBEWidget::CUBEWidget(CUBE *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/CUBE.svg")));
-
-	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 365)));
 
 	{
 		CUBEDisplay *display = new CUBEDisplay();
 		display->box.pos = Vec(60, 120);
-		for (int i=0;i<8;i++) {
-			display->xxxx[i] = &module->x[i] ;
-			display->yyyy[i] = &module->y[i] ;	
-		}
+		display->module = module;
 		addChild(display);
 	}
 
-	addInput(Port::create<PJ301MPort>(Vec(15, 321), Port::INPUT, module, CUBE::X_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(47, 321), Port::INPUT, module, CUBE::Y_INPUT));
-	addOutput(Port::create<PJ301MPort>(Vec(80, 321), Port::OUTPUT, module, CUBE::X_OUTPUT));       
+	addInput(createInput<PJ301MPort>(Vec(15, 321), module, CUBE::X_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(47, 321), module, CUBE::Y_INPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(80, 321), module, CUBE::X_OUTPUT));       
 	
 }
+};
 
-Model *modelCUBE = Model::create<CUBE, CUBEWidget>("cf", "CUBE", "Cube", LFO_TAG);
+Model *modelCUBE = createModel<CUBE, CUBEWidget>("CUBE");

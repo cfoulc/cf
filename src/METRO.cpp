@@ -1,4 +1,4 @@
-#include "cf.hpp"
+#include "plugin.hpp"
 #include "dsp/digital.hpp"
 
 struct METRO : Module {
@@ -37,21 +37,30 @@ int strt = 0 ;
 int note ;
 float toc_phase = 0.f;
 uint32_t toc = 0u;
-SchmittTrigger onTrigger;
-SchmittTrigger oninTrigger;
-SchmittTrigger rstTrigger;
+dsp::SchmittTrigger onTrigger;
+dsp::SchmittTrigger oninTrigger;
+dsp::SchmittTrigger rstTrigger;
 bool ON_STATE = false;
 float or_gain ;
 int or_affi ;
 
-	METRO() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {onReset();}
-	void step() override;
+	METRO() {
+		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+		configParam(BEAT_PARAM, 0.0f, 1.0f, 0.0f);
+		configParam(RST_PARAM, 0.0f, 1.0f, 0.0f);
+		configParam(ON_PARAM, 0.0f, 1.0f, 0.0f);
+		configParam(BPM_PARAM, 0.0f, 301.0f, 120.1f, "BPM");
+onReset();
+}
+
+
+
 void onReset() override {
 			ON_STATE = true;
 			
 			}
 
-json_t *toJson() override {
+json_t *dataToJson() override {
 		json_t *rootJ = json_object();
 
 		// on
@@ -59,7 +68,7 @@ json_t *toJson() override {
 		return rootJ;
 		}
 
-void fromJson(json_t *rootJ) override {
+void dataFromJson(json_t *rootJ) override {
 
 		// on
 		json_t *onstateJ = json_object_get(rootJ, "onstate");
@@ -67,10 +76,10 @@ void fromJson(json_t *rootJ) override {
 			ON_STATE = json_integer_value(onstateJ);
 	
 	}
-};
 
 
-void METRO::step() {
+
+void process(const ProcessArgs &args) override {
 
 	if (!inputs[BPM_INPUT].active) {
 		max_METRO = floor(params[BPM_PARAM].value);
@@ -95,7 +104,7 @@ void METRO::step() {
 	
 
 	if (ON_STATE) {
-		toc_phase += ((bpm / 60.f) / engineGetSampleRate()) * 12.f;
+		toc_phase += ((bpm / 60.f) * args.sampleTime) * 12.f;
 		
 		if(toc_phase >= 1.f) {
 			toced = true;
@@ -144,33 +153,35 @@ void METRO::step() {
 	if (strt > 0) {outputs[START_OUTPUT].value = 10.f;strt=strt-1;} else outputs[START_OUTPUT].value = 0.f;
 	if (note > 0) {outputs[OUT_OUTPUT].value = 10.f;note=note-1;} else outputs[OUT_OUTPUT].value = 0.f;
 }
+};
 
 struct NumDisplayWidget : TransparentWidget {
+	METRO *module;
 
-  int *value;
   std::shared_ptr<Font> font;
 
   NumDisplayWidget() {
-    font = Font::load(assetPlugin(plugin, "res/Segment7Standard.ttf"));
+    font = APP->window->loadFont(asset::plugin(pluginInstance, "res/Segment7Standard.ttf"));
   };
 
-  void draw(NVGcontext *vg) {
+  void draw(const DrawArgs &args) override {
+	int val = module ? module->max_METRO : 120;
     // Background
     NVGcolor backgroundColor = nvgRGB(0x44, 0x44, 0x44);
     NVGcolor borderColor = nvgRGB(0x10, 0x10, 0x10);
-    nvgBeginPath(vg);
-    nvgRoundedRect(vg, 0.0, 0.0, box.size.x, box.size.y, 4.0);
-    nvgFillColor(vg, backgroundColor);
-    nvgFill(vg);
-    nvgStrokeWidth(vg, 1.0);
-    nvgStrokeColor(vg, borderColor);
-    nvgStroke(vg);
+    nvgBeginPath(args.vg);
+    nvgRoundedRect(args.vg, 0.0, 0.0, box.size.x, box.size.y, 4.0);
+    nvgFillColor(args.vg, backgroundColor);
+    nvgFill(args.vg);
+    nvgStrokeWidth(args.vg, 1.0);
+    nvgStrokeColor(args.vg, borderColor);
+    nvgStroke(args.vg);
 
-    nvgFontSize(vg, 18);
-    nvgFontFaceId(vg, font->handle);
-    nvgTextLetterSpacing(vg, 2.5);
+    nvgFontSize(args.vg, 18);
+    nvgFontFaceId(args.vg, font->handle);
+    nvgTextLetterSpacing(args.vg, 2.5);
 
-    std::string to_display = std::to_string(*value);
+    std::string to_display = std::to_string(val);
 
 
     while(to_display.length()<3) to_display = ' ' + to_display;
@@ -178,51 +189,51 @@ struct NumDisplayWidget : TransparentWidget {
     Vec textPos = Vec(6.0f, 17.0f);
 
     NVGcolor textColor = nvgRGB(0xdf, 0xd2, 0x2c);
-    nvgFillColor(vg, nvgTransRGBA(textColor, 16));
-    nvgText(vg, textPos.x, textPos.y, "~~~", NULL);
+    nvgFillColor(args.vg, nvgTransRGBA(textColor, 16));
+    nvgText(args.vg, textPos.x, textPos.y, "~~~", NULL);
 
     textColor = nvgRGB(0xda, 0xe9, 0x29);
 
-    nvgFillColor(vg, nvgTransRGBA(textColor, 16));
-    nvgText(vg, textPos.x, textPos.y, "\\\\\\", NULL);
+    nvgFillColor(args.vg, nvgTransRGBA(textColor, 16));
+    nvgText(args.vg, textPos.x, textPos.y, "\\\\\\", NULL);
 
 
     textColor = nvgRGB(0x28, 0xb0, 0xf3);
-    nvgFillColor(vg, textColor);
-    nvgText(vg, textPos.x, textPos.y, to_display.c_str(), NULL);
+    nvgFillColor(args.vg, textColor);
+    nvgText(args.vg, textPos.x, textPos.y, to_display.c_str(), NULL);
   }
 };
 
 struct MOTORPOTDisplay : TransparentWidget {
-
-	float d;
-	float *gainX ;
-	int *affich;
+	METRO *module;
 
 	MOTORPOTDisplay() {
 		
 	}
 	
-	void draw(NVGcontext *vg) {
-		if (*affich==1) {
-		float xx = d*sin(-(*gainX*0.17+0.15)*M_PI) ;
-		float yy = d*cos((*gainX*0.17+0.15)*M_PI) ;
+	void draw(const DrawArgs &args) override {
+float gainX = module ? module->or_gain : 1.0f;
+int affich = module ? module->or_affi : 0;
+float d=19.1f;
+		if (affich==1) {
+		float xx = d*sin(-(gainX*0.17+0.15)*M_PI) ;
+		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;
 
 		
-			nvgBeginPath(vg);
-			nvgCircle(vg, 0,0, d);
-			nvgFillColor(vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
-			nvgFill(vg);	
+			nvgBeginPath(args.vg);
+			nvgCircle(args.vg, 0,0, d);
+			nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			nvgFill(args.vg);	
 		
-			nvgStrokeWidth(vg,1.2);
-			nvgStrokeColor(vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			nvgStrokeWidth(args.vg,1.2);
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
 			{
-				nvgBeginPath(vg);
-				nvgMoveTo(vg, 0,0);
-				nvgLineTo(vg, xx,yy);
-				nvgClosePath(vg);
+				nvgBeginPath(args.vg);
+				nvgMoveTo(args.vg, 0,0);
+				nvgLineTo(args.vg, xx,yy);
+				nvgClosePath(args.vg);
 			}
-			nvgStroke(vg);
+			nvgStroke(args.vg);
 		}
 
 	}
@@ -230,50 +241,46 @@ struct MOTORPOTDisplay : TransparentWidget {
 
 
 struct METROWidget : ModuleWidget {
-	METROWidget(METRO *module);
-};
+	METROWidget(METRO *module) {
+		setModule(module);
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/METRO.svg")));
 
-METROWidget::METROWidget(METRO *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/METRO.svg")));
+	addChild(createWidget<ScrewSilver>(Vec(15, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 365)));
 
-	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
-
-	addParam(ParamWidget::create<RoundLargeBlackKnob>(Vec(27, 107), module, METRO::BPM_PARAM, 0.0f, 301.0f, 120.1f));
-	addInput(Port::create<PJ301MPort>(Vec(11, 141), Port::INPUT, module, METRO::BPM_INPUT));
+	addParam(createParam<RoundLargeBlackKnob>(Vec(27, 107), module, METRO::BPM_PARAM));
+	addInput(createInput<PJ301MPort>(Vec(11, 141), module, METRO::BPM_INPUT));
 	{
 		MOTORPOTDisplay *display = new MOTORPOTDisplay();
 		display->box.pos = Vec(46, 126);
-		display->d = 19.1;
-		display->gainX = &module->or_gain;
-		display->affich = &module->or_affi;
+		display->module = module;
 		addChild(display);
 	}
 
-     	addParam(ParamWidget::create<LEDButton>(Vec(38, 167), module, METRO::ON_PARAM, 0.0f, 1.0f, 0.0f));
-	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(42.4, 171.4), module, METRO::ON_LIGHT));
-	addInput(Port::create<PJ301MPort>(Vec(11, 171), Port::INPUT, module, METRO::ON_INPUT));
+     	addParam(createParam<LEDButton>(Vec(38, 167), module, METRO::ON_PARAM));
+	addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 171.4), module, METRO::ON_LIGHT));
+	addInput(createInput<PJ301MPort>(Vec(11, 171), module, METRO::ON_INPUT));
 
-     	addParam(ParamWidget::create<LEDButton>(Vec(38, 197), module, METRO::RST_PARAM, 0.0f, 1.0f, 0.0f));
-	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(42.4, 201.4), module, METRO::MES_LIGHT));
+     	addParam(createParam<LEDButton>(Vec(38, 197), module, METRO::RST_PARAM));
+	addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 201.4), module, METRO::MES_LIGHT));
 
-     	addParam(ParamWidget::create<LEDButton>(Vec(38, 227), module, METRO::BEAT_PARAM, 0.0f, 1.0f, 0.0f));
-	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(42.4, 231.4), module, METRO::BEAT_LIGHT));
-	addOutput(Port::create<PJ301MPort>(Vec(54, 265), Port::OUTPUT, module, METRO::BEAT_OUTPUT));
+     	addParam(createParam<LEDButton>(Vec(38, 227), module, METRO::BEAT_PARAM));
+	addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 231.4), module, METRO::BEAT_LIGHT));
+	addOutput(createOutput<PJ301MPort>(Vec(54, 265), module, METRO::BEAT_OUTPUT));
 
-	addOutput(Port::create<PJ301MPort>(Vec(11, 321), Port::OUTPUT, module, METRO::START_OUTPUT));
-	addOutput(Port::create<PJ301MPort>(Vec(54, 321), Port::OUTPUT, module, METRO::OUT_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(11, 321), module, METRO::START_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(54, 321), module, METRO::OUT_OUTPUT));
 
 	NumDisplayWidget *display = new NumDisplayWidget();
 	display->box.pos = Vec(20,56);
 	display->box.size = Vec(50, 20);
-	display->value = &module->max_METRO;
+	display->module = module;
 	addChild(display);
 
 	
 }
+};
 
-
-Model *modelMETRO = Model::create<METRO, METROWidget>("cf", "METRO", "Metro", CLOCK_TAG);
+Model *modelMETRO = createModel <METRO, METROWidget>("METRO");

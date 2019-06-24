@@ -1,4 +1,4 @@
-#include "cf.hpp"
+#include "plugin.hpp"
 #include "dsp/digital.hpp"
 
 
@@ -8,6 +8,8 @@ struct CUTS : Module {
 		POTR_PARAM,
 		LINK_PARAM,
 		POLE_PARAM,
+BPOTF_PARAM,
+BPOTR_PARAM,
 		NUM_PARAMS
 	};
 	enum InputIds {
@@ -47,12 +49,21 @@ bool fv =false;
 
 bool LINK_STATE =false;
 float link_delta;
-SchmittTrigger linkTrigger;
+dsp::SchmittTrigger linkTrigger;
 
-	CUTS() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {reset();}
-	void step() override;
+	CUTS() {
+	config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+		configParam(LINK_PARAM, 0.0, 1.0, 0.0, "Link");
+		configParam(POLE_PARAM, 1.0f, 8.0f, 4.0f, "Pole");
+		configParam(POTR_PARAM, 0.0f, 1.0f, 0.0f, "R");
+		configParam(POTF_PARAM, 0.0f, 1.0f, 1.0f, "F");
+		configParam(BPOTR_PARAM, 0.0f, 1.0f, 0.0f, "R");
+		configParam(BPOTF_PARAM, 0.0f, 1.0f, 1.0f, "F");
+onReset();
+}
 
-	json_t *toJson() override {
+
+	json_t *dataToJson() override {
 		json_t *rootJ = json_object();
 		
 
@@ -61,7 +72,7 @@ SchmittTrigger linkTrigger;
 		return rootJ;
 		}
 
-void fromJson(json_t *rootJ) override {
+void dataFromJson(json_t *rootJ) override {
 		
 
 		json_t *linkstateJ = json_object_get(rootJ, "linkstate");
@@ -75,32 +86,8 @@ void fromJson(json_t *rootJ) override {
 	}
 
 
-};
 
-struct Slide : LEDSliderBlue {
-
-float *deltax ;
-bool *visi ;
-float xorigin = 0.0;
-
-	Slide() {
-		//setSVG(SVG::load(assetPlugin(plugin, "res/spiral.svg")));
-	}
-	void step() override{
-		if (xorigin==0) xorigin=box.pos.x;
-		dirty = true;
-
-		if(*visi) {value=  *deltax; box.pos.x = xorigin;} 
-		else {value =value; box.pos.x = xorigin+100;}
-
-		LEDSliderBlue::step();
-	}
-	//void draw(NVGcontext *vg) override {LEDSliderBlue::draw(vg);}
-
-};
-
-
-void CUTS::step() {
+void process(const ProcessArgs &args) override {
 		
 poles = int(params[POLE_PARAM].value);
 
@@ -111,6 +98,7 @@ lights[LINK_LIGHT].value=LINK_STATE;
 if (inputs[R_INPUT].active) {
 			rv = true;
 			rin = clamp(inputs[R_INPUT].value,0.0,10.0)/10.0;
+params[BPOTR_PARAM].setValue(rin);
 		} else {
 			rv = false;
 			rin = params[POTR_PARAM].value;
@@ -120,6 +108,7 @@ if (!LINK_STATE) {
 	if (inputs[F_INPUT].active) {
 				fv = true;
 				fin = clamp(inputs[F_INPUT].value,0.0,10.0)/10.0;
+params[BPOTF_PARAM].setValue(fin);
 			} else {
 				fv = false;
 				fin = params[POTF_PARAM].value;
@@ -128,15 +117,20 @@ if (!LINK_STATE) {
 		if (inputs[R_INPUT].active) {
 				fv = true;
 				fin = clamp(inputs[R_INPUT].value/10.0+link_delta,0.0f,1.0f);
+params[BPOTF_PARAM].setValue(fin);
+////////////////////params[BPOTR_PARAM].setValue(fin);
 			} else {
 				if (inputs[F_INPUT].active) {
 					rv = true;
 					rin = clamp(inputs[F_INPUT].value/10-link_delta,0.0f,1.0f);
+params[BPOTR_PARAM].setValue(rin);
 					fv = true;
 					fin = clamp(inputs[F_INPUT].value/10,0.0f,1.0f);
+params[BPOTF_PARAM].setValue(fin);
 				} else {
 					fv = true;
 					fin = clamp(params[POTR_PARAM].value+link_delta,0.0f,1.0f);
+params[BPOTF_PARAM].setValue(fin);
 				}
 			}
 	}
@@ -184,49 +178,55 @@ if (inputs[IN2_INPUT].active) {
 
 } else outputs[OUT2_OUTPUT].value =0;
 
-}
-
+};
+};
 
 
 struct CUTSWidget : ModuleWidget {
-	CUTSWidget(CUTS *module);
-};
+ParamWidget *bsfParam;
+ParamWidget *bsrParam;
 
-CUTSWidget::CUTSWidget(CUTS *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/CUTS.svg")));
+	CUTSWidget(CUTS *module) {
+		setModule(module);
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/CUTS.svg")));
 
-	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 365)));
 
 
-	addInput(Port::create<PJ301MPort>(Vec(3, 308), Port::INPUT, module, CUTS::IN_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(3, 334), Port::INPUT, module, CUTS::IN2_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(3, 308), module, CUTS::IN_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(3, 334), module, CUTS::IN2_INPUT));
 
-	addOutput(Port::create<PJ301MPort>(Vec(32, 308), Port::OUTPUT, module, CUTS::OUT_OUTPUT));
-	addOutput(Port::create<PJ301MPort>(Vec(32, 334), Port::OUTPUT, module, CUTS::OUT2_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(32, 308), module, CUTS::OUT_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(32, 334), module, CUTS::OUT2_OUTPUT));
 
-	addParam(ParamWidget::create<RoundBlackSnapKnob>(Vec(15.5, 54), module, CUTS::POLE_PARAM, 1.0f, 8.0f, 4.0f));
+	addParam(createParam<RoundBlackSnapKnob>(Vec(15.5, 54), module, CUTS::POLE_PARAM));
 
-	addParam(ParamWidget::create<LEDSliderWhite>(Vec(5, 131), module, CUTS::POTR_PARAM, 0.0f, 1.0f, 0.0f));
-	addInput(Port::create<PJ301MPort>(Vec(3, 252), Port::INPUT, module, CUTS::R_INPUT));
-	addParam(ParamWidget::create<LEDSliderWhite>(Vec(35, 131), module, CUTS::POTF_PARAM, 0.0f, 1.0f, 1.0f));
-	addInput(Port::create<PJ301MPort>(Vec(32, 252), Port::INPUT, module, CUTS::F_INPUT));
+	addParam(createParam<LEDSliderWhite>(Vec(5, 131), module, CUTS::POTR_PARAM));
+	addInput(createInput<PJ301MPort>(Vec(3, 252), module, CUTS::R_INPUT));
+	addParam(createParam<LEDSliderWhite>(Vec(35, 131), module, CUTS::POTF_PARAM));
+	addInput(createInput<PJ301MPort>(Vec(32, 252), module, CUTS::F_INPUT));
 
-	Slide *rslider = new Slide();
-	rslider->box.pos = Vec(5,131);
-	rslider->deltax = &module->rin;
-	rslider->visi = &module->rv;
-	addChild(rslider);
 
-	Slide *fslider = new Slide();
-	fslider->box.pos = Vec(35,131);
-	fslider->deltax = &module->fin;
-	fslider->visi = &module->fv;
-	addChild(fslider);
+	bsrParam = createParam<LEDSliderBlue>(Vec(5, 131), module, CUTS::BPOTR_PARAM);
+	addParam(bsrParam);
+	bsfParam = createParam<LEDSliderBlue>(Vec(35, 131), module, CUTS::BPOTF_PARAM);
+	addParam(bsfParam);
 
-     	addParam(ParamWidget::create<LEDButton>(Vec(21.5, 104), module, CUTS::LINK_PARAM, 0.0, 1.0, 0.0));
-	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(25.9, 108.4), module, CUTS::LINK_LIGHT));
+     	addParam(createParam<LEDButton>(Vec(21.5, 104), module, CUTS::LINK_PARAM));
+	addChild(createLight<MediumLight<BlueLight>>(Vec(25.9, 108.4), module, CUTS::LINK_LIGHT));
 
 }
+	void step() override {
+		CUTS *module = dynamic_cast<CUTS*>(this->module);
 
-Model *modelCUTS = Model::create<CUTS, CUTSWidget>("cf", "CUTS", "Cuts", FILTER_TAG);
+		if (module) {
+			bsfParam->visible = module->fv;
+			bsrParam->visible = module->rv;
+		}
+
+		ModuleWidget::step();
+	}
+};
+
+Model *modelCUTS = createModel<CUTS, CUTSWidget>("CUTS");

@@ -1,4 +1,4 @@
-#include "cf.hpp"
+#include "plugin.hpp"
 #include "dsp/digital.hpp"
 
 
@@ -45,25 +45,32 @@ int lightState[11] = {};
 int cligno =0;
 int retard =0;
 int retard2 =0;
-SchmittTrigger onTrigger;
-SchmittTrigger oninTrigger;
-SchmittTrigger soloTrigger;
-SchmittTrigger soloinTrigger;
-float or_gain ;
-int or_affi ;
+dsp::SchmittTrigger onTrigger;
+dsp::SchmittTrigger oninTrigger;
+dsp::SchmittTrigger soloTrigger;
+dsp::SchmittTrigger soloinTrigger;
+float or_gain =0.0;
+int or_affi =0;
 float orp_gain ;
 int orp_affi ;
 
 
-	MONO() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {onReset();}
-	void step() override;
+	MONO() {
+		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+		configParam(SOLO_PARAM, 0.0f, 1.0f, 0.0f);
+		configParam(PAN_PARAM, -1.0f, 1.0f, 0.0f, "Pan");
+		configParam(ON_PARAM, 0.0f, 1.0f, 0.0f);
+		configParam(GAIN_PARAM, 0.0f, 10.0f, 5.0f, "Gain");
+		onReset();
+}
+
 
 void onReset() override {
 			ON_STATE = true;
 			SOLO_STATE = false;
 			}
 
-json_t *toJson() override {
+json_t *dataToJson() override {
 		json_t *rootJ = json_object();
 		// solo
 		json_object_set_new(rootJ, "solostate", json_integer(SOLO_STATE));
@@ -73,7 +80,7 @@ json_t *toJson() override {
 		return rootJ;
 		}
 
-void fromJson(json_t *rootJ) override {
+void dataFromJson(json_t *rootJ) override {
 		// solo
 		json_t *solostateJ = json_object_get(rootJ, "solostate");
 		if (solostateJ)
@@ -86,10 +93,10 @@ void fromJson(json_t *rootJ) override {
 	
 	}
 
-};
 
 
-void MONO::step() {
+
+void process(const ProcessArgs &args) override {
 
         SIGNAL = inputs[IN1_INPUT].value ;
 
@@ -138,38 +145,78 @@ void MONO::step() {
 	for (int i = 0; i < 11; i++) {
 		if (lightState[i]> 0) {lightState[i]=lightState[i]-1;lights[LEVEL_LIGHTS + i].value=true;} else lights[LEVEL_LIGHTS + i].value=false;
 	}
-}
+};
+};
 
-struct MOTORPOTDisplay : TransparentWidget {
+struct MODisplay : TransparentWidget {
+	MONO *module;
 
-	float d;
-	float *gainX ;
-	int *affich;
-
-	MOTORPOTDisplay() {
+	MODisplay() {
 		
 	}
 	
-	void draw(NVGcontext *vg) {
-		if (*affich==1) {
-		float xx = d*sin(-(*gainX*0.17+0.15)*M_PI) ;
-		float yy = d*cos((*gainX*0.17+0.15)*M_PI) ;
+	void draw(const DrawArgs &args) override {
+
+float gainX = module ? module->or_gain : 1.0f;
+int affich = module ? module->or_affi : 0;
+float d=19.1;
+
+		if (affich==1) {
+		float xx = d*sin(-(gainX*0.17+0.15)*M_PI) ;
+		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;
 
 		
-			nvgBeginPath(vg);
-			nvgCircle(vg, 0,0, d);
-			nvgFillColor(vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
-			nvgFill(vg);	
+			nvgBeginPath(args.vg);
+			nvgCircle(args.vg, 0,0, d);
+			nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			nvgFill(args.vg);	
 		
-			nvgStrokeWidth(vg,1.2);
-			nvgStrokeColor(vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			nvgStrokeWidth(args.vg,1.2);
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
 			{
-				nvgBeginPath(vg);
-				nvgMoveTo(vg, 0,0);
-				nvgLineTo(vg, xx,yy);
-				nvgClosePath(vg);
+				nvgBeginPath(args.vg);
+				nvgMoveTo(args.vg, 0,0);
+				nvgLineTo(args.vg, xx,yy);
+				nvgClosePath(args.vg);
 			}
-			nvgStroke(vg);
+			nvgStroke(args.vg);
+		}
+
+	}
+};
+
+struct MOPDisplay : TransparentWidget {
+	MONO *module;
+
+	MOPDisplay() {
+		
+	}
+	
+	void draw(const DrawArgs &args) override {
+
+float gainX = module ? module->orp_gain : 1.0f;
+int affich = module ? module->orp_affi : 0;
+float d=9.2;
+
+		if (affich==1) {
+		float xx = d*sin(-(gainX*0.17+0.15)*M_PI) ;
+		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;
+
+		
+			nvgBeginPath(args.vg);
+			nvgCircle(args.vg, 0,0, d);
+			nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			nvgFill(args.vg);	
+		
+			nvgStrokeWidth(args.vg,1.2);
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			{
+				nvgBeginPath(args.vg);
+				nvgMoveTo(args.vg, 0,0);
+				nvgLineTo(args.vg, xx,yy);
+				nvgClosePath(args.vg);
+			}
+			nvgStroke(args.vg);
 		}
 
 	}
@@ -177,69 +224,65 @@ struct MOTORPOTDisplay : TransparentWidget {
 
 
 struct MONOWidget : ModuleWidget {
-	MONOWidget(MONO *module);
-};
-
-MONOWidget::MONOWidget(MONO *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/MONO.svg")));
+	MONOWidget(MONO *module) {
+		setModule(module);
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/MONO.svg")));
 
 
-	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 365)));
 
 
-	addParam(ParamWidget::create<Trimpot>(Vec(38, 127), module, MONO::PAN_PARAM, -1.0f, 1.0f, 0.0f));
-	addInput(Port::create<PJ301MPort>(Vec(11, 131), Port::INPUT, module, MONO::PAN_INPUT));
+	addParam(createParam<Trimpot>(Vec(38, 127), module, MONO::PAN_PARAM));
+	addInput(createInput<PJ301MPort>(Vec(11, 131), module, MONO::PAN_INPUT));
 	{
-		MOTORPOTDisplay *pdisplay = new MOTORPOTDisplay();
+		MOPDisplay *pdisplay = new MOPDisplay();
 		pdisplay->box.pos = Vec(47, 136);
-		pdisplay->d = 9.2;
-		pdisplay->gainX = &module->orp_gain;
-		pdisplay->affich = &module->orp_affi;
+		pdisplay->module = module;
 		addChild(pdisplay);
 	}
 
-    	addParam(ParamWidget::create<RoundLargeBlackKnob>(Vec(27, 247), module, MONO::GAIN_PARAM, 0.0f, 10.0f, 5.0f));
-	addInput(Port::create<PJ301MPort>(Vec(11, 281), Port::INPUT, module, MONO::GAIN_INPUT));
+    	addParam(createParam<RoundLargeBlackKnob>(Vec(27, 247), module, MONO::GAIN_PARAM));
+	addInput(createInput<PJ301MPort>(Vec(11, 281), module, MONO::GAIN_INPUT));
 	{
-		MOTORPOTDisplay *display = new MOTORPOTDisplay();
+		MODisplay *display = new MODisplay();
 		display->box.pos = Vec(46, 266);
-		display->d = 19.1;
-		display->gainX = &module->or_gain;
-		display->affich = &module->or_affi;
+		display->module = module;
 		addChild(display);
 	}
 
-   	addParam(ParamWidget::create<LEDButton>(Vec(38, 167), module, MONO::SOLO_PARAM, 0.0, 1.0, 0.0));
- 	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(42.4, 171.4), module, MONO::SOLO_LIGHT));
-	addInput(Port::create<PJ301MPort>(Vec(11, 171), Port::INPUT, module, MONO::SOLOT_INPUT));
 
-     	addParam(ParamWidget::create<LEDButton>(Vec(38, 208), module, MONO::ON_PARAM, 0.0, 1.0, 0.0));
-	addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(42.4, 212.4), module, MONO::ON_LIGHT));
-	addInput(Port::create<PJ301MPort>(Vec(11, 211), Port::INPUT, module, MONO::ONT_INPUT));
+   	addParam(createParam<LEDButton>(Vec(38, 167), module, MONO::SOLO_PARAM));
+ 	addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 171.4), module, MONO::SOLO_LIGHT));
+	addInput(createInput<PJ301MPort>(Vec(11, 171), module, MONO::SOLOT_INPUT));
+
+     	addParam(createParam<LEDButton>(Vec(38, 208), module, MONO::ON_PARAM));
+	addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 212.4), module, MONO::ON_LIGHT));
+	addInput(createInput<PJ301MPort>(Vec(11, 211), module, MONO::ONT_INPUT));
     
 
-	addInput(Port::create<PJ301MPort>(Vec(11, 321), Port::INPUT, module, MONO::IN1_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(11, 321), module, MONO::IN1_INPUT));
 
-	addOutput(Port::create<PJ301MPort>(Vec(54, 321), Port::OUTPUT, module, MONO::OUT1_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(54, 321), module, MONO::OUT1_OUTPUT));
 	
-	addOutput(Port::create<PJ301MPort>(Vec(54, 31), Port::OUTPUT, module, MONO::EXTSOLO_OUTPUT));
-	addOutput(Port::create<PJ301MPort>(Vec(54, 61), Port::OUTPUT, module, MONO::LEFT_OUTPUT));
-	addOutput(Port::create<PJ301MPort>(Vec(54, 91), Port::OUTPUT, module, MONO::RIGHT_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(54, 31), module, MONO::EXTSOLO_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(54, 61), module, MONO::LEFT_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(54, 91), module, MONO::RIGHT_OUTPUT));
 
-	addInput(Port::create<PJ301MPort>(Vec(11, 31), Port::INPUT, module, MONO::EXTSOLO_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(11, 61), Port::INPUT, module, MONO::LEFT_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(11, 91), Port::INPUT, module, MONO::RIGHT_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(11, 31), module, MONO::EXTSOLO_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(11, 61), module, MONO::LEFT_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(11, 91), module, MONO::RIGHT_INPUT));
 
 
 	for (int i = 0; i < 11; i++) {
-		if (i<10) addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(70, 242-i*12), module, MONO::LEVEL_LIGHTS + i));
-			else addChild(ModuleLightWidget::create<MediumLight<RedLight>>(Vec(70, 242-i*12), module, MONO::LEVEL_LIGHTS + i));
+		if (i<10) addChild(createLight<MediumLight<BlueLight>>(Vec(70, 242-i*12), module, MONO::LEVEL_LIGHTS + i));
+			else addChild(createLight<MediumLight<RedLight>>(Vec(70, 242-i*12), module, MONO::LEVEL_LIGHTS + i));
 	}
 	
 	
 }
+};
 
-Model *modelMONO = Model::create<MONO, MONOWidget>("cf", "MONO", "Mono", MIXER_TAG);
+Model *modelMONO = createModel<MONO, MONOWidget>("MONO");

@@ -1,4 +1,4 @@
-#include "cf.hpp"
+#include "plugin.hpp"
 #include "dsp/digital.hpp"
 
 
@@ -29,16 +29,22 @@ int pas = 0;
 bool ledState[80] = {};
 int tempState[5] = {};
 bool editState = false ;
-SchmittTrigger rstTrigger;
-SchmittTrigger upTrigger;
-SchmittTrigger editTrigger;
-SchmittTrigger ledTrigger[80] ={};
+dsp::SchmittTrigger rstTrigger;
+dsp::SchmittTrigger upTrigger;
+dsp::SchmittTrigger editTrigger;
+dsp::SchmittTrigger ledTrigger[80] ={};
 
 
-	LEDSEQ() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
-	void step() override;
+	LEDSEQ() {
+		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+		configParam(EDIT_PARAM, 0.f, 1.f, 0.f);
+		for (int i = 0; i < 80; i++) {
+			configParam(ON_PARAM + i, 0.f, 1.f, 0.f);
+		}
+}
+	
 
-json_t *toJson() override {
+json_t *dataToJson() override {
 		json_t *rootJ = json_object();
 
 		// leds
@@ -52,7 +58,7 @@ json_t *toJson() override {
 		return rootJ;
 	}
 
-	void fromJson(json_t *rootJ) override {
+	void dataFromJson(json_t *rootJ) override {
 
 		// leds
 		json_t *ledsJ = json_object_get(rootJ, "leds");
@@ -66,22 +72,22 @@ json_t *toJson() override {
 
 	}
 
-	void reset() override {
+	void onReset() override {
 		for (int i = 0; i < 80; i++) {
 			ledState[i] = false;
 		}
 	}
 
-	void randomize() override {
+	void onRandomize() override {
 		for (int i = 0; i < 80; i++) {
-			ledState[i] = (randomUniform() > 0.5);
+			ledState[i] = (random::uniform() > 0.5);
 		}
 	}
 
-};
 
 
-void LEDSEQ::step() {
+
+void process(const ProcessArgs &args) override {
 
 	if (rstTrigger.process(inputs[RST_INPUT].value))
 			{
@@ -124,52 +130,50 @@ void LEDSEQ::step() {
 
 
 
-}
+};
+};
 
-
-struct LButton : SVGSwitch, MomentarySwitch {
+struct LButton : app::SvgSwitch {
 	LButton() {
-		addFrame(SVG::load(assetPlugin(plugin, "res/L.svg")));
-		addFrame(SVG::load(assetPlugin(plugin, "res/Ldown.svg")));
-		sw->wrap();
-		box.size = sw->box.size;
+		momentary = true;
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/L.svg")));
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Ldown.svg")));
 	}
 };
 
 struct LEDSEQWidget : ModuleWidget {
-	LEDSEQWidget(LEDSEQ *module);
-};
+	LEDSEQWidget(LEDSEQ *module) {
+		setModule(module);
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/LEDSEQ.svg")));
 
-LEDSEQWidget::LEDSEQWidget(LEDSEQ *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/LEDSEQ.svg")));
-
-	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 365)));
 
 
 
 
 	for (int i = 0; i < 16; i++) {
 	for (int j = 0; j < 5; j++) {
-     		addParam(ParamWidget::create<LButton>(Vec(j*15+10-0.8, i*15+35-0.8+51), module, LEDSEQ::ON_PARAM + (i*5+j), 0.0, 1.0, 0.0));
-		addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(j*15+10, i*15+35+51), module, LEDSEQ::LED_LIGHT + (i*5+j)));
+     		addParam(createParam<LButton>(Vec(j*15+10-0.8, i*15+35-0.8+51), module, LEDSEQ::ON_PARAM + (i*5+j)));
+		addChild(createLight<MediumLight<BlueLight>>(Vec(j*15+10, i*15+35+51), module, LEDSEQ::LED_LIGHT + (i*5+j)));
 	}}
-	addInput(Port::create<PJ301MPort>(Vec(4, 340), Port::INPUT, module, LEDSEQ::RST_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(60, 340), Port::INPUT, module, LEDSEQ::UP_INPUT));  
+	addInput(createInput<PJ301MPort>(Vec(4, 340), module, LEDSEQ::RST_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(60, 340), module, LEDSEQ::UP_INPUT));  
 
-	addParam(ParamWidget::create<LEDButton>(Vec(35, 340), module, LEDSEQ::EDIT_PARAM, 0.0, 1.0, 0.0));
-		addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(39.4, 344.4), module, LEDSEQ::EDIT_LIGHT));
+	addParam(createParam<LEDButton>(Vec(35, 340), module, LEDSEQ::EDIT_PARAM));
+		addChild(createLight<MediumLight<BlueLight>>(Vec(39.4, 344.4), module, LEDSEQ::EDIT_LIGHT));
 
 	for (int i = 0; i < 5; i++) {
-		addOutput(Port::create<PJ301MPort>(Vec(4+i*14, 30+ 22*(i%2)), Port::OUTPUT, module, LEDSEQ::TR_OUTPUT +i));
-	}
+		addOutput(createOutput<PJ301MPort>(Vec(4+i*14, 30+ 22*(i%2)), module, LEDSEQ::TR_OUTPUT +i));
+	};
 
 
 	
-	
-}
 
-Model *modelLEDSEQ = Model::create<LEDSEQ, LEDSEQWidget>("cf", "LEDSEQ", "Ledseq", SEQUENCER_TAG);
+};
+};
+
+Model *modelLEDSEQ =createModel<LEDSEQ, LEDSEQWidget>("LEDSEQ");
 

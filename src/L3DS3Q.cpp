@@ -1,4 +1,4 @@
-#include "cf.hpp"
+#include "plugin.hpp"
 #include "dsp/digital.hpp"
 
 
@@ -28,15 +28,21 @@ int pas = 0;
 bool ledState[80] = {};
 int tempState[5] = {};
 bool editState = false ;
-SchmittTrigger rstTrigger;
-SchmittTrigger upTrigger;
-SchmittTrigger editTrigger;
-SchmittTrigger ledTrigger[80] ={};
+dsp::SchmittTrigger rstTrigger;
+dsp::SchmittTrigger upTrigger;
+dsp::SchmittTrigger editTrigger;
+dsp::SchmittTrigger ledTrigger[80] ={};
 
-	L3DS3Q() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
-	void step() override;
+	L3DS3Q() {
+		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+		configParam(EDIT_PARAM, 0.f, 1.f, 0.f);
+		for (int i = 0; i < 80; i++) {
+			configParam(ON_PARAM + i, 0.f, 1.f, 0.f);
+		}
+}
 
-json_t *toJson() override {
+
+json_t *dataToJson() override {
 		json_t *rootJ = json_object();
 
 		// leds
@@ -50,7 +56,7 @@ json_t *toJson() override {
 		return rootJ;
 	}
 
-	void fromJson(json_t *rootJ) override {
+	void dataFromJson(json_t *rootJ) override {
 
 		// leds
 		json_t *ledsJ = json_object_get(rootJ, "leds");
@@ -64,22 +70,22 @@ json_t *toJson() override {
 
 	}
 
-	void reset() override {
+	void onReset() override {
 		for (int i = 0; i < 80; i++) {
 			ledState[i] = false;
 		}
 	}
 
-	void randomize() override {
+	void onRandomize() override {
 		for (int i = 0; i < 80; i++) {
-			ledState[i] = (randomUniform() > 0.5);
+			ledState[i] = (random::uniform() > 0.5);
 		}
 	}
 
-};
 
 
-void L3DS3Q::step() {
+
+void process(const ProcessArgs &args) override {
 
 	if (rstTrigger.process(inputs[RST_INPUT].value))
 			{
@@ -120,55 +126,51 @@ void L3DS3Q::step() {
 		}
 
 
-}
+};
+};
 
 
-struct LButton : SVGSwitch, MomentarySwitch {
+struct LButton : app::SvgSwitch {
 	LButton() {
-		addFrame(SVG::load(assetPlugin(plugin, "res/L.svg")));
-		addFrame(SVG::load(assetPlugin(plugin, "res/Ldown.svg")));
-		sw->wrap();
-		box.size = sw->box.size;
+		momentary = true;
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/L.svg")));
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Ldown.svg")));
 	}
 };
 
 struct L3DS3QWidget : ModuleWidget {
-	L3DS3QWidget(L3DS3Q *module);
-};
-
-L3DS3QWidget:: L3DS3QWidget(L3DS3Q *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/L3DS3Q.svg")));
+	L3DS3QWidget(L3DS3Q *module){
+		setModule(module);
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/L3DS3Q.svg")));
 
 
-	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(15, 365)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
-
-
-
+	addChild(createWidget<ScrewSilver>(Vec(15, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 365)));
 
 	for (int i = 0; i < 16; i++) {
 	for (int j = 0; j < 5; j++) {
-     		addParam(ParamWidget::create<LButton>(Vec(j*15+10-0.8, (15-i)*15+15-0.8+51), module, L3DS3Q::ON_PARAM + (i*5+j), 0.0, 1.0, 0.0));
-		addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(j*15+10, (15-i)*15+15+51), module, L3DS3Q::LED_LIGHT + (i*5+j)));
+     		addParam(createParam<LButton>(Vec(j*15+10-0.8, (15-i)*15+15-0.8+51), module, L3DS3Q::ON_PARAM + (i*5+j)));
+		addChild(createLight<MediumLight<BlueLight>>(Vec(j*15+10, (15-i)*15+15+51), module, L3DS3Q::LED_LIGHT + (i*5+j)));
 	}}
 
-	addInput(Port::create<PJ301MPort>(Vec(32, 27), Port::INPUT, module, L3DS3Q::RST_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(4, 27), Port::INPUT, module, L3DS3Q::UP_INPUT));  
+	addInput(createInput<PJ301MPort>(Vec(32, 27), module, L3DS3Q::RST_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(4, 27), module, L3DS3Q::UP_INPUT));  
 
-	addParam(ParamWidget::create<LEDButton>(Vec(65, 31), module, L3DS3Q::EDIT_PARAM, 0.0, 1.0, 0.0));
-		addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(69.4, 35.4), module, L3DS3Q::EDIT_LIGHT));
+	addParam(createParam<LEDButton>(Vec(65, 31), module, L3DS3Q::EDIT_PARAM));
+		addChild(createLight<MediumLight<BlueLight>>(Vec(69.4, 35.4), module, L3DS3Q::EDIT_LIGHT));
 
 	for (int i = 0; i < 5; i++) {
-		addOutput(Port::create<PJ301MPort>(Vec(4+i*14, 332- 22*(i%2)), Port::OUTPUT, module, L3DS3Q::TR_OUTPUT +i));
-	}
+		addOutput(createOutput<PJ301MPort>(Vec(4+i*14, 332- 22*(i%2)), module, L3DS3Q::TR_OUTPUT +i));
+	};
 
 
 	
 	
-}
+};
+};
 
-Model *modelL3DS3Q = Model::create<L3DS3Q, L3DS3QWidget>("cf", "L3DS3Q", "L3ds3q", SEQUENCER_TAG);
+Model *modelL3DS3Q = createModel<L3DS3Q, L3DS3QWidget>("L3DS3Q");
 
 

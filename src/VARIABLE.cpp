@@ -1,4 +1,4 @@
-#include "cf.hpp"
+#include "plugin.hpp"
 #include "dsp/digital.hpp"
 //#include "cmath"
 
@@ -13,7 +13,6 @@ struct VARIABLE : Module {
 		PREV_PARAM,
 		NEXT_PARAM,
 		HOLD_PARAM,
-		VARIABLE_PARAM,
 		NUM_PARAMS 
 	};
 	enum InputIds {
@@ -34,16 +33,21 @@ struct VARIABLE : Module {
 	bool lock = false ;
 	bool plugged = false ;
 	float value = 0;
-	SchmittTrigger trigTrigger;
-	SchmittTrigger holdTrigger;
-	SchmittTrigger nextTrigger;
-	SchmittTrigger prevTrigger;
+	dsp::SchmittTrigger trigTrigger;
+	dsp::SchmittTrigger holdTrigger;
+	dsp::SchmittTrigger nextTrigger;
+	dsp::SchmittTrigger prevTrigger;
 
-VARIABLE() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) { }
+VARIABLE(){ 
+	config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+	configParam(PREV_PARAM, 0.f, 1.f, 0.f);
+	configParam(NEXT_PARAM, 0.f, 1.f, 0.f);
+	configParam(HOLD_PARAM, 0.f, 1.f, 0.f);
+}
 
-	void step() override;
+
 	
-json_t *toJson() override {
+json_t *dataToJson() override {
 		json_t *rootJ = json_object();
 		
 		json_object_set_new(rootJ, "loc", json_integer(lock));
@@ -52,7 +56,7 @@ json_t *toJson() override {
 		return rootJ;
 		}
 
-void fromJson(json_t *rootJ) override {
+void dataFromJson(json_t *rootJ) override {
 		
 		json_t *locJ = json_object_get(rootJ, "loc");
 		if (locJ)
@@ -67,11 +71,11 @@ void fromJson(json_t *rootJ) override {
 			value = json_real_value(valJ);
 	
 	}
-};
 
 
 
-void VARIABLE::step() {
+
+void process(const ProcessArgs &args) override {
 
 	if (inputs[IN_INPUT].active & !plugged) {plugged = true; lock = false;}
 	if (!inputs[IN_INPUT].active) {plugged = false;}
@@ -102,81 +106,78 @@ void VARIABLE::step() {
 	outputs[OUT_OUTPUT].value = value ;
 		
 }
-
-struct upButton : SVGSwitch, MomentarySwitch {
+};
+struct upButton : app::SvgSwitch {
 	upButton() {
-		addFrame(SVG::load(assetPlugin(plugin, "res/upButton.svg")));
-		addFrame(SVG::load(assetPlugin(plugin, "res/upButtonDown.svg")));
-		sw->wrap();
-		box.size = sw->box.size;
+		momentary = true;
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/upButton.svg")));
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/upButtonDown.svg")));
 	}
 };
-struct downButton : SVGSwitch, MomentarySwitch {
+struct downButton : app::SvgSwitch {
 	downButton() {
-		addFrame(SVG::load(assetPlugin(plugin, "res/downButton.svg")));
-		addFrame(SVG::load(assetPlugin(plugin, "res/downButtonDown.svg")));
-		sw->wrap();
-		box.size = sw->box.size;
-	}
+		momentary = true;
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/downButton.svg")));
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/downButtonDown.svg")));
+	};
 };
 
 struct VARIABLEDisplay : TransparentWidget {
 	VARIABLE *module;
 
 	int frame = 0;
-	shared_ptr<Font> font;
+	std::shared_ptr<Font> font;
 
 	VARIABLEDisplay() {
-		font = Font::load(assetPlugin(plugin, "res/LEDCalculator.ttf"));
-	}
+    		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/LEDCalculator.ttf"));
+	};
 	
-	void draw(NVGcontext *vg) override {
+	void draw(const DrawArgs &args) override {
+float val = module ? module->value : 0;
 		std::string to_display = "";
 		std::string fileDesc = "";
-		if (module->value>=0) 
-			fileDesc = "+" + std::to_string(module->value); else fileDesc = std::to_string(module->value);
+		if (val>=0) 
+			fileDesc = "+" + std::to_string(val); else fileDesc = std::to_string(val);
 		for (int i=0; i<9; i++) to_display = to_display + fileDesc[i];
-		nvgFontSize(vg, 24);
-		nvgFontFaceId(vg, font->handle);
-		nvgTextLetterSpacing(vg, 0);
-		nvgFillColor(vg, nvgRGBA(0x4c, 0xc7, 0xf3, 0xff));
-		nvgRotate(vg, -M_PI / 2.0f);	
-		nvgTextBox(vg, 5, 5,350, to_display.c_str(), NULL);
+		nvgFontSize(args.vg, 24);
+		nvgFontFaceId(args.vg, font->handle);
+		nvgTextLetterSpacing(args.vg, 0);
+		nvgFillColor(args.vg, nvgRGBA(0x4c, 0xc7, 0xf3, 0xff));
+		nvgRotate(args.vg, -M_PI / 2.0f);	
+		nvgTextBox(args.vg, 5, 5,350, to_display.c_str(), NULL);
 	}
 };
 
 
 struct VARIABLEWidget : ModuleWidget {
-	VARIABLEWidget(VARIABLE *module);
+	VARIABLEWidget(VARIABLE *module){
+		setModule(module);
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/VARIABLE.svg")));
 
-};
-
-VARIABLEWidget::VARIABLEWidget(VARIABLE *module) : ModuleWidget(module) {
-	setPanel(SVG::load(assetPlugin(plugin, "res/VARIABLE.svg")));
 
 	
 	{
 		VARIABLEDisplay *gdisplay = new VARIABLEDisplay();
-		gdisplay->module = module;
 		gdisplay->box.pos = Vec(18, 268);
 		gdisplay->box.size = Vec(130, 250);
+		gdisplay->module = module;
 		addChild(gdisplay);
 	}
 
 
-	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-30, 365)));
+	addChild(createWidget<ScrewSilver>(Vec(15, 0)));
+	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 365)));
 
-	addInput(Port::create<PJ301MPort>(Vec(3, 31), Port::INPUT, module, VARIABLE::IN_INPUT));
-	addInput(Port::create<PJ301MPort>(Vec(3, 96), Port::INPUT, module, VARIABLE::TRIG_INPUT));
-	addParam(ParamWidget::create<LEDButton>(Vec(6, 66+3), module, VARIABLE::HOLD_PARAM, 0.0f, 1.0f, 0.0f));
-		addChild(ModuleLightWidget::create<MediumLight<BlueLight>>(Vec(6+4.4, 69+4.4), module, VARIABLE::HOLD_LIGHT));
+	addInput(createInput<PJ301MPort>(Vec(3, 31), module, VARIABLE::IN_INPUT));
+	addInput(createInput<PJ301MPort>(Vec(3, 96), module, VARIABLE::TRIG_INPUT));
+	addParam(createParam<LEDButton>(Vec(6, 66+3), module, VARIABLE::HOLD_PARAM));
+		addChild(createLight<MediumLight<BlueLight>>(Vec(6+4.4, 69+4.4), module, VARIABLE::HOLD_LIGHT));
 
-	addOutput(Port::create<PJ301MPort>(Vec(3, 321), Port::OUTPUT, module, VARIABLE::OUT_OUTPUT));
+	addOutput(createOutput<PJ301MPort>(Vec(3, 321), module, VARIABLE::OUT_OUTPUT));
 
-	addParam(ParamWidget::create<upButton>(Vec(6, 296+2), module, VARIABLE::PREV_PARAM, 0.0f, 1.0f, 0.0f));
-	addParam(ParamWidget::create<downButton>(Vec(6, 276+2), module, VARIABLE::NEXT_PARAM, 0.0f, 1.0f, 0.0f));
+	addParam(createParam<upButton>(Vec(6, 296+2), module, VARIABLE::PREV_PARAM));
+	addParam(createParam<downButton>(Vec(6, 276+2), module, VARIABLE::NEXT_PARAM));
 }
+};
 
-
-Model *modelVARIABLE = Model::create<VARIABLE, VARIABLEWidget>("cf", "VARIABLE", "Variable", UTILITY_TAG);
+Model *modelVARIABLE = createModel<VARIABLE, VARIABLEWidget>("VARIABLE");
