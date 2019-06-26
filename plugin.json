@@ -1,6 +1,6 @@
 {
   "slug": "cf",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "BSD-3-Clause",
   "name": "cf",
   "brand": "cf",
@@ -8,7 +8,7 @@
   "authorEmail": "c.foulc@gmail.com",
   "pluginUrl": "https://github.com/cfoulc/cf",
   "authorUrl": "https://github.com/cfoulc/cf",
-  "manualUrl": "https://github.com/cfoulc/cf/README.md",
+  "manualUrl": "https://github.com/cfoulc/cf",
   "sourceUrl": "https://github.com/cfoulc/cf",
   "changelogUrl": "https://github.com/cfoulc/cf",
   "modules": [
