@@ -1,5 +1,5 @@
 #include "plugin.hpp"
-#include "dsp/digital.hpp"
+
 
 struct EACH : Module {
 	enum ParamIds {
@@ -45,33 +45,33 @@ int or_affi =0;
 
 
 void process(const ProcessArgs &args) override {
-	if (!inputs[DIV_INPUT].active) {
-		max_EACH = floor(params[DIV_PARAM].value);
+	if (!inputs[DIV_INPUT].isConnected()) {
+		max_EACH = floor(params[DIV_PARAM].getValue());
 		or_affi=0;
 	} else {
-		max_EACH = round(clamp((inputs[DIV_INPUT].value * 4.8)+1,1.0f,48.0f));
-		or_gain = (clamp(inputs[DIV_INPUT].value,0.0f,10.0f));
+		max_EACH = round(clamp((inputs[DIV_INPUT].getVoltage() * 4.8)+1,1.0f,48.0f));
+		or_gain = (clamp(inputs[DIV_INPUT].getVoltage(),0.0f,10.0f));
 		or_affi=1;
 	}
 
-	if (inputs[START_INPUT].active) {
-		outputs[START_OUTPUT].value = inputs[START_INPUT].value;
-		outputs[RESET_OUTPUT].value = inputs[START_INPUT].value;
-		if (dzTrigger.process(inputs[START_INPUT].value)) stepa = max_EACH-1 ;
+	if (inputs[START_INPUT].isConnected()) {
+		outputs[START_OUTPUT].setVoltage(inputs[START_INPUT].getVoltage());
+		outputs[RESET_OUTPUT].setVoltage(inputs[START_INPUT].getVoltage());
+		if (dzTrigger.process(inputs[START_INPUT].getVoltage())) stepa = max_EACH-1 ;
 	}
 
-	if (stTrigger.process(inputs[DOUZE_INPUT].value)) stepa = stepa +1 ;
+	if (stTrigger.process(inputs[DOUZE_INPUT].getVoltage())) stepa = stepa +1 ;
 
-	if (inputs[DOUZE_INPUT].active) {
+	if (inputs[DOUZE_INPUT].isConnected()) {
 		
 		if (stepa == max_EACH) {
 			note = 50;
 			stepa = 0; 
 			lum = 2000;
 			}
-		outputs[DOUZE_OUTPUT].value = inputs[DOUZE_INPUT].value;
+		outputs[DOUZE_OUTPUT].setVoltage(inputs[DOUZE_INPUT].getVoltage());
 	} 
-	if (note >0) {outputs[BEAT_OUTPUT].value = 10.f;note = note -1;} else outputs[BEAT_OUTPUT].value = 0.f;
+	if (note >0) {outputs[BEAT_OUTPUT].setVoltage(10.f);note = note -1;} else outputs[BEAT_OUTPUT].setVoltage(0.f);
 	if (lum>0) {lights[BEAT_LIGHT].value = true;lum = lum -1;} else lights[BEAT_LIGHT].value = false;
 };
 

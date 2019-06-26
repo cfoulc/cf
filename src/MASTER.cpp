@@ -1,5 +1,5 @@
 #include "plugin.hpp"
-#include "dsp/digital.hpp"
+
 
 
 struct MASTER : Module {
@@ -24,9 +24,9 @@ struct MASTER : Module {
 	};
     enum LightIds {
 		ON_LIGHT,
-		L_LEVEL_LIGHTS,
-		R_LEVEL_LIGHTS = L_LEVEL_LIGHTS +11,
-		NUM_LIGHTS = R_LEVEL_LIGHTS +11
+		ENUMS(L_LEVEL_LIGHTS, 11),
+		ENUMS(R_LEVEL_LIGHTS, 11),
+		NUM_LIGHTS
 	};
 
 
@@ -75,21 +75,21 @@ void dataFromJson(json_t *rootJ) override {
 
 void process(const ProcessArgs &args) override {
 
-        SIGNAL_LEFT = inputs[LEFT_INPUT].value ;
-	SIGNAL_RIGHT = inputs[RIGHT_INPUT].value ;
+        SIGNAL_LEFT = inputs[LEFT_INPUT].getVoltage() ;
+	SIGNAL_RIGHT = inputs[RIGHT_INPUT].getVoltage() ;
 
-	outputs[LEFT_OUTPUT].value =  SIGNAL_LEFT ;
-	outputs[RIGHT_OUTPUT].value = SIGNAL_RIGHT ;
+	outputs[LEFT_OUTPUT].setVoltage(SIGNAL_LEFT);
+	outputs[RIGHT_OUTPUT].setVoltage(SIGNAL_RIGHT);
 
 
-	if (onTrigger.process(params[ON_PARAM].value)+oninTrigger.process(inputs[ONT_INPUT].value))
+	if (onTrigger.process(params[ON_PARAM].getValue())+oninTrigger.process(inputs[ONT_INPUT].getVoltage()))
 			{if (ON_STATE == 0) ON_STATE = 1; else ON_STATE = 0;}
 
-	SIGNAL_LEFT = SIGNAL_LEFT * ON_STATE * params[GAIN_PARAM].value/5.0;
-	SIGNAL_RIGHT = SIGNAL_RIGHT * ON_STATE * params[GAIN_PARAM].value/5.0;
+	SIGNAL_LEFT = SIGNAL_LEFT * ON_STATE * params[GAIN_PARAM].getValue()/5.0;
+	SIGNAL_RIGHT = SIGNAL_RIGHT * ON_STATE * params[GAIN_PARAM].getValue()/5.0;
 
-	outputs[LEFT_MAIN_OUTPUT].value =  SIGNAL_LEFT ;
-	outputs[RIGHT_MAIN_OUTPUT].value = SIGNAL_RIGHT ;
+	outputs[LEFT_MAIN_OUTPUT].setVoltage(SIGNAL_LEFT);
+	outputs[RIGHT_MAIN_OUTPUT].setVoltage(SIGNAL_RIGHT);
 	
 
 	if (ON_STATE==1) lights[ON_LIGHT].value=true; else lights[ON_LIGHT].value=false;

@@ -1,5 +1,5 @@
 #include "plugin.hpp"
-#include "dsp/digital.hpp"
+
 
 
 struct CUTS : Module {
@@ -95,7 +95,7 @@ if (linkTrigger.process(params[LINK_PARAM].value))
 			{if (LINK_STATE == 0) {LINK_STATE = 1; link_delta = fin-rin;} else LINK_STATE = 0;}
 lights[LINK_LIGHT].value=LINK_STATE;
 
-if (inputs[R_INPUT].active) {
+if (inputs[R_INPUT].isConnected()) {
 			rv = true;
 			rin = clamp(inputs[R_INPUT].value,0.0,10.0)/10.0;
 params[BPOTR_PARAM].setValue(rin);
@@ -105,7 +105,7 @@ params[BPOTR_PARAM].setValue(rin);
 		}
 
 if (!LINK_STATE) {
-	if (inputs[F_INPUT].active) {
+	if (inputs[F_INPUT].isConnected()) {
 				fv = true;
 				fin = clamp(inputs[F_INPUT].value,0.0,10.0)/10.0;
 params[BPOTF_PARAM].setValue(fin);
@@ -114,13 +114,13 @@ params[BPOTF_PARAM].setValue(fin);
 				fin = params[POTF_PARAM].value;
 			}
 	} else {
-		if (inputs[R_INPUT].active) {
+		if (inputs[R_INPUT].isConnected()) {
 				fv = true;
 				fin = clamp(inputs[R_INPUT].value/10.0+link_delta,0.0f,1.0f);
 params[BPOTF_PARAM].setValue(fin);
 ////////////////////params[BPOTR_PARAM].setValue(fin);
 			} else {
-				if (inputs[F_INPUT].active) {
+				if (inputs[F_INPUT].isConnected()) {
 					rv = true;
 					rin = clamp(inputs[F_INPUT].value/10-link_delta,0.0f,1.0f);
 params[BPOTR_PARAM].setValue(rin);
@@ -135,7 +135,7 @@ params[BPOTF_PARAM].setValue(fin);
 			}
 	}
 
-if (inputs[IN_INPUT].active) {
+if (inputs[IN_INPUT].isConnected()) {
 	temp1 = inputs[IN_INPUT].value;
 
 	for (int i=0;i<poles;i++){
@@ -156,7 +156,7 @@ if (inputs[IN_INPUT].active) {
 } else outputs[OUT_OUTPUT].value =0;
 
 
-if (inputs[IN2_INPUT].active) {
+if (inputs[IN2_INPUT].isConnected()) {
 	temp3 = inputs[IN2_INPUT].value;
 
 	for (int i=0;i<poles;i++){

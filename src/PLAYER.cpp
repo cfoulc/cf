@@ -1,5 +1,4 @@
 #include "plugin.hpp"
-#include "dsp/digital.hpp"
 #include "osdialog.h"
 //#define DR_WAV_IMPLEMENTATION
 #include "dr_wav.h"
@@ -201,7 +200,7 @@ loading = false;
 void process(const ProcessArgs &args) override {
 
 	if (fileLoaded) {
-		if (nextTrigger.process(params[NEXT_PARAM].value)+nextinTrigger.process(inputs[NEXT_INPUT].value))
+		if (nextTrigger.process(params[NEXT_PARAM].getValue())+nextinTrigger.process(inputs[NEXT_INPUT].getVoltage()))
 			{
 			std::string dir = lastPath.empty() ? NULL : rack::string::directory(lastPath);
 			if (sampnumber < int(fichier.size()-1)) sampnumber=sampnumber+1; else sampnumber =0;
@@ -209,7 +208,7 @@ void process(const ProcessArgs &args) override {
 			}
 				
 			
-		if (prevTrigger.process(params[PREV_PARAM].value)+previnTrigger.process(inputs[PREV_INPUT].value))
+		if (prevTrigger.process(params[PREV_PARAM].getValue())+previnTrigger.process(inputs[PREV_INPUT].getVoltage()))
 			{retard = 1000;
 			std::string dir = lastPath.empty() ? NULL : rack::string::directory(lastPath);
 			if (sampnumber > 0) sampnumber=sampnumber-1; else sampnumber =int(fichier.size()-1);
@@ -217,26 +216,26 @@ void process(const ProcessArgs &args) override {
 			} 
 	} else fileDesc = "right click to load \n .wav sample \n :)";
 
-if (oscTrigger.process(params[OSC_PARAM].value))
+if (oscTrigger.process(params[OSC_PARAM].getValue()))
 			{oscState =!oscState;lights[OSC_LIGHT].value=oscState;}
 
 	// Play
 if (!oscState) {
-    bool gated = inputs[GATE_INPUT].value > 0;
+    bool gated = inputs[GATE_INPUT].getVoltage() > 0;
     
-    if (inputs[POS_INPUT].active)
-    startPos = clamp((params[LSTART_PARAM].value + inputs[POS_INPUT].value * params[TSTART_PARAM].value),0.0f,10.0f)*totalSampleC/10;
-    else {startPos = clamp((params[LSTART_PARAM].value),0.0f,10.0f)*totalSampleC/10;
-        inputs[POS_INPUT].value = 0 ;
+    if (inputs[POS_INPUT].isConnected())
+    startPos = clamp((params[LSTART_PARAM].getValue() + inputs[POS_INPUT].getVoltage() * params[TSTART_PARAM].getValue()),0.0f,10.0f)*totalSampleC/10;
+    else {startPos = clamp((params[LSTART_PARAM].getValue()),0.0f,10.0f)*totalSampleC/10;
+        inputs[POS_INPUT].setVoltage(0) ;
     }
     
-    if (!inputs[TRIG_INPUT].active) {
-	if (playGater.process(inputs[GATE_INPUT].value)) {
+    if (!inputs[TRIG_INPUT].isConnected()) {
+	if (playGater.process(inputs[GATE_INPUT].getVoltage())) {
 		play = true;
 		samplePos = startPos;
 		}
 	} else {
-	if (playTrigger.process(inputs[TRIG_INPUT].value)) {
+	if (playTrigger.process(inputs[TRIG_INPUT].getVoltage())) {
 		play = true;
 		samplePos = startPos;
 		}
@@ -244,41 +243,41 @@ if (!oscState) {
     
 	if ((!loading) && (play) && ((floor(samplePos) < totalSampleC) && (floor(samplePos) >= 0))) {
 		if (channels == 1) {
-			outputs[OUT_OUTPUT].value = 5 * playBuffer[0][floor(samplePos)];
-			outputs[OUT2_OUTPUT].value = 5 * playBuffer[0][floor(samplePos)];}
+			outputs[OUT_OUTPUT].setVoltage(5 * playBuffer[0][floor(samplePos)]);
+			outputs[OUT2_OUTPUT].setVoltage(5 * playBuffer[0][floor(samplePos)]);}
 		else if (channels ==2) {
-			outputs[OUT_OUTPUT].value = 5 * playBuffer[0][floor(samplePos)];
-			outputs[OUT2_OUTPUT].value = 5 * playBuffer[1][floor(samplePos)];
+			outputs[OUT_OUTPUT].setVoltage(5 * playBuffer[0][floor(samplePos)]);
+			outputs[OUT2_OUTPUT].setVoltage(5 * playBuffer[1][floor(samplePos)]);
         		}
-		if (inputs[SPD_INPUT].active)
-        samplePos = samplePos+powf(2.0, inputs[VO_INPUT].value)+(params[LSPEED_PARAM].value +inputs[SPD_INPUT].value * params[TSPEED_PARAM].value) /3;
+		if (inputs[SPD_INPUT].isConnected())
+        samplePos = samplePos+powf(2.0, inputs[VO_INPUT].getVoltage())+(params[LSPEED_PARAM].getValue() +inputs[SPD_INPUT].getVoltage() * params[TSPEED_PARAM].getValue()) /3;
         else {
-            samplePos = samplePos+powf(2.0, inputs[VO_INPUT].value)+(params[LSPEED_PARAM].value) /3;
-            inputs[SPD_INPUT].value = 0 ;}
+            samplePos = samplePos+powf(2.0, inputs[VO_INPUT].getVoltage())+(params[LSPEED_PARAM].getValue()) /3;
+            inputs[SPD_INPUT].setVoltage(0) ;}
 	}
 	else
 	{ 
 		play = false;
-	    outputs[OUT_OUTPUT].value = 0;outputs[OUT2_OUTPUT].value = 0;
+	    outputs[OUT_OUTPUT].setVoltage(0);outputs[OUT2_OUTPUT].setVoltage(0);
 	}
-       if (!inputs[TRIG_INPUT].active) {if (gated == false) {play = false; outputs[OUT_OUTPUT].value = 0;outputs[OUT2_OUTPUT].value = 0;}}
+       if (!inputs[TRIG_INPUT].isConnected()) {if (gated == false) {play = false; outputs[OUT_OUTPUT].setVoltage(0);outputs[OUT2_OUTPUT].setVoltage(0);}}
 } else {
 	
 	if (((floor(samplePos) < totalSampleC) && (floor(samplePos) >= 0))) {
-		if (playTrigger.process(inputs[TRIG_INPUT].value)) samplePos = 0;
+		if (playTrigger.process(inputs[TRIG_INPUT].getVoltage())) samplePos = 0;
 
 		if (channels == 1) {
-			outputs[OUT_OUTPUT].value = 5 * playBuffer[0][floor(samplePos)];
-			outputs[OUT2_OUTPUT].value = 5 * playBuffer[0][floor(samplePos)];}
+			outputs[OUT_OUTPUT].setVoltage(5 * playBuffer[0][floor(samplePos)]);
+			outputs[OUT2_OUTPUT].setVoltage(5 * playBuffer[0][floor(samplePos)]);}
 		else if (channels ==2) {
-			outputs[OUT_OUTPUT].value = 5 * playBuffer[0][floor(samplePos)];
-			outputs[OUT2_OUTPUT].value = 5 * playBuffer[1][floor(samplePos)];
+			outputs[OUT_OUTPUT].setVoltage(5 * playBuffer[0][floor(samplePos)]);
+			outputs[OUT2_OUTPUT].setVoltage(5 * playBuffer[1][floor(samplePos)]);
         		}
-		if (inputs[SPD_INPUT].active)
-        samplePos = samplePos+powf(2.0, inputs[VO_INPUT].value)+(params[LSPEED_PARAM].value +inputs[SPD_INPUT].value * params[TSPEED_PARAM].value) /3;
+		if (inputs[SPD_INPUT].isConnected())
+        samplePos = samplePos+powf(2.0, inputs[VO_INPUT].getVoltage())+(params[LSPEED_PARAM].getValue() +inputs[SPD_INPUT].getVoltage() * params[TSPEED_PARAM].getValue()) /3;
         else {
-            samplePos = samplePos+powf(2.0, inputs[VO_INPUT].value)+(params[LSPEED_PARAM].value) /3;
-            inputs[SPD_INPUT].value = 0 ;}
+            samplePos = samplePos+powf(2.0, inputs[VO_INPUT].getVoltage())+(params[LSPEED_PARAM].getValue()) /3;
+            inputs[SPD_INPUT].setVoltage(0);}
 	}
 	else
 	{ 

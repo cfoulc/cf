@@ -1,6 +1,6 @@
 
 #include "plugin.hpp"
-#include "dsp/digital.hpp"
+
 
 
 struct DISTO : Module {
@@ -39,16 +39,16 @@ struct DISTO : Module {
 
 void process(const ProcessArgs &args) override {
 
-	if (inputs[FOLD_INPUT].active) {
-		fold_affi =true; fold_gain = clamp(inputs[FOLD_INPUT].value,-0.001,10.001) ;} 
-	 else {fold_affi =false; fold_gain = params[FOLD_PARAM].value ;}
+	if (inputs[FOLD_INPUT].isConnected()) {
+		fold_affi =true; fold_gain = clamp(inputs[FOLD_INPUT].getVoltage(),-0.001,10.001) ;} 
+	 else {fold_affi =false; fold_gain = params[FOLD_PARAM].getValue() ;}
 
-	if (inputs[GAIN_INPUT].active) {
-		gain_affi =true; gain_gain = clamp(inputs[GAIN_INPUT].value,-0.001,10.001) ;} 
-	 else {gain_affi =false; gain_gain = params[GAIN_PARAM].value ;}
+	if (inputs[GAIN_INPUT].isConnected()) {
+		gain_affi =true; gain_gain = clamp(inputs[GAIN_INPUT].getVoltage(),-0.001,10.001) ;} 
+	 else {gain_affi =false; gain_gain = params[GAIN_PARAM].getValue() ;}
 
 //////////DISTO
-	x=inputs[IN_INPUT].value*5.0f*gain_gain;
+	x=inputs[IN_INPUT].getVoltage()*5.0f*gain_gain;
 
 	if (abs(x)>5) y = clamp((abs(x)-5)/2.2f,0.0f,58.0f); else y=0;
 
@@ -74,7 +74,7 @@ void process(const ProcessArgs &args) override {
 	//xb=int(xa-2.0*int(xa/2.0)) ;
 	//if (xb == 0) xc = (x-5*xa) ; else xc= xb*5.0 - abs(xb)*(x-5*xa) ;                //+5.0*(2*xb-1) ;
 
-	outputs[X_OUTPUT].value=x;                                                         //clamp(x,-5.0f,5.0f); 
+	outputs[X_OUTPUT].setVoltage(x);                      //clamp(x,-5.0f,5.0f); 
 
 }
 };

@@ -1,11 +1,11 @@
 #include "plugin.hpp"
-#include "dsp/digital.hpp"
+
 
 
 struct LEDS : Module {
 	enum ParamIds {
-		ON_PARAM,
-		NUM_PARAMS = ON_PARAM + 100
+		ENUMS(ON_PARAM, 100),
+		NUM_PARAMS
 	};
 	enum InputIds {
 		RND_INPUT,
@@ -16,8 +16,8 @@ struct LEDS : Module {
 		NUM_OUTPUTS
 	};
     enum LightIds {
-		LED_LIGHT,
-		NUM_LIGHTS = LED_LIGHT + 100
+		ENUMS(LED_LIGHT, 100),
+		NUM_LIGHTS
 	};
 
 
@@ -82,12 +82,12 @@ json_t *dataToJson() override {
 
 void process(const ProcessArgs &args) override {
 
-	if (rndTrigger.process(inputs[RND_INPUT].value))
+	if (rndTrigger.process(inputs[RND_INPUT].getVoltage()))
 			{for (int i = 0; i < 100; i++) 
 				{ledState[i] = (random::uniform() > 0.5);}
 			}
 
-	if (upTrigger.process(inputs[UP_INPUT].value))
+	if (upTrigger.process(inputs[UP_INPUT].getVoltage()))
 			{
 			for (int i = 0; i < 5; i++) 
 				{tempState[i] = ledState[i];}
@@ -102,7 +102,7 @@ void process(const ProcessArgs &args) override {
 	
 		for (int i = 0; i < 100; i++) {
 			
-			if (ledTrigger[i].process(params[ON_PARAM +i].value)) {ledState[i]=!ledState[i];}
+			if (ledTrigger[i].process(params[ON_PARAM +i].getValue())) {ledState[i]=!ledState[i];}
 			lights[LED_LIGHT +i].value=ledState[i];
 		}
 

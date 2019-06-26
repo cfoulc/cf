@@ -1,6 +1,5 @@
 #include "plugin.hpp"
-#include "dsp/digital.hpp"
-//#include "cmath"
+
 
 
 
@@ -77,33 +76,33 @@ void dataFromJson(json_t *rootJ) override {
 
 void process(const ProcessArgs &args) override {
 
-	if (inputs[IN_INPUT].active & !plugged) {plugged = true; lock = false;}
-	if (!inputs[IN_INPUT].active) {plugged = false;}
+	if (inputs[IN_INPUT].isConnected() & !plugged) {plugged = true; lock = false;}
+	if (!inputs[IN_INPUT].isConnected()) {plugged = false;}
 
-	if (inputs[IN_INPUT].active & !lock) value = inputs[IN_INPUT].value;
+	if (inputs[IN_INPUT].isConnected() & !lock) value = inputs[IN_INPUT].getVoltage();
 
 
-		if ( ( holdTrigger.process(params[HOLD_PARAM].value) or trigTrigger.process(inputs[TRIG_INPUT].value) ) & inputs[IN_INPUT].active) 
+		if ( ( holdTrigger.process(params[HOLD_PARAM].getValue()) or trigTrigger.process(inputs[TRIG_INPUT].getVoltage()) ) & inputs[IN_INPUT].isConnected()) 
 			{
-			value = inputs[IN_INPUT].value;
+			value = inputs[IN_INPUT].getVoltage();
 			lock = true;
 			}
 	
 
-		if (nextTrigger.process(params[NEXT_PARAM].value))
+		if (nextTrigger.process(params[NEXT_PARAM].getValue()))
 			{
 			if ((value<0)&(value!=int(value))) value = int(value) ; else value = int(value+1);
 			}
 				
 			
-		if (prevTrigger.process(params[PREV_PARAM].value))
+		if (prevTrigger.process(params[PREV_PARAM].getValue()))
 			{
 			if ((value>=0)&(value!=int(value))) value = int(value) ; else value = int(value-1);
 			} 
 
 		
 	lights[HOLD_LIGHT].value = lock ;
-	outputs[OUT_OUTPUT].value = value ;
+	outputs[OUT_OUTPUT].setVoltage(value) ;
 		
 }
 };

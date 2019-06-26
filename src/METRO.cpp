@@ -1,5 +1,5 @@
 #include "plugin.hpp"
-#include "dsp/digital.hpp"
+
 
 struct METRO : Module {
 	enum ParamIds {
@@ -81,11 +81,11 @@ void dataFromJson(json_t *rootJ) override {
 
 void process(const ProcessArgs &args) override {
 
-	if (!inputs[BPM_INPUT].active) {
-		max_METRO = floor(params[BPM_PARAM].value);
+	if (!inputs[BPM_INPUT].isConnected()) {
+		max_METRO = floor(params[BPM_PARAM].getValue());
 		or_affi = 0;
 	} else {
-		max_METRO = round(clamp(inputs[BPM_INPUT].value *30,0.0f,300.0f));
+		max_METRO = round(clamp(inputs[BPM_INPUT].getVoltage() *30,0.0f,300.0f));
 		or_affi = 1;
 		or_gain = max_METRO/30.0;
 	}
@@ -93,13 +93,13 @@ void process(const ProcessArgs &args) override {
 	float bpm = max_METRO ;
 	bool toced = false;
 
-	if (onTrigger.process(params[ON_PARAM].value)+oninTrigger.process(inputs[ON_INPUT].value))
+	if (onTrigger.process(params[ON_PARAM].getValue())+oninTrigger.process(inputs[ON_INPUT].getVoltage()))
 			{if (ON_STATE == 0) {ON_STATE = 1; strt = 5;} else ON_STATE = 0;}
 
 	lights[ON_LIGHT].value = ON_STATE ;
 
 	
-	if (rstTrigger.process(params[RST_PARAM].value))
+	if (rstTrigger.process(params[RST_PARAM].getValue()))
 		{toc = 47u;toc_phase = 1.f; strt = 5;}
 	
 
@@ -137,21 +137,21 @@ void process(const ProcessArgs &args) override {
 
 		if (beats>0) {
 			beats = beats -1;
-			outputs[BEAT_OUTPUT].value = 2.5 * (beats- 150*round(beats/150))/150;
+			outputs[BEAT_OUTPUT].setVoltage(2.5 * (beats- 150*round(beats/150))/150);
 		} else {
-			outputs[BEAT_OUTPUT].value = 0.0;
+			outputs[BEAT_OUTPUT].setVoltage(0.0);
 			}
 
 		if (mess>0) { 
 			mess = mess -1;
-			outputs[BEAT_OUTPUT].value = 5.0 * (mess- 150*round(mess/150))/150;
+			outputs[BEAT_OUTPUT].setVoltage(5.0 * (mess- 150*round(mess/150))/150);
 			}
 
-	} else {toc = 47u;toc_phase = 1.f;outputs[OUT_OUTPUT].value = 0.f;}
+	} else {toc = 47u;toc_phase = 1.f;outputs[OUT_OUTPUT].setVoltage(0.f);}
     
 
-	if (strt > 0) {outputs[START_OUTPUT].value = 10.f;strt=strt-1;} else outputs[START_OUTPUT].value = 0.f;
-	if (note > 0) {outputs[OUT_OUTPUT].value = 10.f;note=note-1;} else outputs[OUT_OUTPUT].value = 0.f;
+	if (strt > 0) {outputs[START_OUTPUT].setVoltage(10.f);strt=strt-1;} else outputs[START_OUTPUT].setVoltage(0.f);
+	if (note > 0) {outputs[OUT_OUTPUT].setVoltage(10.f);note=note-1;} else outputs[OUT_OUTPUT].setVoltage(0.f);
 }
 };
 

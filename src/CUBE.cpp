@@ -1,6 +1,6 @@
 
 #include "plugin.hpp"
-#include "dsp/digital.hpp"
+
 
 
 struct CUBE : Module {
@@ -43,8 +43,8 @@ struct CUBE : Module {
 
 void process(const ProcessArgs &args) override {
 	gainX = 0.5f; gainY = 0.5f;
-	if (inputs[X_INPUT].active) gainX=inputs[X_INPUT].value;
-	if (inputs[Y_INPUT].active) gainY=inputs[Y_INPUT].value;
+	if (inputs[X_INPUT].isConnected()) gainX=inputs[X_INPUT].getVoltage();
+	if (inputs[Y_INPUT].isConnected()) gainY=inputs[Y_INPUT].getVoltage();
 
        	for(int i=0; i<8; i++)
         	{
@@ -65,7 +65,7 @@ void process(const ProcessArgs &args) override {
 	if (frameY<100) frameY=frameY+gainY* args.sampleTime; else frameY=0;
 
 
-	outputs[X_OUTPUT].value=z[0]*5.0;
+	outputs[X_OUTPUT].setVoltage(z[0]*5.0);
 };
 };
 

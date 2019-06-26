@@ -1,12 +1,12 @@
 #include "plugin.hpp"
-#include "dsp/digital.hpp"
+
 
 
 struct SLIDERSEQ : Module {
 	enum ParamIds {
 		OFFSET_PARAM,
-		LVL_PARAM,
-		ON_PARAM = LVL_PARAM +16,
+		ENUMS(LVL_PARAM, 16),
+		ON_PARAM,
 		NUM_PARAMS
 	};
 	enum InputIds {
@@ -71,34 +71,34 @@ void dataFromJson(json_t *rootJ) override {
 void process(const ProcessArgs &args) override {
 
 	
-if (!inputs[POS_INPUT].active) {
-	if (rstTrigger.process(inputs[RST_INPUT].value))
+if (!inputs[POS_INPUT].isConnected()) {
+	if (rstTrigger.process(inputs[RST_INPUT].getVoltage()))
 			{
 			pas = -1;
 			}
-	if (upTrigger.process(inputs[UP_INPUT].value))
+	if (upTrigger.process(inputs[UP_INPUT].getVoltage()))
 			{
 				if (pas <15) pas = pas+1; else pas =0;
 			}
 
 
-} else { pas = int(inputs[POS_INPUT].value*1.6);
+} else { pas = int(inputs[POS_INPUT].getVoltage()*1.6);
 	if (pas<0) pas =0;
 	if (pas>15) pas =15;
 };
 
-	if (offsetTrigger.process(params[OFFSET_PARAM].value))
+	if (offsetTrigger.process(params[OFFSET_PARAM].getValue()))
 			{if (OFFSET_STATE == 0) OFFSET_STATE = 1; else OFFSET_STATE = 0;}
 
 	if (OFFSET_STATE==1) lights[OFFSET_LIGHT].value=true; else lights[OFFSET_LIGHT].value=false;
 
 
 if (pas>-1) {
-	sl_pas=pas; sl_value = params[LVL_PARAM +pas].value ;
-	outputs[TR_OUTPUT].value=params[LVL_PARAM +pas].value*10-OFFSET_STATE*5.0;}
+	sl_pas=pas; sl_value = params[LVL_PARAM +pas].getValue() ;
+	outputs[TR_OUTPUT].setVoltage(params[LVL_PARAM +pas].getValue()*10-OFFSET_STATE*5.0);}
   else {
-	sl_pas=0; sl_value = params[LVL_PARAM +0].value ;
-	outputs[TR_OUTPUT].value=params[LVL_PARAM +0].value*10-OFFSET_STATE*5.0;}
+	sl_pas=0; sl_value = params[LVL_PARAM +0].getValue() ;
+	outputs[TR_OUTPUT].setVoltage(params[LVL_PARAM +0].getValue()*10-OFFSET_STATE*5.0);}
 
 };
 };

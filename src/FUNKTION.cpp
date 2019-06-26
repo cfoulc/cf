@@ -1,5 +1,5 @@
 #include "plugin.hpp"
-#include "dsp/digital.hpp"
+
 
 
 using namespace std;
@@ -66,43 +66,43 @@ void dataFromJson(json_t *rootJ) override {
 
 void process(const ProcessArgs &args) override {
 	
-	if (nextTrigger.process(params[NEXT_PARAM].value) & (OP_STATE<20)) OP_STATE+= 1;
-	if (prevTrigger.process(params[PREV_PARAM].value) & (OP_STATE>0)) OP_STATE-= 1;
+	if (nextTrigger.process(params[NEXT_PARAM].getValue()) & (OP_STATE<20)) OP_STATE+= 1;
+	if (prevTrigger.process(params[PREV_PARAM].getValue()) & (OP_STATE>0)) OP_STATE-= 1;
 		
 	float val ;
 
-	if (OP_STATE==0) {val = abs(inputs[IN1_INPUT].value);fctDesc="abs";}
+	if (OP_STATE==0) {val = abs(inputs[IN1_INPUT].getVoltage());fctDesc="abs";}
 
-	if (OP_STATE==1) {val = round(inputs[IN1_INPUT].value);fctDesc="round";}
-	if (OP_STATE==2) {val = ceil(inputs[IN1_INPUT].value);fctDesc="ceil";}
-	if (OP_STATE==3) {val = int(inputs[IN1_INPUT].value);fctDesc="floor";}
+	if (OP_STATE==1) {val = round(inputs[IN1_INPUT].getVoltage());fctDesc="round";}
+	if (OP_STATE==2) {val = ceil(inputs[IN1_INPUT].getVoltage());fctDesc="ceil";}
+	if (OP_STATE==3) {val = int(inputs[IN1_INPUT].getVoltage());fctDesc="floor";}
 
-	if (OP_STATE==4) {val = pow(inputs[IN1_INPUT].value, 2.0);fctDesc="pow2";}
-	if (OP_STATE==5) {val = sqrt(inputs[IN1_INPUT].value);fctDesc="sqrt";}
+	if (OP_STATE==4) {val = pow(inputs[IN1_INPUT].getVoltage(), 2.0);fctDesc="pow2";}
+	if (OP_STATE==5) {val = sqrt(inputs[IN1_INPUT].getVoltage());fctDesc="sqrt";}
 
-	if (OP_STATE==6) {val = exp(inputs[IN1_INPUT].value);fctDesc="exp";}
-	if (OP_STATE==7) {val = log(inputs[IN1_INPUT].value);fctDesc="log";}
-	if (OP_STATE==8) {val = log10(inputs[IN1_INPUT].value);fctDesc="log10";}
+	if (OP_STATE==6) {val = exp(inputs[IN1_INPUT].getVoltage());fctDesc="exp";}
+	if (OP_STATE==7) {val = log(inputs[IN1_INPUT].getVoltage());fctDesc="log";}
+	if (OP_STATE==8) {val = log10(inputs[IN1_INPUT].getVoltage());fctDesc="log10";}
 
-	if (OP_STATE==9) {val = cos(inputs[IN1_INPUT].value);fctDesc="cos";}
-	if (OP_STATE==10) {val = sin(inputs[IN1_INPUT].value);fctDesc="sin";}
-	if (OP_STATE==11) {val = tan(inputs[IN1_INPUT].value);fctDesc="tan";}
-	if (OP_STATE==12) {val = acos(inputs[IN1_INPUT].value);fctDesc="acos";}
-	if (OP_STATE==13) {val = asin(inputs[IN1_INPUT].value);fctDesc="asin";}
-	if (OP_STATE==14) {val = atan(inputs[IN1_INPUT].value);fctDesc="atan";}
+	if (OP_STATE==9) {val = cos(inputs[IN1_INPUT].getVoltage());fctDesc="cos";}
+	if (OP_STATE==10) {val = sin(inputs[IN1_INPUT].getVoltage());fctDesc="sin";}
+	if (OP_STATE==11) {val = tan(inputs[IN1_INPUT].getVoltage());fctDesc="tan";}
+	if (OP_STATE==12) {val = acos(inputs[IN1_INPUT].getVoltage());fctDesc="acos";}
+	if (OP_STATE==13) {val = asin(inputs[IN1_INPUT].getVoltage());fctDesc="asin";}
+	if (OP_STATE==14) {val = atan(inputs[IN1_INPUT].getVoltage());fctDesc="atan";}
 
-	if (OP_STATE==15) {val = cosh(inputs[IN1_INPUT].value);fctDesc="cosh";}
-	if (OP_STATE==16) {val = sinh(inputs[IN1_INPUT].value);fctDesc="sinh";}
-	if (OP_STATE==17) {val = tanh(inputs[IN1_INPUT].value);fctDesc="tanh";}
-	if (OP_STATE==18) {val = acosh(inputs[IN1_INPUT].value);fctDesc="acosh";}
-	if (OP_STATE==19) {val = asinh(inputs[IN1_INPUT].value);fctDesc="asinh";}
-	if (OP_STATE==20) {val = atanh(inputs[IN1_INPUT].value);fctDesc="atanh";}
+	if (OP_STATE==15) {val = cosh(inputs[IN1_INPUT].getVoltage());fctDesc="cosh";}
+	if (OP_STATE==16) {val = sinh(inputs[IN1_INPUT].getVoltage());fctDesc="sinh";}
+	if (OP_STATE==17) {val = tanh(inputs[IN1_INPUT].getVoltage());fctDesc="tanh";}
+	if (OP_STATE==18) {val = acosh(inputs[IN1_INPUT].getVoltage());fctDesc="acosh";}
+	if (OP_STATE==19) {val = asinh(inputs[IN1_INPUT].getVoltage());fctDesc="asinh";}
+	if (OP_STATE==20) {val = atanh(inputs[IN1_INPUT].getVoltage());fctDesc="atanh";}
 
 	if (isfinite(val)) lights[ERROR_LIGHT].value = 0; else {lights[ERROR_LIGHT].value = 1;perror=10000;oerror=50000;}
 	if (perror>0) perror-=1;if (oerror>0) oerror-=1;
 	lights[PERROR_LIGHT].value = float(perror)/10000.0;lights[OERROR_LIGHT].value = float(oerror)/50000.0;
 
-	outputs[OUT_OUTPUT].value = val ;
+	outputs[OUT_OUTPUT].setVoltage(val);
 }
 };
 struct FUNKTIONDisplay : TransparentWidget {

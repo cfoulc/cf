@@ -12,8 +12,8 @@ struct PATCH : Module {
 		M1_INPUT,
 		M2_INPUT,
 		M3_INPUT,
-		IN_INPUT,
-		NUM_INPUTS=IN_INPUT+8
+		ENUMS(IN_INPUT,8),
+		NUM_INPUTS
 	};
 	enum OutputIds {
 		L_OUTPUT,
@@ -21,8 +21,8 @@ struct PATCH : Module {
 		M1_OUTPUT,
 		M2_OUTPUT,
 		M3_OUTPUT,
-		OUT_OUTPUT,
-		NUM_OUTPUTS=OUT_OUTPUT+8
+		ENUMS(OUT_OUTPUT,8),
+		NUM_OUTPUTS
 	};
    	enum LightIds {
 		NUM_LIGHTS
@@ -40,16 +40,16 @@ PATCH() {
 
 void process(const ProcessArgs &args) override {
 
-	outputs[L_OUTPUT].value = inputs[L_INPUT].value ;
-	outputs[R_OUTPUT].value = inputs[R_INPUT].value ;
+	outputs[L_OUTPUT].setVoltage(inputs[L_INPUT].getVoltage());
+	outputs[R_OUTPUT].setVoltage(inputs[R_INPUT].getVoltage());
 
-	outputs[M1_OUTPUT].value = inputs[M1_INPUT].value+inputs[M2_INPUT].value+inputs[M3_INPUT].value ;
-	outputs[M2_OUTPUT].value = inputs[M1_INPUT].value+inputs[M2_INPUT].value+inputs[M3_INPUT].value ;
-	outputs[M3_OUTPUT].value = inputs[M1_INPUT].value+inputs[M2_INPUT].value+inputs[M3_INPUT].value ;
+	outputs[M1_OUTPUT].setVoltage(inputs[M1_INPUT].getVoltage()+inputs[M2_INPUT].getVoltage()+inputs[M3_INPUT].getVoltage());
+	outputs[M2_OUTPUT].setVoltage(inputs[M1_INPUT].getVoltage()+inputs[M2_INPUT].getVoltage()+inputs[M3_INPUT].getVoltage());
+	outputs[M3_OUTPUT].setVoltage(inputs[M1_INPUT].getVoltage()+inputs[M2_INPUT].getVoltage()+inputs[M3_INPUT].getVoltage());
 
 	for (int i = 0; i < 8; i++) {
-		if (inputs[IN_INPUT + i].active) outputs[OUT_OUTPUT + i].value = inputs[IN_INPUT + i].value ;
-			else outputs[OUT_OUTPUT + i].value = 0;	
+		if (inputs[IN_INPUT + i].isConnected()) outputs[OUT_OUTPUT + i].setVoltage(inputs[IN_INPUT + i].getVoltage());
+			else outputs[OUT_OUTPUT + i].setVoltage(0);	
 		}
 	
 };

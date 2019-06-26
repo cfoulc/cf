@@ -1,5 +1,5 @@
 #include "plugin.hpp"
-#include "dsp/digital.hpp"
+
 
 
 using namespace std;
@@ -7,8 +7,8 @@ using namespace std;
 
 struct ALGEBRA : Module {
 	enum ParamIds {
-		OP_PARAM,
-		NUM_PARAMS = OP_PARAM+6
+		ENUMS(OP_PARAM, 6),
+		NUM_PARAMS
 	};
 	enum InputIds {
 		IN1_INPUT,
@@ -20,8 +20,8 @@ struct ALGEBRA : Module {
 		NUM_OUTPUTS
 	};
 	enum LightIds {
-		LED_LIGHT,
-		NUM_LIGHTS = LED_LIGHT+6
+		ENUMS(LED_LIGHT, 6),
+		NUM_LIGHTS
 	};
 	
 	int OP_STATE = 0 ;
@@ -58,20 +58,20 @@ void dataFromJson(json_t *rootJ) override {
 
 void process(const ProcessArgs &args) override {
 	for (int i=0; i<6; i++) {
-		if (trTrigger[i].process(params[OP_PARAM+i].value)) OP_STATE= i;
+		if (trTrigger[i].process(params[OP_PARAM+i].getValue())) OP_STATE= i;
 		if (OP_STATE == i) lights[LED_LIGHT+i].value=1; else lights[LED_LIGHT+i].value=0;
 	}
-	if (OP_STATE==0) outputs[OUT_OUTPUT].value = inputs[IN1_INPUT].value + inputs[IN2_INPUT].value;
-	if (OP_STATE==1) outputs[OUT_OUTPUT].value = inputs[IN1_INPUT].value - inputs[IN2_INPUT].value;
-	if (OP_STATE==2) outputs[OUT_OUTPUT].value = inputs[IN1_INPUT].value * inputs[IN2_INPUT].value;
-	if ((OP_STATE==3) & (inputs[IN2_INPUT].value!=0)) outputs[OUT_OUTPUT].value = inputs[IN1_INPUT].value / inputs[IN2_INPUT].value;
+	if (OP_STATE==0) outputs[OUT_OUTPUT].setVoltage(inputs[IN1_INPUT].getVoltage() + inputs[IN2_INPUT].getVoltage());
+	if (OP_STATE==1) outputs[OUT_OUTPUT].setVoltage(inputs[IN1_INPUT].getVoltage() - inputs[IN2_INPUT].getVoltage());
+	if (OP_STATE==2) outputs[OUT_OUTPUT].setVoltage(inputs[IN1_INPUT].getVoltage() * inputs[IN2_INPUT].getVoltage());
+	if ((OP_STATE==3) & (inputs[IN2_INPUT].getVoltage()!=0)) outputs[OUT_OUTPUT].setVoltage(inputs[IN1_INPUT].getVoltage() / inputs[IN2_INPUT].getVoltage());
 	if (OP_STATE==4) {
-			if (inputs[IN1_INPUT].value>=inputs[IN2_INPUT].value)	outputs[OUT_OUTPUT].value = inputs[IN1_INPUT].value;
-				else outputs[OUT_OUTPUT].value = inputs[IN2_INPUT].value;
+			if (inputs[IN1_INPUT].getVoltage()>=inputs[IN2_INPUT].getVoltage())	outputs[OUT_OUTPUT].setVoltage(inputs[IN1_INPUT].getVoltage());
+				else outputs[OUT_OUTPUT].setVoltage(inputs[IN2_INPUT].getVoltage());
 			}
 	if (OP_STATE==5) {
-			if (inputs[IN1_INPUT].value<=inputs[IN2_INPUT].value)	outputs[OUT_OUTPUT].value = inputs[IN1_INPUT].value;
-				else outputs[OUT_OUTPUT].value = inputs[IN2_INPUT].value;
+			if (inputs[IN1_INPUT].getVoltage()<=inputs[IN2_INPUT].getVoltage())	outputs[OUT_OUTPUT].setVoltage(inputs[IN1_INPUT].getVoltage());
+				else outputs[OUT_OUTPUT].setVoltage(inputs[IN2_INPUT].getVoltage());
 			}
 
 }

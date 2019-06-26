@@ -1,26 +1,26 @@
 #include "plugin.hpp"
-#include "dsp/digital.hpp"
+
 
 struct FOUR : Module {
 	enum ParamIds {
-       		S_PARAM,
-        	M_PARAM=S_PARAM + 4,
-		NUM_PARAMS = M_PARAM + 4
+       		ENUMS(S_PARAM,4),
+        	ENUMS(M_PARAM,4),
+		NUM_PARAMS
 	};
 	enum InputIds {
-		TRM_INPUT,
-		TRS_INPUT=TRM_INPUT+4,
-		IN_INPUT=TRS_INPUT+4,
-		NUM_INPUTS=IN_INPUT+4
+		ENUMS(TRM_INPUT,4),
+		ENUMS(TRS_INPUT,4),
+		ENUMS(IN_INPUT,4),
+		NUM_INPUTS
 	};
 	enum OutputIds {
-		OUT_OUTPUT,
-		NUM_OUTPUTS=OUT_OUTPUT+4
+		ENUMS(OUT_OUTPUT,4),
+		NUM_OUTPUTS
 	};
     enum LightIds {
-		M_LIGHT,
-		S_LIGHT=M_LIGHT+4,
-		NUM_LIGHTS=S_LIGHT+4
+		ENUMS(M_LIGHT,4),
+		ENUMS(S_LIGHT,4),
+		NUM_LIGHTS
 	};
 
 
@@ -99,17 +99,17 @@ void process(const ProcessArgs &args) override {
 		
 	for (int i = 0; i < 4; i++) {
 	
-		if (soloTrigger[i].process(params[S_PARAM + i].value)+soloTrigger[i+4].process(inputs[TRS_INPUT + i].value))
+		if (soloTrigger[i].process(params[S_PARAM + i].getValue())+soloTrigger[i+4].process(inputs[TRS_INPUT + i].getVoltage()))
 			{
 			muteState[i+4] ^= true;
 			solo = (i+1)*muteState[i+4];
 			};		
 		if (solo==i+1)
 		{
-			float in = inputs[IN_INPUT + i].value;
-			outputs[OUT_OUTPUT + i].value = in;
+			float in = inputs[IN_INPUT + i].getVoltage();
+			outputs[OUT_OUTPUT + i].setVoltage(in);
 			
-		} else {muteState[i+4] = false;lights[S_LIGHT + i].value = 0;outputs[OUT_OUTPUT + i].value = 0.0;}
+		} else {muteState[i+4] = false;lights[S_LIGHT + i].value = 0;outputs[OUT_OUTPUT + i].setVoltage(0.0);}
 		if (muteState[i+4]==true)
 		{
 			cligno = cligno + 1;
@@ -118,10 +118,10 @@ void process(const ProcessArgs &args) override {
 	}
 
 	for (int i = 0; i < 4; i++) {
-		if (muteTrigger[i].process(params[M_PARAM + i].value)+muteTrigger[i+4].process(inputs[TRM_INPUT + i].value))
+		if (muteTrigger[i].process(params[M_PARAM + i].getValue())+muteTrigger[i+4].process(inputs[TRM_INPUT + i].getVoltage()))
 			muteState[i] ^= true;
-		float in = inputs[IN_INPUT + i].value;
-		if (solo == 0) outputs[OUT_OUTPUT + i].value = muteState[i] ? in : 0.0;
+		float in = inputs[IN_INPUT + i].getVoltage();
+		if (solo == 0) outputs[OUT_OUTPUT + i].setVoltage(muteState[i] ? in : 0.0);
 		lights[M_LIGHT + i].value = muteState[i];
 	}
 

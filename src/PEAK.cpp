@@ -39,64 +39,64 @@ int sensiv = 10000;
 
 void process(const ProcessArgs &args) override {
 
-	max_GAIN = roundf(params[GAIN_PARAM].value*10);
+	max_GAIN = roundf(params[GAIN_PARAM].getValue()*10);
 
 	affich = round(max_GAIN);
 
-	if (inputs[IN1_INPUT].active)
+	if (inputs[IN1_INPUT].isConnected())
 	{
 
-        if (inputs[IN1_INPUT].value > params[TRESHOLD_PARAM].value)
+        if (inputs[IN1_INPUT].getVoltage() > params[TRESHOLD_PARAM].getValue())
         	{
-            	outputs[OUT1_OUTPUT].value = (max_GAIN/10.0*(params[TRESHOLD_PARAM].value + ((inputs[IN1_INPUT].value-params[TRESHOLD_PARAM].value)/(1+(inputs[IN1_INPUT].value-params[TRESHOLD_PARAM].value)))));
+            	outputs[OUT1_OUTPUT].setVoltage((max_GAIN/10.0*(params[TRESHOLD_PARAM].getValue() + ((inputs[IN1_INPUT].getVoltage()-params[TRESHOLD_PARAM].getValue())/(1+(inputs[IN1_INPUT].getVoltage()-params[TRESHOLD_PARAM].getValue()))))));
             	reman_t = sensiv;
         	}
-        else if (inputs[IN1_INPUT].value < 0-params[TRESHOLD_PARAM].value)
+        else if (inputs[IN1_INPUT].getVoltage() < 0-params[TRESHOLD_PARAM].getValue())
         	{
-            	outputs[OUT1_OUTPUT].value = (max_GAIN/10.0*(0-(params[TRESHOLD_PARAM].value - ((inputs[IN1_INPUT].value+params[TRESHOLD_PARAM].value)/(1+(-inputs[IN1_INPUT].value-params[TRESHOLD_PARAM].value))))));
+            	outputs[OUT1_OUTPUT].setVoltage((max_GAIN/10.0*(0-(params[TRESHOLD_PARAM].getValue() - ((inputs[IN1_INPUT].getVoltage()+params[TRESHOLD_PARAM].getValue())/(1+(-inputs[IN1_INPUT].getVoltage()-params[TRESHOLD_PARAM].getValue())))))));
             	reman_t = sensiv;
         	}
         	else 
 		{
-          	  outputs[OUT1_OUTPUT].value =(max_GAIN*inputs[IN1_INPUT].value)/10.0;
+          	  outputs[OUT1_OUTPUT].setVoltage((max_GAIN*inputs[IN1_INPUT].getVoltage())/10.0);
        		}
 
-        if (outputs[OUT1_OUTPUT].value >10) reman_o=sensiv;
+        if (outputs[OUT1_OUTPUT].getVoltage() >10) reman_o=sensiv;
         
 	}
 	else
 	{
-	outputs[OUT1_OUTPUT].value = max_GAIN/10;
+	outputs[OUT1_OUTPUT].setVoltage(max_GAIN/10);
         lights[TRESHOLD_LIGHT].value = 0.0;
         lights[OVER_LIGHT].value = 0.0;
 	}
 
 
 
-	if (inputs[IN2_INPUT].active)
+	if (inputs[IN2_INPUT].isConnected())
 	{
 
-        if (inputs[IN2_INPUT].value > params[TRESHOLD_PARAM].value)
+        if (inputs[IN2_INPUT].getVoltage() > params[TRESHOLD_PARAM].getValue())
         	{
-            	outputs[OUT2_OUTPUT].value = (max_GAIN/10.0*(params[TRESHOLD_PARAM].value + ((inputs[IN2_INPUT].value-params[TRESHOLD_PARAM].value)/(1+(inputs[IN2_INPUT].value-params[TRESHOLD_PARAM].value)))));
+            	outputs[OUT2_OUTPUT].setVoltage((max_GAIN/10.0*(params[TRESHOLD_PARAM].getValue() + ((inputs[IN2_INPUT].getVoltage()-params[TRESHOLD_PARAM].getValue())/(1+(inputs[IN2_INPUT].getVoltage()-params[TRESHOLD_PARAM].getValue()))))));
             	reman_t = sensiv;
         	}
-        else if (inputs[IN2_INPUT].value < 0-params[TRESHOLD_PARAM].value)
+        else if (inputs[IN2_INPUT].getVoltage() < 0-params[TRESHOLD_PARAM].getValue())
         	{
-            	outputs[OUT2_OUTPUT].value = (max_GAIN/10.0*(0-(params[TRESHOLD_PARAM].value - ((inputs[IN2_INPUT].value+params[TRESHOLD_PARAM].value)/(1+(-inputs[IN2_INPUT].value-params[TRESHOLD_PARAM].value))))));
+            	outputs[OUT2_OUTPUT].setVoltage((max_GAIN/10.0*(0-(params[TRESHOLD_PARAM].getValue() - ((inputs[IN2_INPUT].getVoltage()+params[TRESHOLD_PARAM].getValue())/(1+(-inputs[IN2_INPUT].getVoltage()-params[TRESHOLD_PARAM].getValue())))))));
             	reman_t = sensiv;
         	}
         	else 
 		{
-          	  outputs[OUT2_OUTPUT].value =(max_GAIN*inputs[IN2_INPUT].value)/10.0;
+          	  outputs[OUT2_OUTPUT].setVoltage((max_GAIN*inputs[IN2_INPUT].getVoltage())/10.0);
        		}
 
-        if (outputs[OUT2_OUTPUT].value >10) reman_o=sensiv;
+        if (outputs[OUT2_OUTPUT].getVoltage() >10) reman_o=sensiv;
         
 	}
 	else
 	{
-	outputs[OUT2_OUTPUT].value = max_GAIN/10;
+	outputs[OUT2_OUTPUT].setVoltage(max_GAIN/10);
         lights[TRESHOLD_LIGHT].value = 0.0;
         lights[OVER_LIGHT].value = 0.0;
 	}

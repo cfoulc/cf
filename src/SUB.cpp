@@ -1,5 +1,5 @@
 #include "plugin.hpp"
-#include "dsp/digital.hpp"
+
 
 
 struct SUB : Module {
@@ -76,37 +76,37 @@ void dataFromJson(json_t *rootJ) override {
 
 void process(const ProcessArgs &args) override {
 
-	if (linkTrigger.process(params[LINK_PARAM].value))
+	if (linkTrigger.process(params[LINK_PARAM].getValue()))
 			{LINK_STATE=!LINK_STATE;}
 	lights[LINK_LIGHT].value=LINK_STATE;
 
 
-        SIGNAL = inputs[IN1_INPUT].value ;
+        SIGNAL = inputs[IN1_INPUT].getVoltage() ;
 
-	outputs[OUT1_OUTPUT].value = SIGNAL;
+	outputs[OUT1_OUTPUT].setVoltage(SIGNAL);
 
-	if (!inputs[GAIN_INPUT].active)
-		{SIGNAL = SIGNAL * params[GAIN_PARAM].value/10.0 ;or_affi=0;}
-		else {SIGNAL = SIGNAL * clamp(inputs[GAIN_INPUT].value/10.0f,0.0f,1.0f) ; or_affi=1;or_gain=clamp(inputs[GAIN_INPUT].value,0.0f,10.0f);}
+	if (!inputs[GAIN_INPUT].isConnected())
+		{SIGNAL = SIGNAL * params[GAIN_PARAM].getValue()/10.0 ;or_affi=0;}
+		else {SIGNAL = SIGNAL * clamp(inputs[GAIN_INPUT].getVoltage()/10.0f,0.0f,1.0f) ; or_affi=1;or_gain=clamp(inputs[GAIN_INPUT].getVoltage(),0.0f,10.0f);}
 
-	outputs[M1_OUTPUT].value = inputs[M1_INPUT].value + SIGNAL;
+	outputs[M1_OUTPUT].setVoltage(inputs[M1_INPUT].getVoltage() + SIGNAL);
 
 
-        SIGNAL2 = inputs[IN2_INPUT].value ;
+        SIGNAL2 = inputs[IN2_INPUT].getVoltage() ;
 
-	outputs[OUT2_OUTPUT].value = SIGNAL2;
+	outputs[OUT2_OUTPUT].setVoltage(SIGNAL2);
 
 	if (!LINK_STATE) {
-		if (!inputs[GAIN2_INPUT].active) 
-			{SIGNAL2 = SIGNAL2 * params[GAIN2_PARAM].value/10.0 ;or2_affi=0;}
-			else {SIGNAL2 = SIGNAL2 * clamp(inputs[GAIN2_INPUT].value/10.0f,0.0f,1.0f) ; or2_affi=1;or2_gain=clamp(inputs[GAIN2_INPUT].value,0.0f,10.0f);}
+		if (!inputs[GAIN2_INPUT].isConnected()) 
+			{SIGNAL2 = SIGNAL2 * params[GAIN2_PARAM].getValue()/10.0 ;or2_affi=0;}
+			else {SIGNAL2 = SIGNAL2 * clamp(inputs[GAIN2_INPUT].getVoltage()/10.0f,0.0f,1.0f) ; or2_affi=1;or2_gain=clamp(inputs[GAIN2_INPUT].getVoltage(),0.0f,10.0f);}
 	} else {
-		if (!inputs[GAIN_INPUT].active)
-			{SIGNAL2 = SIGNAL2 * params[GAIN_PARAM].value/10.0 ;or2_affi=1;or2_gain=clamp(params[GAIN_PARAM].value,0.0f,10.0f);}
-		else {SIGNAL2 = SIGNAL2 * clamp(inputs[GAIN_INPUT].value/10.0f,0.0f,1.0f) ; or2_affi=1;or2_gain=clamp(inputs[GAIN_INPUT].value,0.0f,10.0f);}
+		if (!inputs[GAIN_INPUT].isConnected())
+			{SIGNAL2 = SIGNAL2 * params[GAIN_PARAM].getValue()/10.0 ;or2_affi=1;or2_gain=clamp(params[GAIN_PARAM].getValue(),0.0f,10.0f);}
+		else {SIGNAL2 = SIGNAL2 * clamp(inputs[GAIN_INPUT].getVoltage()/10.0f,0.0f,1.0f) ; or2_affi=1;or2_gain=clamp(inputs[GAIN_INPUT].getVoltage(),0.0f,10.0f);}
 	}
 
-	outputs[M2_OUTPUT].value = inputs[M2_INPUT].value + SIGNAL2;
+	outputs[M2_OUTPUT].setVoltage(inputs[M2_INPUT].getVoltage() + SIGNAL2);
 
 
 }

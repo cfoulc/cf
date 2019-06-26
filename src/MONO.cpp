@@ -1,5 +1,5 @@
 #include "plugin.hpp"
-#include "dsp/digital.hpp"
+
 
 
 struct MONO : Module {
@@ -32,8 +32,8 @@ struct MONO : Module {
     enum LightIds {
 		SOLO_LIGHT,
 		ON_LIGHT,
-		LEVEL_LIGHTS,
-		NUM_LIGHTS = LEVEL_LIGHTS +11
+		ENUMS(LEVEL_LIGHTS, 11),
+		NUM_LIGHTS
 	};
 
 
@@ -98,40 +98,40 @@ void dataFromJson(json_t *rootJ) override {
 
 void process(const ProcessArgs &args) override {
 
-        SIGNAL = inputs[IN1_INPUT].value ;
+        SIGNAL = inputs[IN1_INPUT].getVoltage() ;
 
-	if (!inputs[GAIN_INPUT].active)
-		{SIGNAL = SIGNAL * params[GAIN_PARAM].value/5.0 ;or_affi=0;}
-		else {SIGNAL = SIGNAL * clamp(inputs[GAIN_INPUT].value/5.0f,0.0f,2.0f) ; or_affi=1;or_gain=clamp(inputs[GAIN_INPUT].value,0.0f,10.0f);}
+	if (!inputs[GAIN_INPUT].isConnected())
+		{SIGNAL = SIGNAL * params[GAIN_PARAM].getValue()/5.0 ;or_affi=0;}
+		else {SIGNAL = SIGNAL * clamp(inputs[GAIN_INPUT].getVoltage()/5.0f,0.0f,2.0f) ; or_affi=1;or_gain=clamp(inputs[GAIN_INPUT].getVoltage(),0.0f,10.0f);}
 
-	if (onTrigger.process(params[ON_PARAM].value)+oninTrigger.process(inputs[ONT_INPUT].value))
+	if (onTrigger.process(params[ON_PARAM].getValue())+oninTrigger.process(inputs[ONT_INPUT].getVoltage()))
 			{if (ON_STATE == 0) ON_STATE = 1; else ON_STATE = 0;}
 
-	if (inputs[EXTSOLO_INPUT].value == 0) soloed = 0;
-	if (inputs[EXTSOLO_INPUT].value == 10) soloed = 1;
+	if (inputs[EXTSOLO_INPUT].getVoltage() == 0) soloed = 0;
+	if (inputs[EXTSOLO_INPUT].getVoltage() == 10) soloed = 1;
 
-	if (soloTrigger.process(params[SOLO_PARAM].value)+soloinTrigger.process(inputs[SOLOT_INPUT].value))
+	if (soloTrigger.process(params[SOLO_PARAM].getValue())+soloinTrigger.process(inputs[SOLOT_INPUT].getVoltage()))
 			{if (SOLO_STATE == 0) {SOLO_STATE = 1;} else {SOLO_STATE = 0;soloed=0;}}
 
 	if ((!SOLO_STATE and !soloed) and (retard > 0)) retard = 0; else if (retard < 1000) retard = retard + 1;
 
 
-	outputs[EXTSOLO_OUTPUT].value=round(10*retard/1000);
+	outputs[EXTSOLO_OUTPUT].setVoltage(round(10*retard/1000));
 
 	if (!SOLO_STATE) SIGNAL = SIGNAL * ON_STATE ;
 	if (soloed and !SOLO_STATE) SIGNAL = 0;
 
-	outputs[OUT1_OUTPUT].value = SIGNAL;
+	outputs[OUT1_OUTPUT].setVoltage(SIGNAL);
 	
 
-	if (!inputs[PAN_INPUT].active) {
-			outputs[LEFT_OUTPUT].value = inputs[LEFT_INPUT].value + SIGNAL*(1-clamp(params[PAN_PARAM].value,0.0f,1.0f));
-			outputs[RIGHT_OUTPUT].value = inputs[RIGHT_INPUT].value + SIGNAL*(1-clamp(-params[PAN_PARAM].value,0.0f,1.0f));
+	if (!inputs[PAN_INPUT].isConnected()) {
+			outputs[LEFT_OUTPUT].setVoltage(inputs[LEFT_INPUT].getVoltage() + SIGNAL*(1-clamp(params[PAN_PARAM].getValue(),0.0f,1.0f)));
+			outputs[RIGHT_OUTPUT].setVoltage(inputs[RIGHT_INPUT].getVoltage() + SIGNAL*(1-clamp(-params[PAN_PARAM].getValue(),0.0f,1.0f)));
 			orp_affi = 0;
 		} else {
-			outputs[LEFT_OUTPUT].value = inputs[LEFT_INPUT].value + SIGNAL*(1-(clamp(inputs[PAN_INPUT].value,5.0f,10.0f)-5)/5);
-			outputs[RIGHT_OUTPUT].value = inputs[RIGHT_INPUT].value + SIGNAL*(1-(clamp(inputs[PAN_INPUT].value,0.0f,5.0f)+5)/5);
-			orp_affi = 1;orp_gain = clamp(inputs[PAN_INPUT].value,0.0f,10.0f);
+			outputs[LEFT_OUTPUT].setVoltage(inputs[LEFT_INPUT].getVoltage() + SIGNAL*(1-(clamp(inputs[PAN_INPUT].getVoltage(),5.0f,10.0f)-5)/5));
+			outputs[RIGHT_OUTPUT].setVoltage(inputs[RIGHT_INPUT].getVoltage() + SIGNAL*(1-(clamp(inputs[PAN_INPUT].getVoltage(),0.0f,5.0f)+5)/5));
+			orp_affi = 1;orp_gain = clamp(inputs[PAN_INPUT].getVoltage(),0.0f,10.0f);
 		}
 
 	if (ON_STATE==1) lights[ON_LIGHT].value=true; else lights[ON_LIGHT].value=false;

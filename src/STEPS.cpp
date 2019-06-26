@@ -27,15 +27,15 @@ float max_steps = 8 ;
 void process(const ProcessArgs &args) override {
 
 
-if (inputs[LIN1_INPUT].active) 
+if (inputs[LIN1_INPUT].isConnected()) 
 	{
-	max_steps = round(clamp(params[LEVEL1_PARAM].value + inputs[LIN1_INPUT].value*0.32*params[TRIM1_PARAM].value,1.0f,32.0f));
-	outputs[OUT1_OUTPUT].value = floor((inputs[IN1_INPUT].value * round(clamp(params[LEVEL1_PARAM].value + inputs[LIN1_INPUT].value*0.32*params[TRIM1_PARAM].value,1.0f,32.0f))) / 10.01) * (10 / round(clamp(params[LEVEL1_PARAM].value + inputs[LIN1_INPUT].value*0.32*params[TRIM1_PARAM].value,1.0f,32.0f))) ;
+	max_steps = round(clamp(params[LEVEL1_PARAM].getValue() + inputs[LIN1_INPUT].getVoltage()*0.32*params[TRIM1_PARAM].getValue(),1.0f,32.0f));
+	outputs[OUT1_OUTPUT].setVoltage(floor((inputs[IN1_INPUT].getVoltage() * round(clamp(params[LEVEL1_PARAM].getValue() + inputs[LIN1_INPUT].getVoltage()*0.32*params[TRIM1_PARAM].getValue(),1.0f,32.0f))) / 10.01) * (10 / round(clamp(params[LEVEL1_PARAM].getValue() + inputs[LIN1_INPUT].getVoltage()*0.32*params[TRIM1_PARAM].getValue(),1.0f,32.0f)))) ;
 	} 
 	else 
 	{
-	max_steps = round(params[LEVEL1_PARAM].value);
-	outputs[OUT1_OUTPUT].value = floor((inputs[IN1_INPUT].value * round(params[LEVEL1_PARAM].value)) / 10.01) * (10 / round(params[LEVEL1_PARAM].value)) ; 
+	max_steps = round(params[LEVEL1_PARAM].getValue());
+	outputs[OUT1_OUTPUT].setVoltage(floor((inputs[IN1_INPUT].getVoltage() * round(params[LEVEL1_PARAM].getValue())) / 10.01) * (10 / round(params[LEVEL1_PARAM].getValue()))); 
 	}
 };
 

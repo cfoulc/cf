@@ -1,5 +1,5 @@
 #include "plugin.hpp"
-#include "dsp/digital.hpp"
+
 
 
 struct trSEQ : Module {
@@ -9,9 +9,9 @@ struct trSEQ : Module {
 		RESET_PARAM,
 		NOTESIN_PARAM,
 		CLEAR_PARAM,
-		STEPS_PARAM,
-		GATE_PARAM = STEPS_PARAM + 16,
-		NUM_PARAMS = GATE_PARAM + 16
+		ENUMS(STEPS_PARAM,16),
+		ENUMS(GATE_PARAM,16),
+		NUM_PARAMS
 	};
 	enum InputIds {
 		CLOCK_INPUT,
@@ -20,8 +20,8 @@ struct trSEQ : Module {
 		NOTESIN_INPUT,
 		CLEAR_INPUT,
 		STEPS_INPUT,
-		GATE_INPUT,
-		NUM_INPUTS = GATE_INPUT+16
+		ENUMS(GATE_INPUT,16),
+		NUM_INPUTS
 	};
 	enum OutputIds {
 		GATES_OUTPUT,
@@ -31,8 +31,8 @@ struct trSEQ : Module {
 		RUNNING_LIGHT,
 		RESET_LIGHT,
 		GATES_LIGHT,
-		GATE_LIGHTS,
-		NUM_LIGHTS = GATE_LIGHTS + 16
+		ENUMS(GATE_LIGHTS,16),
+		NUM_LIGHTS
 	};
 
 	bool running = true;
@@ -129,7 +129,7 @@ struct trSEQ : Module {
 void process(const ProcessArgs &args) override {
 	const float lightLambda = 0.075;
 	// Run
-	if (runningTrigger.process(params[RUN_PARAM].value)) {
+	if (runningTrigger.process(params[RUN_PARAM].getValue())) {
 		running = !running;
 	}
 	lights[RUNNING_LIGHT].value = running ? 1.0 : 0.0;
@@ -138,16 +138,16 @@ void process(const ProcessArgs &args) override {
 
 
 	if (running) {
-		if (inputs[EXT_CLOCK_INPUT].active) {
+		if (inputs[EXT_CLOCK_INPUT].isConnected()) {
 			// External clock
-			if (clockTrigger.process(inputs[EXT_CLOCK_INPUT].value)) {
+			if (clockTrigger.process(inputs[EXT_CLOCK_INPUT].getVoltage())) {
 				phase = 0.0;
 				nextStep = true;
 			}
 		}
 		else {
 			// Internal clock
-			float clockTime = powf(2.0, params[CLOCK_PARAM].value + inputs[CLOCK_INPUT].value);
+			float clockTime = powf(2.0, params[CLOCK_PARAM].getValue() + inputs[CLOCK_INPUT].getVoltage());
 			phase += clockTime * args.sampleTime;
 			if (phase >= 1.0) {
 				phase -= 1.0;
@@ -157,7 +157,7 @@ void process(const ProcessArgs &args) override {
 	}
 
 	// Reset
-	if (resetTrigger.process(params[RESET_PARAM].value + inputs[RESET_INPUT].value)) {
+	if (resetTrigger.process(params[RESET_PARAM].getValue() + inputs[RESET_INPUT].getVoltage())) {
 		phase = 0.0;
 		index = 16;
 		nextStep = true;
@@ -166,7 +166,7 @@ void process(const ProcessArgs &args) override {
 
 	if (nextStep) {
 		// Advance step
-		int numSteps = clamp(static_cast<int>(round(params[STEPS_PARAM].value + inputs[STEPS_INPUT].value)), 1, 16);
+		int numSteps = clamp(static_cast<int>(round(params[STEPS_PARAM].getValue() + inputs[STEPS_INPUT].getVoltage())), 1, 16);
 
 		index += 1;
 
@@ -174,10 +174,10 @@ void process(const ProcessArgs &args) override {
 			index = 0;
 		}
 
-	if (!inputs[NOTESIN_INPUT].active) inputs[NOTESIN_INPUT].value = 0;
-	if (!inputs[CLEAR_INPUT].active) inputs[CLEAR_INPUT].value = 0;
-	if (params[NOTESIN_PARAM].value or inputs[NOTESIN_INPUT].value>0) gateState[index] = true;
-	if (params[CLEAR_PARAM].value or inputs[CLEAR_INPUT].value>0) gateState[index] = false;
+	if (!inputs[NOTESIN_INPUT].isConnected()) inputs[NOTESIN_INPUT].setVoltage(0);
+	if (!inputs[CLEAR_INPUT].isConnected()) inputs[CLEAR_INPUT].setVoltage(0);
+	if (params[NOTESIN_PARAM].getValue() or inputs[NOTESIN_INPUT].getVoltage()>0) gateState[index] = true;
+	if (params[CLEAR_PARAM].getValue() or inputs[CLEAR_INPUT].getVoltage()>0) gateState[index] = false;
 
 		stepLights[index] = 1.0;
 		gatePulse.trigger(1e-3);
@@ -191,11 +191,11 @@ void process(const ProcessArgs &args) override {
 	for (int i = 0; i < 16; i++) {
 
 
-		if (gateTriggers[i+16].process(inputs[GATE_INPUT + i].value)) {
+		if (gateTriggers[i+16].process(inputs[GATE_INPUT + i].getVoltage())) {
 			gateState[i] = !gateState[i];
 		}
 
-		if (gateTriggers[i].process(params[GATE_PARAM + i].value)) {
+		if (gateTriggers[i].process(params[GATE_PARAM + i].getValue())) {
 			gateState[i] = !gateState[i];
 		}
 
@@ -205,7 +205,7 @@ void process(const ProcessArgs &args) override {
 		else if (gateMode == RETRIGGER)
 			gateOn = gateOn && !pulse;
 
-		//outputs[GATE_OUTPUT + i].value = gateOn ? 10.0 : 0.0;
+		//outputs[GATE_OUTPUT + i].setVoltage(gateOn ? 10.0 : 0.0);
 		stepLights[i] -= stepLights[i] / lightLambda * args.sampleTime;
 		lights[GATE_LIGHTS + i].value = gateState[i] ? 1.0 - stepLights[i] : stepLights[i];
 	}
@@ -220,7 +220,7 @@ void process(const ProcessArgs &args) override {
 
 	// Outputs
 
-	outputs[GATES_OUTPUT].value = gatesOn ? 10.0 : 0.0;
+	outputs[GATES_OUTPUT].setVoltage(gatesOn ? 10.0 : 0.0);
 	lights[RESET_LIGHT].value = resetLight;
 	lights[GATES_LIGHT].value = gatesOn ? 1.0 : 0.0;
 	}

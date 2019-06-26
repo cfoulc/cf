@@ -1,5 +1,4 @@
 #include "plugin.hpp"
-#include "dsp/digital.hpp"
 #include "osdialog.h"
 #define DR_WAV_IMPLEMENTATION
 #include "dr_wav.h"
@@ -154,7 +153,7 @@ void process(const ProcessArgs &args) override {
 
 
 	if (fileLoaded) {
-		if (nextTrigger.process(params[NEXT_PARAM].value))
+		if (nextTrigger.process(params[NEXT_PARAM].getValue()))
 			{
 			std::string dir = lastPath.empty() ? NULL : rack::string::directory(lastPath); ///////////////////////assetLocal()
 			if (sampnumber < int(fichier.size()-1)) sampnumber=sampnumber+1; else sampnumber =0;
@@ -162,7 +161,7 @@ void process(const ProcessArgs &args) override {
 			}
 				
 			
-		if (prevTrigger.process(params[PREV_PARAM].value))
+		if (prevTrigger.process(params[PREV_PARAM].getValue()))
 			{
 			std::string dir = lastPath.empty() ? NULL : rack::string::directory(lastPath); /////////////////////////////////////////
 			if (sampnumber > 0) sampnumber=sampnumber-1; else sampnumber =int(fichier.size()-1);
@@ -173,8 +172,8 @@ void process(const ProcessArgs &args) override {
 
 
 ////////////////////////////////////////////////////////////////// Play   
-	if (inputs[TRIG_INPUT].active) {
-		if (playTrigger.process(inputs[TRIG_INPUT].value)) 
+	if (inputs[TRIG_INPUT].isConnected()) {
+		if (playTrigger.process(inputs[TRIG_INPUT].getVoltage())) 
 			{
 			run = true;
 			samplePos = 0;
@@ -183,14 +182,14 @@ void process(const ProcessArgs &args) override {
     
 	if ((!loading) && (run) && ((abs(floor(samplePos)) < totalSampleCount))) 
 		{ if (samplePos>=0) 
-			outputs[OUT_OUTPUT].value = 5 * playBuffer[0][floor(samplePos)];
-		  else outputs[OUT_OUTPUT].value = 5 * playBuffer[0][floor(totalSampleCount-1+samplePos)];
-		samplePos = samplePos+1+(params[LSPEED_PARAM].value) /3;
+			outputs[OUT_OUTPUT].setVoltage(5 * playBuffer[0][floor(samplePos)]);
+		  else outputs[OUT_OUTPUT].setVoltage(5 * playBuffer[0][floor(totalSampleCount-1+samplePos)]);
+		samplePos = samplePos+1+(params[LSPEED_PARAM].getValue()) /3;
 		}
 		else
 		{ 
 		run = false;
-		outputs[OUT_OUTPUT].value = 0;
+		outputs[OUT_OUTPUT].setVoltage(0);
 		}
 
 }

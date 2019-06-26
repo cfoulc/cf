@@ -1,12 +1,12 @@
 #include "plugin.hpp"
-#include "dsp/digital.hpp"
+
 
 
 struct LEDSEQ : Module {
 	enum ParamIds {
 		EDIT_PARAM,
-		ON_PARAM,
-		NUM_PARAMS = ON_PARAM + 80
+		ENUMS(ON_PARAM,80),
+		NUM_PARAMS
 	};
 	enum InputIds {
 		RST_INPUT,
@@ -14,13 +14,13 @@ struct LEDSEQ : Module {
 		NUM_INPUTS
 	};
 	enum OutputIds {
-		TR_OUTPUT,
-		NUM_OUTPUTS = TR_OUTPUT + 5
+		ENUMS(TR_OUTPUT,5),
+		NUM_OUTPUTS
 	};
     enum LightIds {
 		EDIT_LIGHT,
-		LED_LIGHT,
-		NUM_LIGHTS = LED_LIGHT + 80
+		ENUMS(LED_LIGHT,80),
+		NUM_LIGHTS
 	};
 
 
@@ -89,12 +89,12 @@ json_t *dataToJson() override {
 
 void process(const ProcessArgs &args) override {
 
-	if (rstTrigger.process(inputs[RST_INPUT].value))
+	if (rstTrigger.process(inputs[RST_INPUT].getVoltage()))
 			{
 			pas = 0;
 			}
 
-	if (upTrigger.process(inputs[UP_INPUT].value))
+	if (upTrigger.process(inputs[UP_INPUT].getVoltage()))
 			{
 				for (int i = 0; i < 5; i++) {
 					if (ledState[(i+pas*5)%80]) tempState [i] = 50;
@@ -102,7 +102,7 @@ void process(const ProcessArgs &args) override {
 				if (pas <15) pas = pas+1; else pas =0;
 			}
 
-	if (editTrigger.process(params[EDIT_PARAM].value))
+	if (editTrigger.process(params[EDIT_PARAM].getValue()))
 			{
 			editState = !editState ;
 			lights[EDIT_LIGHT].value= editState ;
@@ -113,19 +113,19 @@ void process(const ProcessArgs &args) override {
 
 			
 				for (int i = 0; i < 80; i++) {
-					if (ledTrigger[i].process(params[ON_PARAM +i].value)) {ledState[(i+pas*5)%80]=!ledState[(i+pas*5)%80];}
+					if (ledTrigger[i].process(params[ON_PARAM +i].getValue())) {ledState[(i+pas*5)%80]=!ledState[(i+pas*5)%80];}
 			};
 
 		} else {
 			for (int i = 0; i < 80; i++) {lights[LED_LIGHT +i].value=ledState[i];}
 			
 				for (int i = 0; i < 80; i++) {
-					if (ledTrigger[i].process(params[ON_PARAM +i].value)) {ledState[i]=!ledState[i];}
+					if (ledTrigger[i].process(params[ON_PARAM +i].getValue())) {ledState[i]=!ledState[i];}
 				};
 		}
 
 	for (int i = 0; i < 5; i++) {
-			if (tempState [i]>0) {tempState [i] = tempState [i]-1;outputs[TR_OUTPUT+i].value=10.0f;} else outputs[TR_OUTPUT+i].value=0.0f;
+			if (tempState [i]>0) {tempState [i] = tempState [i]-1;outputs[TR_OUTPUT+i].setVoltage(10.0f);} else outputs[TR_OUTPUT+i].setVoltage(0.0f);
 		}
 
 

@@ -1,5 +1,5 @@
 #include "plugin.hpp"
-#include "dsp/digital.hpp"
+
 
 
 using namespace std;
@@ -38,19 +38,19 @@ CHOKE()  {
 
 void process(const ProcessArgs &args) override {
 
-	if (tr1Trigger.process(inputs[TRIG1_INPUT].value))
+	if (tr1Trigger.process(inputs[TRIG1_INPUT].getVoltage()))
 		{
 		play = false ;
 
 		};
-	if (tr2Trigger.process(inputs[TRIG2_INPUT].value))
+	if (tr2Trigger.process(inputs[TRIG2_INPUT].getVoltage()))
 		{
 		play = true ;
 
 		};
 	if (play) 
-		outputs[OUT_OUTPUT].value = inputs[IN2_INPUT].value*(1-clamp(-params[PAN_PARAM].value,0.0f,1.0f));
-			else outputs[OUT_OUTPUT].value = inputs[IN1_INPUT].value*(1-clamp(params[PAN_PARAM].value,0.0f,1.0f)); 
+		outputs[OUT_OUTPUT].setVoltage(inputs[IN2_INPUT].getVoltage()*(1-clamp(-params[PAN_PARAM].getValue(),0.0f,1.0f)));
+			else outputs[OUT_OUTPUT].setVoltage(inputs[IN1_INPUT].getVoltage()*(1-clamp(params[PAN_PARAM].getValue(),0.0f,1.0f))); 
 		
 
 	lights[L2_LIGHT].value=play;

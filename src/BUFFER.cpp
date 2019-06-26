@@ -1,6 +1,6 @@
 
 #include "plugin.hpp"
-#include "dsp/digital.hpp"
+
 
 
 struct BUFFER : Module {
@@ -70,33 +70,33 @@ void dataFromJson(json_t *rootJ) override {
 
 void process(const ProcessArgs &args) override { 
 
-	if (modeTrigger.process(params[MODE_PARAM].value)) 
+	if (modeTrigger.process(params[MODE_PARAM].getValue())) 
 			{if (MODE_STATE == 0) MODE_STATE = 1; else MODE_STATE = 0;}
 
 	lights[MODE_LIGHT].value=MODE_STATE;
 
-	if (!inputs[LENGTH_INPUT].active) {
-		length = int(params[LENGTH_PARAM].value*9998.0f)+1;
+	if (!inputs[LENGTH_INPUT].isConnected()) {
+		length = int(params[LENGTH_PARAM].getValue()*9998.0f)+1;
 		l_affi =0;
 		}
 	else {
-		length = clamp(int(inputs[LENGTH_INPUT].value*999.8f),0,9998)+1;
-		l_gain = clamp(inputs[LENGTH_INPUT].value,0.0f,10.0f);
+		length = clamp(int(inputs[LENGTH_INPUT].getVoltage()*999.8f),0,9998)+1;
+		l_gain = clamp(inputs[LENGTH_INPUT].getVoltage(),0.0f,10.0f);
 		l_affi = 1;
 		}
 
 if (MODE_STATE) length = (int(length/10))+2;
 
-	buf[pos]=(inputs[IN_INPUT].value+inputs[FB_INPUT].value*params[FB_PARAM].value) ; // /(1.0+params[FB_PARAM].value);
+	buf[pos]=(inputs[IN_INPUT].getVoltage()+inputs[FB_INPUT].getVoltage()*params[FB_PARAM].getValue()) ; // /(1.0+params[FB_PARAM].getValue());
 
 	x = float(pos) ;
 	if (pos<9999) pos=pos+1; else pos=0;
 
 if (!MODE_STATE) {
 	if ((pos-length)>0)
-		outputs[X_OUTPUT].value=clamp(buf[pos-length],-10.0f,10.0f);
+		outputs[X_OUTPUT].setVoltage(clamp(buf[pos-length],-10.0f,10.0f));
 	else
-		outputs[X_OUTPUT].value=clamp(buf[9999+pos-length],-10.0f,10.0f);
+		outputs[X_OUTPUT].setVoltage(clamp(buf[9999+pos-length],-10.0f,10.0f));
    } else {
 	float som = 0.0;
 	for (int i = 1 ; i < length ; i++) {
@@ -106,7 +106,7 @@ if (!MODE_STATE) {
 			som=som+buf[9999+pos-i];
 	}
 
-	outputs[X_OUTPUT].value = clamp((inputs[FB_INPUT].value*params[FB_PARAM].value - (som / float(length-1))),-10.0f,10.0f);
+	outputs[X_OUTPUT].setVoltage(clamp((inputs[FB_INPUT].getVoltage()*params[FB_PARAM].getValue() - (som / float(length-1))),-10.0f,10.0f));
     }
 
 
