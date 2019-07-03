@@ -146,16 +146,16 @@ void process(const ProcessArgs &args) override {
 			orp_affi = 1;orp_gain = clamp(inputs[PAN_INPUT].getVoltage(),0.0f,10.0f);
 		}
 
-	if (ON_STATE==1) lights[ON_LIGHT].value=true; else lights[ON_LIGHT].value=false;
+	if (ON_STATE==1) lights[ON_LIGHT].setBrightness(1); else lights[ON_LIGHT].setBrightness(0);
 	
 	if (SOLO_STATE==1) {if (cligno == 0) cligno =20000; else cligno=cligno-1;} else cligno = 0;
-	if (cligno>5000) lights[SOLO_LIGHT].value =1; else lights[SOLO_LIGHT].value =0;
+	if (cligno>5000) lights[SOLO_LIGHT].setBrightness(1); else lights[SOLO_LIGHT].setBrightness(0);
 
 	for (int i = 0; i < 11; i++) {
 		if (std::max(SIGNAL1,SIGNAL2)> i) {if (i<10) lightState[i]=5000;else lightState[i]=20000;}
 	}
 	for (int i = 0; i < 11; i++) {
-		if (lightState[i]> 0) {lightState[i]=lightState[i]-1;lights[LEVEL_LIGHTS + i].value=true;} else lights[LEVEL_LIGHTS + i].value=false;
+		if (lightState[i]> 0) {lightState[i]=lightState[i]-1;lights[LEVEL_LIGHTS + i].setBrightness(1);} else lights[LEVEL_LIGHTS + i].setBrightness(0);
 	}
 };
 };

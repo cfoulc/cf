@@ -96,7 +96,7 @@ void process(const ProcessArgs &args) override {
 	if (onTrigger.process(params[ON_PARAM].getValue())+oninTrigger.process(inputs[ON_INPUT].getVoltage()))
 			{if (ON_STATE == 0) {ON_STATE = 1; strt = 5;} else ON_STATE = 0;}
 
-	lights[ON_LIGHT].value = ON_STATE ;
+	lights[ON_LIGHT].setBrightness(ON_STATE) ;
 
 	
 	if (rstTrigger.process(params[RST_PARAM].getValue()))
@@ -121,17 +121,17 @@ void process(const ProcessArgs &args) override {
 			}
 
 		if (beatl>0) {
-			lights[BEAT_LIGHT].value = true; 
+			lights[BEAT_LIGHT].setBrightness(1); 
 			beatl = beatl -1;
 		} else {
-			lights[BEAT_LIGHT].value = false;
+			lights[BEAT_LIGHT].setBrightness(0);
 			}
 
 		if (mesl>0) {
-			lights[MES_LIGHT].value = true; 
+			lights[MES_LIGHT].setBrightness(1); 
 			mesl = mesl -1;
 		} else {
-			lights[MES_LIGHT].value = false;
+			lights[MES_LIGHT].setBrightness(0);
 			}
 
 

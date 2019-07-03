@@ -103,7 +103,7 @@ void process(const ProcessArgs &args) override {
 		for (int i = 0; i < 100; i++) {
 			
 			if (ledTrigger[i].process(params[ON_PARAM +i].getValue())) {ledState[i]=!ledState[i];}
-			lights[LED_LIGHT +i].value=ledState[i];
+			lights[LED_LIGHT +i].setBrightness(ledState[i]);
 		}
 
 

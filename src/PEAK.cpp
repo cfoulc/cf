@@ -67,8 +67,8 @@ void process(const ProcessArgs &args) override {
 	else
 	{
 	outputs[OUT1_OUTPUT].setVoltage(max_GAIN/10);
-        lights[TRESHOLD_LIGHT].value = 0.0;
-        lights[OVER_LIGHT].value = 0.0;
+        lights[TRESHOLD_LIGHT].setBrightness(0.0);
+        lights[OVER_LIGHT].setBrightness(0.0);
 	}
 
 
@@ -97,24 +97,24 @@ void process(const ProcessArgs &args) override {
 	else
 	{
 	outputs[OUT2_OUTPUT].setVoltage(max_GAIN/10);
-        lights[TRESHOLD_LIGHT].value = 0.0;
-        lights[OVER_LIGHT].value = 0.0;
+        lights[TRESHOLD_LIGHT].setBrightness(0.0);
+        lights[OVER_LIGHT].setBrightness(0.0);
 	}
 
 
 	if (reman_t >0) 
 	{
 	reman_t--;
-	lights[TRESHOLD_LIGHT].value = 1;
+	lights[TRESHOLD_LIGHT].setBrightness(1);
 	} 
-	else lights[TRESHOLD_LIGHT].value = 0.0;
+	else lights[TRESHOLD_LIGHT].setBrightness(0.0);
 
 	if (reman_o >0) 
 	{
 	reman_o--;
-	lights[OVER_LIGHT].value = 1;
+	lights[OVER_LIGHT].setBrightness(1);
 	} 
-	else lights[OVER_LIGHT].value = 0.0;
+	else lights[OVER_LIGHT].setBrightness(0.0);
 };
 };
 

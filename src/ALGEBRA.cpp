@@ -59,7 +59,7 @@ void dataFromJson(json_t *rootJ) override {
 void process(const ProcessArgs &args) override {
 	for (int i=0; i<6; i++) {
 		if (trTrigger[i].process(params[OP_PARAM+i].getValue())) OP_STATE= i;
-		if (OP_STATE == i) lights[LED_LIGHT+i].value=1; else lights[LED_LIGHT+i].value=0;
+		if (OP_STATE == i) lights[LED_LIGHT+i].setBrightness(1); else lights[LED_LIGHT+i].setBrightness(0);
 	}
 	if (OP_STATE==0) outputs[OUT_OUTPUT].setVoltage(inputs[IN1_INPUT].getVoltage() + inputs[IN2_INPUT].getVoltage());
 	if (OP_STATE==1) outputs[OUT_OUTPUT].setVoltage(inputs[IN1_INPUT].getVoltage() - inputs[IN2_INPUT].getVoltage());

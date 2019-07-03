@@ -92,20 +92,20 @@ void process(const ProcessArgs &args) override {
 	outputs[RIGHT_MAIN_OUTPUT].setVoltage(SIGNAL_RIGHT);
 	
 
-	if (ON_STATE==1) lights[ON_LIGHT].value=true; else lights[ON_LIGHT].value=false;
+	if (ON_STATE==1) lights[ON_LIGHT].setBrightness(1); else lights[ON_LIGHT].setBrightness(0);
 	
 
 	for (int i = 0; i < 11; i++) {
 		if (SIGNAL_LEFT> i) {if (i<10) l_lightState[i]=5000;else l_lightState[i]=20000;}
 	}
 	for (int i = 0; i < 11; i++) {
-		if (l_lightState[i]> 0) {l_lightState[i]=l_lightState[i]-1;lights[L_LEVEL_LIGHTS + i].value=true;} else lights[L_LEVEL_LIGHTS + i].value=false;
+		if (l_lightState[i]> 0) {l_lightState[i]=l_lightState[i]-1;lights[L_LEVEL_LIGHTS + i].setBrightness(1);} else lights[L_LEVEL_LIGHTS + i].setBrightness(0);
 	}
 	for (int i = 0; i < 11; i++) {
 		if (SIGNAL_RIGHT> i) {if (i<10) r_lightState[i]=5000;else r_lightState[i]=20000;}
 	}
 	for (int i = 0; i < 11; i++) {
-		if (r_lightState[i]> 0) {r_lightState[i]=r_lightState[i]-1;lights[R_LEVEL_LIGHTS + i].value=true;} else lights[R_LEVEL_LIGHTS + i].value=false;
+		if (r_lightState[i]> 0) {r_lightState[i]=r_lightState[i]-1;lights[R_LEVEL_LIGHTS + i].setBrightness(1);} else lights[R_LEVEL_LIGHTS + i].setBrightness(0);
 	}
 }
 };

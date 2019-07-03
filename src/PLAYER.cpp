@@ -115,7 +115,7 @@ json_object_set_new(rootJ, "oscstate", json_integer(oscState));
 		json_t *oscstateJ = json_object_get(rootJ, "oscstate");
 		if (oscstateJ)
 			oscState = json_integer_value(oscstateJ);
-			lights[OSC_LIGHT].value=oscState;
+			lights[OSC_LIGHT].setBrightness(oscState);
 	
 	}
 
@@ -217,7 +217,7 @@ void process(const ProcessArgs &args) override {
 	} else fileDesc = "right click to load \n .wav sample \n :)";
 
 if (oscTrigger.process(params[OSC_PARAM].getValue()))
-			{oscState =!oscState;lights[OSC_LIGHT].value=oscState;}
+			{oscState =!oscState;lights[OSC_LIGHT].setBrightness(oscState);}
 
 	// Play
 if (!oscState) {

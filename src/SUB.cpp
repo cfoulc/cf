@@ -78,7 +78,7 @@ void process(const ProcessArgs &args) override {
 
 	if (linkTrigger.process(params[LINK_PARAM].getValue()))
 			{LINK_STATE=!LINK_STATE;}
-	lights[LINK_LIGHT].value=LINK_STATE;
+	lights[LINK_LIGHT].setBrightness(LINK_STATE);
 
 
         SIGNAL = inputs[IN1_INPUT].getVoltage() ;

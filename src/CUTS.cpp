@@ -89,54 +89,54 @@ void dataFromJson(json_t *rootJ) override {
 
 void process(const ProcessArgs &args) override {
 		
-poles = int(params[POLE_PARAM].value);
+poles = int(params[POLE_PARAM].getValue());
 
-if (linkTrigger.process(params[LINK_PARAM].value))
+if (linkTrigger.process(params[LINK_PARAM].getValue()))
 			{if (LINK_STATE == 0) {LINK_STATE = 1; link_delta = fin-rin;} else LINK_STATE = 0;}
-lights[LINK_LIGHT].value=LINK_STATE;
+lights[LINK_LIGHT].setBrightness(LINK_STATE);
 
 if (inputs[R_INPUT].isConnected()) {
 			rv = true;
-			rin = clamp(inputs[R_INPUT].value,0.0,10.0)/10.0;
+			rin = clamp(inputs[R_INPUT].getVoltage(),0.0,10.0)/10.0;
 params[BPOTR_PARAM].setValue(rin);
 		} else {
 			rv = false;
-			rin = params[POTR_PARAM].value;
+			rin = params[POTR_PARAM].getValue();
 		}
 
 if (!LINK_STATE) {
 	if (inputs[F_INPUT].isConnected()) {
 				fv = true;
-				fin = clamp(inputs[F_INPUT].value,0.0,10.0)/10.0;
+				fin = clamp(inputs[F_INPUT].getVoltage(),0.0,10.0)/10.0;
 params[BPOTF_PARAM].setValue(fin);
 			} else {
 				fv = false;
-				fin = params[POTF_PARAM].value;
+				fin = params[POTF_PARAM].getValue();
 			}
 	} else {
 		if (inputs[R_INPUT].isConnected()) {
 				fv = true;
-				fin = clamp(inputs[R_INPUT].value/10.0+link_delta,0.0f,1.0f);
+				fin = clamp(inputs[R_INPUT].getVoltage()/10.0+link_delta,0.0f,1.0f);
 params[BPOTF_PARAM].setValue(fin);
 ////////////////////params[BPOTR_PARAM].setValue(fin);
 			} else {
 				if (inputs[F_INPUT].isConnected()) {
 					rv = true;
-					rin = clamp(inputs[F_INPUT].value/10-link_delta,0.0f,1.0f);
+					rin = clamp(inputs[F_INPUT].getVoltage()/10-link_delta,0.0f,1.0f);
 params[BPOTR_PARAM].setValue(rin);
 					fv = true;
-					fin = clamp(inputs[F_INPUT].value/10,0.0f,1.0f);
+					fin = clamp(inputs[F_INPUT].getVoltage()/10,0.0f,1.0f);
 params[BPOTF_PARAM].setValue(fin);
 				} else {
 					fv = true;
-					fin = clamp(params[POTR_PARAM].value+link_delta,0.0f,1.0f);
+					fin = clamp(params[POTR_PARAM].getValue()+link_delta,0.0f,1.0f);
 params[BPOTF_PARAM].setValue(fin);
 				}
 			}
 	}
 
 if (inputs[IN_INPUT].isConnected()) {
-	temp1 = inputs[IN_INPUT].value;
+	temp1 = inputs[IN_INPUT].getVoltage();
 
 	for (int i=0;i<poles;i++){
 		delta = temp1 - prevf1[i];
@@ -151,13 +151,13 @@ if (inputs[IN_INPUT].isConnected()) {
 		prevf2[i] = prevf2[i] + delta ;
 		temp2= prevf2[i];
 	}
-	outputs[OUT_OUTPUT].value = temp1 - temp2;
+	outputs[OUT_OUTPUT].setVoltage(temp1 - temp2);
 
-} else outputs[OUT_OUTPUT].value =0;
+} else outputs[OUT_OUTPUT].setVoltage(0);
 
 
 if (inputs[IN2_INPUT].isConnected()) {
-	temp3 = inputs[IN2_INPUT].value;
+	temp3 = inputs[IN2_INPUT].getVoltage();
 
 	for (int i=0;i<poles;i++){
 		delta = temp3 - prevf3[i];
@@ -174,9 +174,9 @@ if (inputs[IN2_INPUT].isConnected()) {
 	}
 
 	
-	outputs[OUT2_OUTPUT].value = temp3 - temp4;
+	outputs[OUT2_OUTPUT].setVoltage(temp3 - temp4);
 
-} else outputs[OUT2_OUTPUT].value =0;
+} else outputs[OUT2_OUTPUT].setVoltage(0);
 
 };
 };

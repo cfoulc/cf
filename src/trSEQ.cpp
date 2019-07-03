@@ -132,7 +132,7 @@ void process(const ProcessArgs &args) override {
 	if (runningTrigger.process(params[RUN_PARAM].getValue())) {
 		running = !running;
 	}
-	lights[RUNNING_LIGHT].value = running ? 1.0 : 0.0;
+	lights[RUNNING_LIGHT].setBrightness(running ? 1.0 : 0.0);
 
 	bool nextStep = false;
 
@@ -207,7 +207,7 @@ void process(const ProcessArgs &args) override {
 
 		//outputs[GATE_OUTPUT + i].setVoltage(gateOn ? 10.0 : 0.0);
 		stepLights[i] -= stepLights[i] / lightLambda * args.sampleTime;
-		lights[GATE_LIGHTS + i].value = gateState[i] ? 1.0 - stepLights[i] : stepLights[i];
+		lights[GATE_LIGHTS + i].setBrightness(gateState[i] ? 1.0 - stepLights[i] : stepLights[i]);
 	}
 
 	// Rows
@@ -221,8 +221,8 @@ void process(const ProcessArgs &args) override {
 	// Outputs
 
 	outputs[GATES_OUTPUT].setVoltage(gatesOn ? 10.0 : 0.0);
-	lights[RESET_LIGHT].value = resetLight;
-	lights[GATES_LIGHT].value = gatesOn ? 1.0 : 0.0;
+	lights[RESET_LIGHT].setBrightness(resetLight);
+	lights[GATES_LIGHT].setBrightness(gatesOn ? 1.0 : 0.0);
 	}
 };
 

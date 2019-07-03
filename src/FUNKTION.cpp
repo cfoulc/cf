@@ -98,9 +98,9 @@ void process(const ProcessArgs &args) override {
 	if (OP_STATE==19) {val = asinh(inputs[IN1_INPUT].getVoltage());fctDesc="asinh";}
 	if (OP_STATE==20) {val = atanh(inputs[IN1_INPUT].getVoltage());fctDesc="atanh";}
 
-	if (isfinite(val)) lights[ERROR_LIGHT].value = 0; else {lights[ERROR_LIGHT].value = 1;perror=10000;oerror=50000;}
+	if (isfinite(val)) lights[ERROR_LIGHT].setBrightness(0); else {lights[ERROR_LIGHT].setBrightness(1);perror=10000;oerror=50000;}
 	if (perror>0) perror-=1;if (oerror>0) oerror-=1;
-	lights[PERROR_LIGHT].value = float(perror)/10000.0;lights[OERROR_LIGHT].value = float(oerror)/50000.0;
+	lights[PERROR_LIGHT].setBrightness(float(perror)/10000.0);lights[OERROR_LIGHT].setBrightness(float(oerror)/50000.0);
 
 	outputs[OUT_OUTPUT].setVoltage(val);
 }

@@ -101,7 +101,7 @@ void process(const ProcessArgs &args) override {
 			} 
 
 		
-	lights[HOLD_LIGHT].value = lock ;
+	lights[HOLD_LIGHT].setBrightness(lock) ;
 	outputs[OUT_OUTPUT].setVoltage(value) ;
 		
 }

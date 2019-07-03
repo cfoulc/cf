@@ -53,7 +53,7 @@ void process(const ProcessArgs &args) override {
 			else outputs[OUT_OUTPUT].setVoltage(inputs[IN1_INPUT].getVoltage()*(1-clamp(params[PAN_PARAM].getValue(),0.0f,1.0f))); 
 		
 
-	lights[L2_LIGHT].value=play;
+	lights[L2_LIGHT].setBrightness(play);
 }
 };
 

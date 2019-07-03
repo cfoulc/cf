@@ -90,7 +90,7 @@ if (!inputs[POS_INPUT].isConnected()) {
 	if (offsetTrigger.process(params[OFFSET_PARAM].getValue()))
 			{if (OFFSET_STATE == 0) OFFSET_STATE = 1; else OFFSET_STATE = 0;}
 
-	if (OFFSET_STATE==1) lights[OFFSET_LIGHT].value=true; else lights[OFFSET_LIGHT].value=false;
+	if (OFFSET_STATE==1) lights[OFFSET_LIGHT].setBrightness(1); else lights[OFFSET_LIGHT].setBrightness(0);
 
 
 if (pas>-1) {

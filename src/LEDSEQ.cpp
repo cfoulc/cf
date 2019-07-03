@@ -105,11 +105,11 @@ void process(const ProcessArgs &args) override {
 	if (editTrigger.process(params[EDIT_PARAM].getValue()))
 			{
 			editState = !editState ;
-			lights[EDIT_LIGHT].value= editState ;
+			lights[EDIT_LIGHT].setBrightness(editState) ;
 			}
 	if (!editState)
 		{
-			for (int i = 0; i < 80; i++) {lights[LED_LIGHT +i].value=ledState[(i+pas*5)%80];}
+			for (int i = 0; i < 80; i++) {lights[LED_LIGHT +i].setBrightness(ledState[(i+pas*5)%80]);}
 
 			
 				for (int i = 0; i < 80; i++) {
@@ -117,7 +117,7 @@ void process(const ProcessArgs &args) override {
 			};
 
 		} else {
-			for (int i = 0; i < 80; i++) {lights[LED_LIGHT +i].value=ledState[i];}
+			for (int i = 0; i < 80; i++) {lights[LED_LIGHT +i].setBrightness(ledState[i]);}
 			
 				for (int i = 0; i < 80; i++) {
 					if (ledTrigger[i].process(params[ON_PARAM +i].getValue())) {ledState[i]=!ledState[i];}

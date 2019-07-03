@@ -109,11 +109,11 @@ void process(const ProcessArgs &args) override {
 			float in = inputs[IN_INPUT + i].getVoltage();
 			outputs[OUT_OUTPUT + i].setVoltage(in);
 			
-		} else {muteState[i+4] = false;lights[S_LIGHT + i].value = 0;outputs[OUT_OUTPUT + i].setVoltage(0.0);}
+		} else {muteState[i+4] = false;lights[S_LIGHT + i].setBrightness(0);outputs[OUT_OUTPUT + i].setVoltage(0.0);}
 		if (muteState[i+4]==true)
 		{
 			cligno = cligno + 1;
-			if (cligno ==10000) {lights[S_LIGHT + i].value = !lights[S_LIGHT + i].value;cligno =0;}
+			if (cligno ==10000) {lights[S_LIGHT + i].setBrightness(!lights[S_LIGHT + i].getBrightness());cligno =0;}
 		}		
 	}
 
@@ -122,7 +122,7 @@ void process(const ProcessArgs &args) override {
 			muteState[i] ^= true;
 		float in = inputs[IN_INPUT + i].getVoltage();
 		if (solo == 0) outputs[OUT_OUTPUT + i].setVoltage(muteState[i] ? in : 0.0);
-		lights[M_LIGHT + i].value = muteState[i];
+		lights[M_LIGHT + i].setBrightness(muteState[i]);
 	}
 
 	

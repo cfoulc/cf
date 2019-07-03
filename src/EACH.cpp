@@ -72,7 +72,7 @@ void process(const ProcessArgs &args) override {
 		outputs[DOUZE_OUTPUT].setVoltage(inputs[DOUZE_INPUT].getVoltage());
 	} 
 	if (note >0) {outputs[BEAT_OUTPUT].setVoltage(10.f);note = note -1;} else outputs[BEAT_OUTPUT].setVoltage(0.f);
-	if (lum>0) {lights[BEAT_LIGHT].value = true;lum = lum -1;} else lights[BEAT_LIGHT].value = false;
+	if (lum>0) {lights[BEAT_LIGHT].setBrightness(1);lum = lum -1;} else lights[BEAT_LIGHT].setBrightness(0);
 };
 
 };

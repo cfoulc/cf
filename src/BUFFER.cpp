@@ -73,7 +73,7 @@ void process(const ProcessArgs &args) override {
 	if (modeTrigger.process(params[MODE_PARAM].getValue())) 
 			{if (MODE_STATE == 0) MODE_STATE = 1; else MODE_STATE = 0;}
 
-	lights[MODE_LIGHT].value=MODE_STATE;
+	lights[MODE_LIGHT].setBrightness(MODE_STATE);
 
 	if (!inputs[LENGTH_INPUT].isConnected()) {
 		length = int(params[LENGTH_PARAM].getValue()*9998.0f)+1;
