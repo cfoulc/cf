@@ -33,5 +33,6 @@ extern Model *modelBUFFER;
 extern Model *modelDISTO;
 extern Model *modelCUBE;
 extern Model *modelPATCH;
+extern Model *modelLABEL;
 extern Model *modelLEDS;
 extern Model *modelDAVE;
