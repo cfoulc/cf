@@ -137,7 +137,7 @@ void process(const ProcessArgs &args) override {
 			outputs[RIGHT_OUTPUT].setVoltage(inputs[RIGHT_INPUT].getVoltage() + SIGNAL2*(1-clamp(-params[PAN_PARAM].getValue(),0.0f,1.0f)));
 			outputs[TLEFT_OUTPUT].setVoltage(SIGNAL1*(1-clamp(params[PAN_PARAM].getValue(),0.0f,1.0f)));
 			outputs[TRIGHT_OUTPUT].setVoltage(SIGNAL2*(1-clamp(-params[PAN_PARAM].getValue(),0.0f,1.0f)));
-			orp_affi = 0;
+			orp_affi = 0;orp_gain = params[PAN_PARAM].getValue()*5+5;
 		} else {
 			outputs[LEFT_OUTPUT].setVoltage(inputs[LEFT_INPUT].getVoltage() + SIGNAL1*(1-(clamp(inputs[PAN_INPUT].getVoltage(),5.0f,10.0f)-5)/5));
 			outputs[RIGHT_OUTPUT].setVoltage(inputs[RIGHT_INPUT].getVoltage() + SIGNAL2*(1-(clamp(inputs[PAN_INPUT].getVoltage(),0.0f,5.0f)+5)/5));
@@ -169,23 +169,23 @@ struct SMODisplay : TransparentWidget {
 	}
 	
 	void draw(const DrawArgs &args) override {
-
+//nvgGlobalTint(args.vg, color::WHITE);
 float gainX = module ? module->or_gain : 1.0f;
-int affich = module ? module->or_affi : 0;
-float d=19.1;
+//int affich = module ? module->or_affi : 0;
+float d=18;
 
-		if (affich==1) {
+		//if (affich==1) {
 		float xx = d*sin(-(gainX*0.17+0.15)*M_PI) ;
 		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;
 
 		
-			nvgBeginPath(args.vg);
-			nvgCircle(args.vg, 0,0, d);
-			nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
-			nvgFill(args.vg);	
+			//nvgBeginPath(args.vg);
+			//nvgCircle(args.vg, 0,0, d);
+			//nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			//nvgFill(args.vg);	
 		
-			nvgStrokeWidth(args.vg,1.2);
-			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			nvgStrokeWidth(args.vg,2);
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x88));
 			{
 				nvgBeginPath(args.vg);
 				nvgMoveTo(args.vg, 0,0);
@@ -193,7 +193,7 @@ float d=19.1;
 				nvgClosePath(args.vg);
 			}
 			nvgStroke(args.vg);
-		}
+		//}
 
 	}
 };
@@ -206,31 +206,32 @@ struct SMOPDisplay : TransparentWidget {
 	}
 	
 	void draw(const DrawArgs &args) override {
-
+//nvgGlobalTint(args.vg, color::WHITE);
 float gainX = module ? module->orp_gain : 1.0f;
-int affich = module ? module->orp_affi : 0;
-float d=9.2;
+//int affich = module ? module->orp_affi : 0;
+float d=8;
 
-		if (affich==1) {
+		//if (affich==1) {
 		float xx = d*sin(-(gainX*0.17+0.15)*M_PI) ;
 		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;
-
+		float xx0 = (d-6)*sin(-(gainX*0.17+0.15)*M_PI) ;
+		float yy0 = (d-6)*cos((gainX*0.17+0.15)*M_PI) ;
 		
-			nvgBeginPath(args.vg);
-			nvgCircle(args.vg, 0,0, d);
-			nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
-			nvgFill(args.vg);	
+			//nvgBeginPath(args.vg);
+			//nvgCircle(args.vg, 0,0, d);
+			//nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			//nvgFill(args.vg);	
 		
-			nvgStrokeWidth(args.vg,1.2);
-			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			nvgStrokeWidth(args.vg,2);
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x88));
 			{
 				nvgBeginPath(args.vg);
-				nvgMoveTo(args.vg, 0,0);
+				nvgMoveTo(args.vg, xx0,yy0);
 				nvgLineTo(args.vg, xx,yy);
 				nvgClosePath(args.vg);
 			}
 			nvgStroke(args.vg);
-		}
+		//}
 
 	}
 };
@@ -248,7 +249,7 @@ struct STEREOWidget : ModuleWidget {
 	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 365)));
 
 
-	addParam(createParam<Trimpot>(Vec(38, 127), module, STEREO::PAN_PARAM));
+	addParam(createParam<cfTrimpot>(Vec(38, 127), module, STEREO::PAN_PARAM));
 	addInput(createInput<PJ301MPort>(Vec(11, 131), module, STEREO::PAN_INPUT));
 	{
 		SMOPDisplay *pdisplay = new SMOPDisplay();
@@ -258,11 +259,11 @@ struct STEREOWidget : ModuleWidget {
 
 	}
 
-    	addParam(createParam<RoundLargeBlackKnob>(Vec(27, 247), module, STEREO::GAIN_PARAM));
+    	addParam(createParam<cfBigKnob>(Vec(27, 247), module, STEREO::GAIN_PARAM));
 	addInput(createInput<PJ301MPort>(Vec(11, 281), module, STEREO::GAIN_INPUT));
 	{
 		SMODisplay *display = new SMODisplay();
-		display->box.pos = Vec(46, 266);
+		display->box.pos = Vec(45, 265);
 		display->module = module;
 		addChild(display);
 	}

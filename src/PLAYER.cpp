@@ -5,6 +5,7 @@
 #include <vector>
 #include "cmath"
 #include <dirent.h>
+#include <libgen.h>
 #include <algorithm> //----added by Joakim Lindbom
 
 
@@ -150,14 +151,21 @@ loading = false;
 		for (int i=0; i < floor(totalSampleC); i = i + floor(totalSampleC/130)) {
 			displayBuff.push_back(playBuffer[0][i]);
 		}
-		fileDesc = rack::string::filename(path)+ "\n";
+			char* pathDup = strdup(path.c_str());
+			fileDesc = basename(pathDup);
+			free(pathDup);
+fileDesc += "\n";
+		//fileDesc = rack::string::filename(path)+ "\n";
 		fileDesc += std::to_string(sampleRate)+ " Hz" + "\n";
 		fileDesc += std::to_string(channels)+ " channel(s)" + "\n";
 
 		if (reload) {
 			DIR* rep = NULL;
 			struct dirent* dirp = NULL;
-			std::string dir = path.empty() ? NULL : rack::string::directory(path);
+				char* pathDup = strdup(path.c_str());
+				std::string dir = dirname(pathDup);
+				free(pathDup);
+			//std::string dir = path.empty() ? NULL : rack::string::directory(path);
 
 			rep = opendir(dir.c_str());
 			int i = 0;
@@ -202,7 +210,10 @@ void process(const ProcessArgs &args) override {
 	if (fileLoaded) {
 		if (nextTrigger.process(params[NEXT_PARAM].getValue())+nextinTrigger.process(inputs[NEXT_INPUT].getVoltage()))
 			{
-			std::string dir = lastPath.empty() ? NULL : rack::string::directory(lastPath);
+				char* pathDup = strdup(lastPath.c_str());
+				std::string dir = dirname(pathDup);
+				free(pathDup);
+			//std::string dir = lastPath.empty() ? NULL : rack::string::directory(lastPath);
 			if (sampnumber < int(fichier.size()-1)) sampnumber=sampnumber+1; else sampnumber =0;
 			loadSample(dir + "/" + fichier[sampnumber]);
 			}
@@ -210,7 +221,10 @@ void process(const ProcessArgs &args) override {
 			
 		if (prevTrigger.process(params[PREV_PARAM].getValue())+previnTrigger.process(inputs[PREV_INPUT].getVoltage()))
 			{retard = 1000;
-			std::string dir = lastPath.empty() ? NULL : rack::string::directory(lastPath);
+				char* pathDup = strdup(lastPath.c_str());
+				std::string dir = dirname(pathDup);
+				free(pathDup);
+			//std::string dir = lastPath.empty() ? NULL : rack::string::directory(lastPath);
 			if (sampnumber > 0) sampnumber=sampnumber-1; else sampnumber =int(fichier.size()-1);
 			loadSample(dir + "/" + fichier[sampnumber]);
 			} 
@@ -316,6 +330,7 @@ struct PLAYERDisplay : TransparentWidget {
 	}
 	
 	void draw(const DrawArgs &args) override {
+nvgGlobalTint(args.vg, color::WHITE);
 if (module) {
 		nvgFontSize(args.vg, 12);
 		nvgFontFaceId(args.vg, font->handle);

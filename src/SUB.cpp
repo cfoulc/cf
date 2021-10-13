@@ -86,7 +86,7 @@ void process(const ProcessArgs &args) override {
 	outputs[OUT1_OUTPUT].setVoltage(SIGNAL);
 
 	if (!inputs[GAIN_INPUT].isConnected())
-		{SIGNAL = SIGNAL * params[GAIN_PARAM].getValue()/10.0 ;or_affi=0;}
+		{SIGNAL = SIGNAL * params[GAIN_PARAM].getValue()/10.0 ;or_affi=0; or_gain=params[GAIN_PARAM].getValue();}
 		else {SIGNAL = SIGNAL * clamp(inputs[GAIN_INPUT].getVoltage()/10.0f,0.0f,1.0f) ; or_affi=1;or_gain=clamp(inputs[GAIN_INPUT].getVoltage(),0.0f,10.0f);}
 
 	outputs[M1_OUTPUT].setVoltage(inputs[M1_INPUT].getVoltage() + SIGNAL);
@@ -98,7 +98,7 @@ void process(const ProcessArgs &args) override {
 
 	if (!LINK_STATE) {
 		if (!inputs[GAIN2_INPUT].isConnected()) 
-			{SIGNAL2 = SIGNAL2 * params[GAIN2_PARAM].getValue()/10.0 ;or2_affi=0;}
+			{SIGNAL2 = SIGNAL2 * params[GAIN2_PARAM].getValue()/10.0 ;or2_affi=0;or2_gain=params[GAIN2_PARAM].getValue();}
 			else {SIGNAL2 = SIGNAL2 * clamp(inputs[GAIN2_INPUT].getVoltage()/10.0f,0.0f,1.0f) ; or2_affi=1;or2_gain=clamp(inputs[GAIN2_INPUT].getVoltage(),0.0f,10.0f);}
 	} else {
 		if (!inputs[GAIN_INPUT].isConnected())
@@ -120,23 +120,23 @@ struct MDisplay : TransparentWidget {
 	}
 	
 	void draw(const DrawArgs &args) override {
-
+//nvgGlobalTint(args.vg, color::WHITE);
 float gainX = module ? module->or_gain : 1.0f;
-int affich = module ? module->or_affi : 0;
-float d=19.1;
+//int affich = module ? module->or_affi : 0;
+float d=18;
 
-		if (affich==1) {
+		//if (affich==1) {
 		float xx = d*sin(-(gainX*0.17+0.15)*M_PI) ;
 		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;
 
 		
-			nvgBeginPath(args.vg);
-			nvgCircle(args.vg, 0,0, d);
-			nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
-			nvgFill(args.vg);	
+			//nvgBeginPath(args.vg);
+			//nvgCircle(args.vg, 0,0, d);
+			//nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			//nvgFill(args.vg);	
 		
-			nvgStrokeWidth(args.vg,1.2);
-			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			nvgStrokeWidth(args.vg,2);
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x88));
 			{
 				nvgBeginPath(args.vg);
 				nvgMoveTo(args.vg, 0,0);
@@ -144,7 +144,7 @@ float d=19.1;
 				nvgClosePath(args.vg);
 			}
 			nvgStroke(args.vg);
-		}
+		//}
 
 	}
 };
@@ -157,23 +157,23 @@ struct MSDisplay : TransparentWidget {
 	}
 	
 	void draw(const DrawArgs &args) override {
-
+//nvgGlobalTint(args.vg, color::WHITE);
 float gainX = module ? module->or2_gain : 1.0f;
-int affich = module ? module->or2_affi : 0;
-float d=19.1;
+//int affich = module ? module->or2_affi : 0;
+float d=18;
 
-		if (affich==1) {
+		//if (affich==1) {
 		float xx = d*sin(-(gainX*0.17+0.15)*M_PI) ;
 		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;
 
 		
-			nvgBeginPath(args.vg);
-			nvgCircle(args.vg, 0,0, d);
-			nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
-			nvgFill(args.vg);	
+			//nvgBeginPath(args.vg);
+			//nvgCircle(args.vg, 0,0, d);
+			//nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			//nvgFill(args.vg);	
 		
-			nvgStrokeWidth(args.vg,1.2);
-			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			nvgStrokeWidth(args.vg,2);
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x88));
 			{
 				nvgBeginPath(args.vg);
 				nvgMoveTo(args.vg, 0,0);
@@ -181,7 +181,7 @@ float d=19.1;
 				nvgClosePath(args.vg);
 			}
 			nvgStroke(args.vg);
-		}
+		//}
 
 	}
 };
@@ -201,11 +201,11 @@ struct SUBWidget : ModuleWidget {
 	addChild(createLight<MediumLight<BlueLight>>(Vec(26.5, 182.5), module, SUB::LINK_LIGHT));
 
 
-    	addParam(createParam<RoundLargeBlackKnob>(Vec(27, 247), module, SUB::GAIN2_PARAM));
+    	addParam(createParam<cfBigKnob>(Vec(27, 247), module, SUB::GAIN2_PARAM));
 	addInput(createInput<PJ301MPort>(Vec(11, 281), module, SUB::GAIN2_INPUT));
 	{
 		MSDisplay *display2 = new MSDisplay();
-		display2->box.pos = Vec(46, 266);
+		display2->box.pos = Vec(45, 265);
 		display2->module = module;
 		addChild(display2);
 	}
@@ -224,11 +224,11 @@ struct SUBWidget : ModuleWidget {
 
 
 
-    	addParam(createParam<RoundLargeBlackKnob>(Vec(27, 247-182), module, SUB::GAIN_PARAM));
+    	addParam(createParam<cfBigKnob>(Vec(27, 247-182), module, SUB::GAIN_PARAM));
 	addInput(createInput<PJ301MPort>(Vec(11, 281-182), module, SUB::GAIN_INPUT));
 	{
 		MDisplay *display = new MDisplay();
-		display->box.pos = Vec(46, 266-182);
+		display->box.pos = Vec(45, 265-182);
 		display->module = module;
 		addChild(display);
 	}

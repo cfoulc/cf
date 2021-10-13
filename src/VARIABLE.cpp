@@ -132,6 +132,7 @@ struct VARIABLEDisplay : TransparentWidget {
 	};
 	
 	void draw(const DrawArgs &args) override {
+nvgGlobalTint(args.vg, color::WHITE);
 float val = module ? module->value : 0;
 		std::string to_display = "";
 		std::string fileDesc = "";

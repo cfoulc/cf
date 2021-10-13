@@ -116,6 +116,7 @@ struct FUNKTIONDisplay : TransparentWidget {
 	}
 	
 	void draw(const DrawArgs &args) override {
+nvgGlobalTint(args.vg, color::WHITE);
 std::string fD= module ? module->fctDesc : "sin";
 		std::string to_display = "";
 		for (int i=0; i<14; i++) to_display = to_display + fD[i];

@@ -6,7 +6,7 @@
 #include "cmath"
 #include <dirent.h>
 #include <algorithm> //----added by Joakim Lindbom
-
+#include <libgen.h>
 using namespace std;
 
 
@@ -103,13 +103,27 @@ loading = true;
 loading = false;
 
 		fileLoaded = true;
-		
-		fileDesc = rack::string::filename(path);
+			char* pathDup = strdup(path.c_str());
+			fileDesc = basename(pathDup);
+			free(pathDup);
+
+		//fileDesc = basename(path);
 
 		if (reload) {
 			DIR* rep = NULL;
 			struct dirent* dirp = NULL;
-			std::string dir = path.empty() ? NULL : rack::string::directory(path); /////////////////////////////////////////
+			//std::string dir;
+			//if (path.empty)
+				//{dir = NULL;} 
+				//else {
+				char* pathDup = strdup(path.c_str());
+				std::string dir = dirname(pathDup);
+				free(pathDup);
+				//}
+
+
+
+			//std::string dir = path.empty() ? NULL : rack::string::directory(path); /////////////////////////////////////////
 
 			rep = opendir(dir.c_str());
 			int i = 0;
@@ -155,7 +169,10 @@ void process(const ProcessArgs &args) override {
 	if (fileLoaded) {
 		if (nextTrigger.process(params[NEXT_PARAM].getValue()))
 			{
-			std::string dir = lastPath.empty() ? NULL : rack::string::directory(lastPath); ///////////////////////assetLocal()
+			char* pathDup = strdup(lastPath.c_str());
+			std::string dir = dirname(pathDup);
+			free(pathDup);
+			//std::string dir = lastPath.empty() ? NULL : rack::string::directory(lastPath); ///////////////////////assetLocal()
 			if (sampnumber < int(fichier.size()-1)) sampnumber=sampnumber+1; else sampnumber =0;
 			 loadSample(dir + "/" + fichier[sampnumber]);
 			}
@@ -163,7 +180,10 @@ void process(const ProcessArgs &args) override {
 			
 		if (prevTrigger.process(params[PREV_PARAM].getValue()))
 			{
-			std::string dir = lastPath.empty() ? NULL : rack::string::directory(lastPath); /////////////////////////////////////////
+			char* pathDup = strdup(lastPath.c_str());
+			std::string dir = dirname(pathDup);
+			free(pathDup);
+			//std::string dir = lastPath.empty() ? NULL : rack::string::directory(lastPath); /////////////////////////////////////////
 			if (sampnumber > 0) sampnumber=sampnumber-1; else sampnumber =int(fichier.size()-1);
 			loadSample(dir + "/" + fichier[sampnumber]);
 			} 
@@ -225,6 +245,7 @@ struct PLAYDisplay : TransparentWidget {
 	}
 	
 	void draw(const DrawArgs &args) override {
+nvgGlobalTint(args.vg, color::WHITE);
 std::string fD= module ? module->fileDesc : "load sample";
 		std::string to_display = "";
 		for (int i=0; i<14; i++) to_display = to_display + fD[i];

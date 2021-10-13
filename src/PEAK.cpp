@@ -128,6 +128,7 @@ PEAK *module;
   };
 
   void draw(const DrawArgs &args) override {
+nvgGlobalTint(args.vg, color::WHITE);
 int st = module ? module->affich : 0;
     // Background
     NVGcolor backgroundColor = nvgRGB(0x44, 0x44, 0x44);

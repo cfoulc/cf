@@ -78,6 +78,7 @@ struct CUBEDisplay : TransparentWidget {
 	}
 	
   void draw(const DrawArgs &args) override {
+nvgGlobalTint(args.vg, color::WHITE);
 if (module) {
 		nvgStrokeColor(args.vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff));
 		{

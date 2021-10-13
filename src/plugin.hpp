@@ -5,6 +5,22 @@ using namespace rack;
 
 extern Plugin *pluginInstance;
 
+struct cfBigKnob : RoundKnob {
+	cfBigKnob() {
+		setSvg(Svg::load(asset::plugin(pluginInstance,"res/cfBigKnob.svg")));
+		bg->setSvg(Svg::load(asset::plugin(pluginInstance,"res/cfBigKnob-bg.svg")));
+	}
+
+};
+
+struct cfTrimpot : RoundKnob {
+	cfTrimpot() {
+		setSvg(Svg::load(asset::plugin(pluginInstance,"res/cfTrimpot.svg")));
+		bg->setSvg(Svg::load(asset::plugin(pluginInstance,"res/cfTrimpot-bg.svg")));
+	}
+
+};
+
 ////////////////////
 // module widgets
 ////////////////////
@@ -34,5 +50,4 @@ extern Model *modelDISTO;
 extern Model *modelCUBE;
 extern Model *modelPATCH;
 extern Model *modelLABEL;
-extern Model *modelLEDS;
 extern Model *modelDAVE;

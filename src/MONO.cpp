@@ -101,7 +101,8 @@ void process(const ProcessArgs &args) override {
         SIGNAL = inputs[IN1_INPUT].getVoltage() ;
 
 	if (!inputs[GAIN_INPUT].isConnected())
-		{SIGNAL = SIGNAL * params[GAIN_PARAM].getValue()/5.0 ;or_affi=0;}
+		{SIGNAL = SIGNAL * params[GAIN_PARAM].getValue()/5.0 ;or_affi=0;
+or_gain=params[GAIN_PARAM].getValue();}
 		else {SIGNAL = SIGNAL * clamp(inputs[GAIN_INPUT].getVoltage()/5.0f,0.0f,2.0f) ; or_affi=1;or_gain=clamp(inputs[GAIN_INPUT].getVoltage(),0.0f,10.0f);}
 
 	if (onTrigger.process(params[ON_PARAM].getValue())+oninTrigger.process(inputs[ONT_INPUT].getVoltage()))
@@ -127,7 +128,7 @@ void process(const ProcessArgs &args) override {
 	if (!inputs[PAN_INPUT].isConnected()) {
 			outputs[LEFT_OUTPUT].setVoltage(inputs[LEFT_INPUT].getVoltage() + SIGNAL*(1-clamp(params[PAN_PARAM].getValue(),0.0f,1.0f)));
 			outputs[RIGHT_OUTPUT].setVoltage(inputs[RIGHT_INPUT].getVoltage() + SIGNAL*(1-clamp(-params[PAN_PARAM].getValue(),0.0f,1.0f)));
-			orp_affi = 0;
+			orp_affi = 0;orp_gain = params[PAN_PARAM].getValue()*5+5;
 		} else {
 			outputs[LEFT_OUTPUT].setVoltage(inputs[LEFT_INPUT].getVoltage() + SIGNAL*(1-(clamp(inputs[PAN_INPUT].getVoltage(),5.0f,10.0f)-5)/5));
 			outputs[RIGHT_OUTPUT].setVoltage(inputs[RIGHT_INPUT].getVoltage() + SIGNAL*(1-(clamp(inputs[PAN_INPUT].getVoltage(),0.0f,5.0f)+5)/5));
@@ -156,23 +157,23 @@ struct MODisplay : TransparentWidget {
 	}
 	
 	void draw(const DrawArgs &args) override {
-
+//nvgGlobalTint(args.vg, color::WHITE);
 float gainX = module ? module->or_gain : 1.0f;
-int affich = module ? module->or_affi : 0;
-float d=19.1;
+//int affich = module ? module->or_affi : 0;
+float d=18;
 
-		if (affich==1) {
+		//if (affich==1) {
 		float xx = d*sin(-(gainX*0.17+0.15)*M_PI) ;
 		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;
 
 		
-			nvgBeginPath(args.vg);
-			nvgCircle(args.vg, 0,0, d);
-			nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
-			nvgFill(args.vg);	
+			//nvgBeginPath(args.vg);
+			//nvgCircle(args.vg, 0,0, d);
+			//nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			//nvgFill(args.vg);	
 		
-			nvgStrokeWidth(args.vg,1.2);
-			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			nvgStrokeWidth(args.vg,2);
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x88));
 			{
 				nvgBeginPath(args.vg);
 				nvgMoveTo(args.vg, 0,0);
@@ -180,7 +181,7 @@ float d=19.1;
 				nvgClosePath(args.vg);
 			}
 			nvgStroke(args.vg);
-		}
+		//}
 
 	}
 };
@@ -193,31 +194,33 @@ struct MOPDisplay : TransparentWidget {
 	}
 	
 	void draw(const DrawArgs &args) override {
-
+//nvgGlobalTint(args.vg, color::WHITE);
 float gainX = module ? module->orp_gain : 1.0f;
-int affich = module ? module->orp_affi : 0;
-float d=9.2;
+//int affich = module ? module->orp_affi : 0;
+float d=8;
 
-		if (affich==1) {
+		//if (affich==1) {
 		float xx = d*sin(-(gainX*0.17+0.15)*M_PI) ;
 		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;
+		float xx0 = (d-6)*sin(-(gainX*0.17+0.15)*M_PI) ;
+		float yy0 = (d-6)*cos((gainX*0.17+0.15)*M_PI) ;
 
 		
-			nvgBeginPath(args.vg);
-			nvgCircle(args.vg, 0,0, d);
-			nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
-			nvgFill(args.vg);	
+			//nvgBeginPath(args.vg);
+			//nvgCircle(args.vg, 0,0, d);
+			//nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			//nvgFill(args.vg);	
 		
-			nvgStrokeWidth(args.vg,1.2);
-			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			nvgStrokeWidth(args.vg,2);
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x88));
 			{
 				nvgBeginPath(args.vg);
-				nvgMoveTo(args.vg, 0,0);
+				nvgMoveTo(args.vg, xx0,yy0);
 				nvgLineTo(args.vg, xx,yy);
 				nvgClosePath(args.vg);
 			}
 			nvgStroke(args.vg);
-		}
+		//}
 
 	}
 };
@@ -235,7 +238,7 @@ struct MONOWidget : ModuleWidget {
 	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 365)));
 
 
-	addParam(createParam<Trimpot>(Vec(38, 127), module, MONO::PAN_PARAM));
+	addParam(createParam<cfTrimpot>(Vec(38, 127), module, MONO::PAN_PARAM));
 	addInput(createInput<PJ301MPort>(Vec(11, 131), module, MONO::PAN_INPUT));
 	{
 		MOPDisplay *pdisplay = new MOPDisplay();
@@ -244,11 +247,11 @@ struct MONOWidget : ModuleWidget {
 		addChild(pdisplay);
 	}
 
-    	addParam(createParam<RoundLargeBlackKnob>(Vec(27, 247), module, MONO::GAIN_PARAM));
+    	addParam(createParam<cfBigKnob>(Vec(27, 247), module, MONO::GAIN_PARAM));
 	addInput(createInput<PJ301MPort>(Vec(11, 281), module, MONO::GAIN_INPUT));
 	{
 		MODisplay *display = new MODisplay();
-		display->box.pos = Vec(46, 266);
+		display->box.pos = Vec(45, 265);
 		display->module = module;
 		addChild(display);
 	}
@@ -284,5 +287,6 @@ struct MONOWidget : ModuleWidget {
 	
 }
 };
+
 
 Model *modelMONO = createModel<MONO, MONOWidget>("MONO");

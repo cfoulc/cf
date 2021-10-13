@@ -47,7 +47,7 @@ int or_affi =0;
 void process(const ProcessArgs &args) override {
 	if (!inputs[DIV_INPUT].isConnected()) {
 		max_EACH = floor(params[DIV_PARAM].getValue());
-		or_affi=0;
+		or_affi=0; or_gain = max_EACH/4.8;
 	} else {
 		max_EACH = round(clamp((inputs[DIV_INPUT].getVoltage() * 4.8)+1,1.0f,48.0f));
 		or_gain = (clamp(inputs[DIV_INPUT].getVoltage(),0.0f,10.0f));
@@ -87,6 +87,7 @@ struct NuDisplayWidget : TransparentWidget {
   };
 
   void draw(const DrawArgs &args) override {
+nvgGlobalTint(args.vg, color::WHITE);
 	int val = module ? module->max_EACH : 3;
 
     // Background
@@ -136,22 +137,23 @@ struct MOTORPOTDisplay : TransparentWidget {
 	}
 	
 	void draw(const DrawArgs &args) override {
+//nvgGlobalTint(args.vg, color::WHITE);
 float gainX = module ? module->or_gain : 1.0f;
-int affich = module ? module->or_affi : 0;
-float d=19.1f;
+//int affich = module ? module->or_affi : 0;
+float d=18;
 
-		if (affich==1) {
+		//if (affich==1) {
 		float xx = d*sin(-(gainX*0.17+0.15)*M_PI) ;
 		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;
 
 		
-			nvgBeginPath(args.vg);
-			nvgCircle(args.vg, 0,0, d);
-			nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
-			nvgFill(args.vg);	
+			//nvgBeginPath(args.vg);
+			//nvgCircle(args.vg, 0,0, d);
+			//nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			//nvgFill(args.vg);	
 		
-			nvgStrokeWidth(args.vg,1.2);
-			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			nvgStrokeWidth(args.vg,2);
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x88));
 			{
 				nvgBeginPath(args.vg);
 				nvgMoveTo(args.vg, 0,0);
@@ -159,7 +161,7 @@ float d=19.1f;
 				nvgClosePath(args.vg);
 			}
 			nvgStroke(args.vg);
-		}
+		//}
 
 	}
 };
@@ -183,11 +185,11 @@ struct EACHWidget : ModuleWidget {
 	addOutput(createOutput<PJ301MPort>(Vec(54, 321), module, EACH::DOUZE_OUTPUT));
 	addOutput(createOutput<PJ301MPort>(Vec(35, 235), module, EACH::BEAT_OUTPUT));
 
-	addParam(createParam<RoundLargeBlackKnob>(Vec(27, 107), module, EACH::DIV_PARAM));
+	addParam(createParam<cfBigKnob>(Vec(27, 107), module, EACH::DIV_PARAM));
 	addInput(createInput<PJ301MPort>(Vec(11, 141), module, EACH::DIV_INPUT));
 	{
 		MOTORPOTDisplay *display = new MOTORPOTDisplay();
-		display->box.pos = Vec(46, 126);
+		display->box.pos = Vec(45, 125);
 		display->module = module;
 		addChild(display);
 	}

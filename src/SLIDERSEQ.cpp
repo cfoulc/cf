@@ -21,6 +21,7 @@ struct SLIDERSEQ : Module {
 	};
     enum LightIds {
 		OFFSET_LIGHT,
+		ENUMS(LVL_LIGHT, 16),
 		NUM_LIGHTS
 	};
 
@@ -100,38 +101,20 @@ if (pas>-1) {
 	sl_pas=0; sl_value = params[LVL_PARAM +0].getValue() ;
 	outputs[TR_OUTPUT].setVoltage(params[LVL_PARAM +0].getValue()*10-OFFSET_STATE*5.0);}
 
-};
-};
-
-struct SLDisplay : TransparentWidget {
-	SLIDERSEQ *module;
-
-
-	SLDisplay() {
-		
-	};
+	for (int i = 0; i < 16; i++) {
+ 		if (i!=pas) {
+			lights[LVL_LIGHT+i].setBrightness(0.2f);
+			//lights[LVL_LIGHT+i].setSmoothBrightness(0.f, 0.2);
+		}
+		else {
+			lights[LVL_LIGHT+i].setBrightness(5.f);
+			//lights[LVL_LIGHT+i].setSmoothBrightness(0.f, 1);
+		}
 	
-	void draw(const DrawArgs &args) override {
-		float pp = module ? module->sl_pas : 0;
-		float vv = module ? module->sl_value : 1;
-		float xx = (int(pp)%8) ;
-		float yy = int(pp/8)-vv/2 ;
+ 	};
 
-		
-			nvgBeginPath(args.vg);
-			nvgRect(args.vg, xx*15,65+yy*125, 4.5,10.5);
-			nvgFillColor(args.vg, nvgRGBA(0x4c, 0xc7, 0xf3, 0xff));
-			nvgFill(args.vg);
-			nvgBeginPath(args.vg);
-			nvgRoundedRect(args.vg, xx*15-3,65+yy*125-3, 10.5,16.5,2.0);
-			nvgFillColor(args.vg, nvgRGBA(0x4c, 0xc7, 0xf3, 0x30));
-			nvgFill(args.vg);		
-			nvgBeginPath(args.vg);
-			nvgRoundedRect(args.vg, xx*15-6,65+yy*125-6, 16.5,22.5,4.0);
-			nvgFillColor(args.vg, nvgRGBA(0x4c, 0xc7, 0xf3, 0x10));
-			nvgFill(args.vg);
+};
 
-	}
 };
 
 struct SLIDERSEQWidget : ModuleWidget {
@@ -154,22 +137,17 @@ struct SLIDERSEQWidget : ModuleWidget {
 
 
 	for (int i = 0; i < 8; i++) {
-		addParam(createParam<LEDSliderWhite>(Vec(4+i*15, 30+ 30), module, SLIDERSEQ::LVL_PARAM+i));
+addParam(createLightParamCentered<LEDLightSlider<BlueLight>>(Vec(4+i*15+10, 30+ 30+30), module, SLIDERSEQ::LVL_PARAM+i, SLIDERSEQ::LVL_LIGHT+i));
+		//addParam(createParam<LEDSliderWhite>(Vec(4+i*15, 30+ 30), module, SLIDERSEQ::LVL_PARAM+i));
 		
 	}
 	for (int i = 8; i < 16; i++) {
-		addParam(createParam<LEDSliderWhite>(Vec(4+(i-8)*15, 30+ 155), module, SLIDERSEQ::LVL_PARAM+i));
+addParam(createLightParamCentered<LEDLightSlider<BlueLight>>(Vec(4+(i-8)*15+10, 30+ 155+30), module, SLIDERSEQ::LVL_PARAM+i, SLIDERSEQ::LVL_LIGHT+i));
+		//addParam(createParam<LEDSliderWhite>(Vec(4+(i-8)*15, 30+ 155), module, SLIDERSEQ::LVL_PARAM+i));
 		
 	}
 
-		{
-		SLDisplay *pdisplay = new SLDisplay();
-		pdisplay->box.pos = Vec(12, 61);
-		pdisplay->module = module;
-		//pdisplay->pp = &module->sl_pas;
-		//pdisplay->vv = &module->sl_value;
-		addChild(pdisplay);
-	}
+
 	addInput(createInput<PJ301MPort>(Vec(68, 320), module, SLIDERSEQ::POS_INPUT));
 };
 };

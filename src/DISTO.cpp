@@ -99,7 +99,7 @@ struct DISTODisplay : TransparentWidget {
 	
 	void draw(const DrawArgs &args) override {
 
-
+nvgGlobalTint(args.vg, color::WHITE);
 
 float xxxx = module ? module->y : 1.0f;
 
@@ -128,31 +128,32 @@ struct MOGAINDisplay : TransparentWidget {
 	}
 	
 	void draw(const DrawArgs &args) override {
-
+//nvgGlobalTint(args.vg, color::WHITE);
 float gainX = module ? module->gain_gain : 1.0f;
-int affich = module ? module->gain_affi : 0;
-float d=9.3;
+//int affich = module ? module->gain_affi : 0;
+float d=8;
 
-		if (affich==1) {
+		//if (affich==1) {
 		float xx = d*sin(-(gainX*0.17+0.15)*M_PI) ;
 		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;
+		float xx0 = (d-6)*sin(-(gainX*0.17+0.15)*M_PI) ;
+		float yy0 = (d-6)*cos((gainX*0.17+0.15)*M_PI) ;
 
+			//nvgBeginPath(args.vg);
+			//nvgCircle(args.vg, 0,0, d);
+			//nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			//nvgFill(args.vg);	
 		
-			nvgBeginPath(args.vg);
-			nvgCircle(args.vg, 0,0, d);
-			nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
-			nvgFill(args.vg);	
-		
-			nvgStrokeWidth(args.vg,1.2);
-			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			nvgStrokeWidth(args.vg,2);
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x88));
 			{
 				nvgBeginPath(args.vg);
-				nvgMoveTo(args.vg, 0,0);
+				nvgMoveTo(args.vg, xx0,yy0);
 				nvgLineTo(args.vg, xx,yy);
 				nvgClosePath(args.vg);
 			}
 			nvgStroke(args.vg);
-		}
+		//}
 
 	}
 };
@@ -165,31 +166,33 @@ struct MOFOLDDisplay : TransparentWidget {
 	}
 	
 	void draw(const DrawArgs &args) override {
-
+//nvgGlobalTint(args.vg, color::WHITE);
 float gainX = module ? module->fold_gain : 1.0f;
-int affich = module ? module->fold_affi : 0;
-float d=9.3;
+//int affich = module ? module->fold_affi : 0;
+float d=8;
 
-		if (affich==1) {
+		//if (affich==1) {
 		float xx = d*sin(-(gainX*0.17+0.15)*M_PI) ;
 		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;
+		float xx0 = (d-6)*sin(-(gainX*0.17+0.15)*M_PI) ;
+		float yy0 = (d-6)*cos((gainX*0.17+0.15)*M_PI) ;
 
 		
-			nvgBeginPath(args.vg);
-			nvgCircle(args.vg, 0,0, d);
-			nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
-			nvgFill(args.vg);	
+			//nvgBeginPath(args.vg);
+			//nvgCircle(args.vg, 0,0, d);
+			//nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			//nvgFill(args.vg);	
 		
-			nvgStrokeWidth(args.vg,1.2);
-			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			nvgStrokeWidth(args.vg,2);
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x88));
 			{
 				nvgBeginPath(args.vg);
-				nvgMoveTo(args.vg, 0,0);
+				nvgMoveTo(args.vg, xx0,yy0);
 				nvgLineTo(args.vg, xx,yy);
 				nvgClosePath(args.vg);
 			}
 			nvgStroke(args.vg);
-		}
+		//}
 
 	}
 };
@@ -215,18 +218,18 @@ struct DISTOWidget : ModuleWidget {
 	addInput(createInput<PJ301MPort>(Vec(15, 321), module, DISTO::IN_INPUT));
 
 	addInput(createInput<PJ301MPort>(Vec(47, 321), module, DISTO::GAIN_INPUT));
-	addParam(createParam<Trimpot>(Vec(50.4, 284), module, DISTO::GAIN_PARAM));
+	addParam(createParam<cfTrimpot>(Vec(50.4, 284), module, DISTO::GAIN_PARAM));
 	{
 		MOGAINDisplay *gaindisplay = new MOGAINDisplay();
-		gaindisplay->box.pos = Vec(59.8, 293.2);
+		gaindisplay->box.pos = Vec(59.4, 293);
 		gaindisplay->module = module;
 		addChild(gaindisplay);
 	}
 	addInput(createInput<PJ301MPort>(Vec(80, 321), module, DISTO::FOLD_INPUT));
-	addParam(createParam<Trimpot>(Vec(83.4, 284), module, DISTO::FOLD_PARAM)); 
+	addParam(createParam<cfTrimpot>(Vec(83.4, 284), module, DISTO::FOLD_PARAM)); 
 	{
 		MOFOLDDisplay *folddisplay = new MOFOLDDisplay();
-		folddisplay->box.pos = Vec(92.8, 293.2);
+		folddisplay->box.pos = Vec(92.4, 293);
 		folddisplay->module = module;
 		addChild(folddisplay);
 	}

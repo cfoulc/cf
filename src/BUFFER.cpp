@@ -77,7 +77,7 @@ void process(const ProcessArgs &args) override {
 
 	if (!inputs[LENGTH_INPUT].isConnected()) {
 		length = int(params[LENGTH_PARAM].getValue()*9998.0f)+1;
-		l_affi =0;
+		l_affi =0;l_gain = params[LENGTH_PARAM].getValue()*10;
 		}
 	else {
 		length = clamp(int(inputs[LENGTH_INPUT].getVoltage()*999.8f),0,9998)+1;
@@ -123,6 +123,7 @@ struct BUFFERDisplay : TransparentWidget {
 	}
 	
 	void draw(const DrawArgs &args) override {
+nvgGlobalTint(args.vg, color::WHITE);
 if (module) {
 		nvgStrokeWidth(args.vg,1.2);
 		nvgStrokeColor(args.vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff ));
@@ -150,31 +151,33 @@ struct MBDisplay : TransparentWidget {
 	}
 	
 	void draw(const DrawArgs &args) override {
-
+//nvgGlobalTint(args.vg, color::WHITE);
 float gainX = module ? module->l_gain : 1.0f;
-int affich = module ? module->l_affi : 0;
-float d=9.3f;
+//int affich = module ? module->l_affi : 0;
+float d=8;
 
-		if (affich==1) {
+		//if (affich==1) {
 		float xx = d*sin(-(gainX*0.17+0.15)*M_PI) ;
 		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;
+		float xx0 = (d-6)*sin(-(gainX*0.17+0.15)*M_PI) ;
+		float yy0 = (d-6)*cos((gainX*0.17+0.15)*M_PI) ;
 
 		
-			nvgBeginPath(args.vg);
-			nvgCircle(args.vg, 0,0, d);
-			nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
-			nvgFill(args.vg);	
+			//nvgBeginPath(args.vg);
+			//nvgCircle(args.vg, 0,0, d);
+			//nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			//nvgFill(args.vg);	
 		
-			nvgStrokeWidth(args.vg,1.2);
-			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			nvgStrokeWidth(args.vg,2);
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x88));
 			{
 				nvgBeginPath(args.vg);
-				nvgMoveTo(args.vg, 0,0);
+				nvgMoveTo(args.vg, xx0,yy0);
 				nvgLineTo(args.vg, xx,yy);
 				nvgClosePath(args.vg);
 			}
 			nvgStroke(args.vg);
-		}
+		//}
 
 	}
 };
@@ -210,10 +213,10 @@ struct BUFFERWidget : ModuleWidget {
 	addParam(createParam<Trimpot>(Vec(50.4, 284), module, BUFFER::FB_PARAM));
 
 	addInput(createInput<PJ301MPort>(Vec(80, 321), module, BUFFER::LENGTH_INPUT));
-	addParam(createParam<Trimpot>(Vec(83.4, 284), module, BUFFER::LENGTH_PARAM)); 
+	addParam(createParam<cfTrimpot>(Vec(83.4, 284), module, BUFFER::LENGTH_PARAM)); 
 	{
 		MBDisplay *pdisplay = new MBDisplay();
-		pdisplay->box.pos = Vec(92.8, 293.2);
+		pdisplay->box.pos = Vec(92.4, 293);
 		pdisplay->module = module;
 		addChild(pdisplay);
 	}

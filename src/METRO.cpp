@@ -84,6 +84,7 @@ void process(const ProcessArgs &args) override {
 	if (!inputs[BPM_INPUT].isConnected()) {
 		max_METRO = floor(params[BPM_PARAM].getValue());
 		or_affi = 0;
+		or_gain = max_METRO/30.0;
 	} else {
 		max_METRO = round(clamp(inputs[BPM_INPUT].getVoltage() *30,0.0f,300.0f));
 		or_affi = 1;
@@ -165,6 +166,7 @@ struct NumDisplayWidget : TransparentWidget {
   };
 
   void draw(const DrawArgs &args) override {
+nvgGlobalTint(args.vg, color::WHITE);
 	int val = module ? module->max_METRO : 120;
     // Background
     NVGcolor backgroundColor = nvgRGB(0x44, 0x44, 0x44);
@@ -204,29 +206,30 @@ struct NumDisplayWidget : TransparentWidget {
   }
 };
 
-struct MOTORPOTDisplay : TransparentWidget {
+struct METROPOTDisplay : TransparentWidget {
 	METRO *module;
 
-	MOTORPOTDisplay() {
+	METROPOTDisplay() {
 		
 	}
 	
 	void draw(const DrawArgs &args) override {
+
 float gainX = module ? module->or_gain : 1.0f;
-int affich = module ? module->or_affi : 0;
-float d=19.1f;
-		if (affich==1) {
+//int affich = module ? module->or_affi : 0;
+float d=18;
+		//if (affich==1) {
 		float xx = d*sin(-(gainX*0.17+0.15)*M_PI) ;
 		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;
 
 		
-			nvgBeginPath(args.vg);
-			nvgCircle(args.vg, 0,0, d);
-			nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
-			nvgFill(args.vg);	
+			//nvgBeginPath(args.vg);
+			//nvgCircle(args.vg, 0,0, d);
+			//nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
+			//nvgFill(args.vg);	
 		
-			nvgStrokeWidth(args.vg,1.2);
-			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0xff));
+			nvgStrokeWidth(args.vg,2);
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x88));
 			{
 				nvgBeginPath(args.vg);
 				nvgMoveTo(args.vg, 0,0);
@@ -234,7 +237,7 @@ float d=19.1f;
 				nvgClosePath(args.vg);
 			}
 			nvgStroke(args.vg);
-		}
+		//}
 
 	}
 };
@@ -250,11 +253,11 @@ struct METROWidget : ModuleWidget {
 	addChild(createWidget<ScrewSilver>(Vec(15, 365)));
 	addChild(createWidget<ScrewSilver>(Vec(box.size.x-30, 365)));
 
-	addParam(createParam<RoundLargeBlackKnob>(Vec(27, 107), module, METRO::BPM_PARAM));
+	addParam(createParam<cfBigKnob>(Vec(27, 107), module, METRO::BPM_PARAM));
 	addInput(createInput<PJ301MPort>(Vec(11, 141), module, METRO::BPM_INPUT));
 	{
-		MOTORPOTDisplay *display = new MOTORPOTDisplay();
-		display->box.pos = Vec(46, 126);
+		METROPOTDisplay *display = new METROPOTDisplay();
+		display->box.pos = Vec(45, 125);
 		display->module = module;
 		addChild(display);
 	}

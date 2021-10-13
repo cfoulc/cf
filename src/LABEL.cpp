@@ -69,6 +69,7 @@ struct LABELDisplay : TransparentWidget {
 	}
 	
 	void draw(const DrawArgs &args) override {
+nvgGlobalTint(args.vg, color::WHITE);
 std::string fD= module ? module->fileDesc : "Right clic to write";
 		std::string to_display = "";
 		for (int i=0; i<20; i++) to_display = to_display + fD[i];

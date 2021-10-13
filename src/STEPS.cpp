@@ -52,6 +52,7 @@ struct NumbeDisplayWidget : TransparentWidget {
   };
 
   void draw(const DrawArgs &args) override {
+nvgGlobalTint(args.vg, color::WHITE);
 int st = module ? module->max_steps : 0;
     // Background
     NVGcolor backgroundColor = nvgRGB(0x44, 0x44, 0x44);
