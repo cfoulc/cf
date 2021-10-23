@@ -89,35 +89,58 @@ struct cachecl : SvgScrew {
 struct DISTODisplay : TransparentWidget {
 	DISTO *module;
 
-		float bu[5] = {};
+		float bu[10] = {};
 	int ind = 0;
 		
 
 	DISTODisplay() {
 
 	}
-	
-	void draw(const DrawArgs &args) override {
-
-nvgGlobalTint(args.vg, color::WHITE);
-
-float xxxx = module ? module->y : 1.0f;
-
-
-		bu[ind] = xxxx ;
+void draw(const DrawArgs &args) override {
 		for (int i = 0 ; i<5 ; i++){
-		{//nvgStrokeColor(args.vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff));
+			if (bu[i]>=27)
+			{//nvgStrokeColor(args.vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff));
 			nvgBeginPath(args.vg);
 			nvgCircle(args.vg, 0,0, bu[i]);
-			nvgFillColor(args.vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff));
+			nvgFillColor(args.vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xaa));
 			nvgGlobalCompositeOperation(args.vg, NVG_LIGHTER);
 			nvgFill(args.vg);
 			nvgClosePath(args.vg);
+			}
 		}
+}
+
+void drawLayer(const DrawArgs &args, int layer) override {
+
+
+float xxxx = module ? module->y : 1.0f;
+
+for (int i = 4 ; i>0 ; i--){bu[i] = bu[i-1] ;}
+		bu[0] = xxxx ;
+if (layer ==1) {
+		for (int i = 0 ; i<5 ; i++){
+			if (bu[i]<27)
+			{//nvgStrokeColor(args.vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff));
+			nvgBeginPath(args.vg);
+			nvgCircle(args.vg, 0,0, bu[i]);
+			nvgFillColor(args.vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xaa));
+			nvgGlobalCompositeOperation(args.vg, NVG_LIGHTER);
+			nvgFill(args.vg);
+			nvgClosePath(args.vg);
+			}else
+{//nvgStrokeColor(args.vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xff));
+			nvgBeginPath(args.vg);
+			nvgCircle(args.vg, 0,0, 27);
+			nvgFillColor(args.vg, nvgRGBA(0x28, 0xb0, 0xf3, 0xaa));
+			nvgGlobalCompositeOperation(args.vg, NVG_LIGHTER);
+			nvgFill(args.vg);
+			nvgClosePath(args.vg);
+			}
 		}
 		//nvgStroke(args.vg);
-		if (ind<4) ind = ind +1; else ind = 0;
 	}
+Widget::drawLayer(args, layer);
+};
 };
 
 struct MOGAINDisplay : TransparentWidget {

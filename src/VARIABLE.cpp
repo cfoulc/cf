@@ -131,8 +131,8 @@ struct VARIABLEDisplay : TransparentWidget {
     		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/LEDCalculator.ttf"));
 	};
 	
-	void draw(const DrawArgs &args) override {
-nvgGlobalTint(args.vg, color::WHITE);
+	void drawLayer(const DrawArgs &args, int layer) override {
+if (layer ==1) {
 float val = module ? module->value : 0;
 		std::string to_display = "";
 		std::string fileDesc = "";
@@ -146,6 +146,8 @@ float val = module ? module->value : 0;
 		nvgRotate(args.vg, -M_PI / 2.0f);	
 		nvgTextBox(args.vg, 5, 5,350, to_display.c_str(), NULL);
 	}
+Widget::drawLayer(args, layer);
+}
 };
 
 

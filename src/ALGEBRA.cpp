@@ -20,10 +20,9 @@ struct ALGEBRA : Module {
 		NUM_OUTPUTS
 	};
 	enum LightIds {
-		ENUMS(LED_LIGHT, 6),
 		NUM_LIGHTS
 	};
-	
+
 	int OP_STATE = 0 ;
 	dsp::SchmittTrigger trTrigger[6];
 
@@ -59,8 +58,8 @@ void dataFromJson(json_t *rootJ) override {
 void process(const ProcessArgs &args) override {
 	for (int i=0; i<6; i++) {
 		if (trTrigger[i].process(params[OP_PARAM+i].getValue())) OP_STATE= i;
-		if (OP_STATE == i) lights[LED_LIGHT+i].setBrightness(1); else lights[LED_LIGHT+i].setBrightness(0);
 	}
+
 	if (OP_STATE==0) outputs[OUT_OUTPUT].setVoltage(inputs[IN1_INPUT].getVoltage() + inputs[IN2_INPUT].getVoltage());
 	if (OP_STATE==1) outputs[OUT_OUTPUT].setVoltage(inputs[IN1_INPUT].getVoltage() - inputs[IN2_INPUT].getVoltage());
 	if (OP_STATE==2) outputs[OUT_OUTPUT].setVoltage(inputs[IN1_INPUT].getVoltage() * inputs[IN2_INPUT].getVoltage());
@@ -76,40 +75,51 @@ void process(const ProcessArgs &args) override {
 
 }
 };
+
 struct plusButton : app::SvgSwitch {
 	plusButton() {
 		momentary = true;
+		shadow->opacity = 0;
 		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/plusButton.svg")));
 	}
 };
-struct minusButton : app::SvgSwitch {
-	minusButton() {
-		momentary = true;
-		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/minusButton.svg")));
+
+
+struct ALGDisplay : TransparentWidget {
+	ALGEBRA *module;
+		std::string fileDesc = "+";
+int numero =0;
+	int frame = 0;
+	std::shared_ptr<Font> font;
+
+	ALGDisplay() {
+    		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/ArialBlack.ttf"));
+	};
+
+void draw(const DrawArgs &args) override {
+
+		nvgFontSize(args.vg, 20);
+		nvgFontFaceId(args.vg, font->handle);
+		nvgTextLetterSpacing(args.vg, 0);
+		nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));	
+		nvgTextBox(args.vg, 5, 5,350, fileDesc.c_str(), NULL);
+}
+
+void drawLayer(const DrawArgs &args, int layer) override {
+	if (layer ==1) {
+		float val = module ? module->OP_STATE : 0;
+
+		if (val==numero){
+			nvgFontSize(args.vg, 20);
+			nvgFontFaceId(args.vg, font->handle);
+			nvgTextLetterSpacing(args.vg, 0);
+			nvgFillColor(args.vg, nvgRGBA(0x4c, 0xc7, 0xf3, 0xff));	
+			nvgTextBox(args.vg, 5, 5,350, fileDesc.c_str(), NULL);
+		}
 	}
-};
-struct multButton : app::SvgSwitch {
-	multButton() {
-		momentary = true;
-		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/multButton.svg")));	}
-};
-struct divButton : app::SvgSwitch {
-	divButton() {
-		momentary = true;
-		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/divButton.svg")));
-	}
-};
-struct maxButton : app::SvgSwitch {
-	maxButton() {
-		momentary = true;
-		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/maxButton.svg")));
-	}
-};
-struct minButton : app::SvgSwitch {
-	minButton() {
-		momentary = true;
-		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/minButton.svg")));
-	}
+	Widget::drawLayer(args, layer);
+}
+
 };
 
 struct ALGEBRAWidget : ModuleWidget {
@@ -125,23 +135,66 @@ struct ALGEBRAWidget : ModuleWidget {
 	addInput(createInput<PJ301MPort>(Vec(3, 95), module, ALGEBRA::IN2_INPUT));
 
 	int i = 0;
-		addChild(createLight<LargeLight<BlueLight>>(Vec(3+4.4, i*24+133+4.4), module, ALGEBRA::LED_LIGHT + i));
      		addParam(createParam<plusButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i)); i=i+1;
-		addChild(createLight<LargeLight<BlueLight>>(Vec(3+4.4, i*24+133+4.4), module, ALGEBRA::LED_LIGHT + i));
-     		addParam(createParam<minusButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i)); i=i+1;
-		addChild(createLight<LargeLight<BlueLight>>(Vec(3+4.4, i*24+133+4.4), module, ALGEBRA::LED_LIGHT + i));
-     		addParam(createParam<multButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i)); i=i+1;
-		addChild(createLight<LargeLight<BlueLight>>(Vec(3+4.4, i*24+133+4.4), module, ALGEBRA::LED_LIGHT + i));
-     		addParam(createParam<divButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i)); i=i+1;
-		addChild(createLight<LargeLight<BlueLight>>(Vec(3+4.4, i*24+133+4.4), module, ALGEBRA::LED_LIGHT + i));
-     		addParam(createParam<maxButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i)); i=i+1;
-		addChild(createLight<LargeLight<BlueLight>>(Vec(3+4.4, i*24+133+4.4), module, ALGEBRA::LED_LIGHT + i));
-     		addParam(createParam<minButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i));
+    		addParam(createParam<plusButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i)); i=i+1;
+     		addParam(createParam<plusButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i)); i=i+1;
+     		addParam(createParam<plusButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i)); i=i+1;
+     		addParam(createParam<plusButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i)); i=i+1;
+     		addParam(createParam<plusButton>(Vec(6, i*24+136), module, ALGEBRA::OP_PARAM + i));
 		
 	
 
 
 	addOutput(createOutput<PJ301MPort>(Vec(3, 321), module, ALGEBRA::OUT_OUTPUT));
+
+	{
+		ALGDisplay *plusdisplay = new ALGDisplay();
+		plusdisplay->box.pos = Vec(6, 145);
+		plusdisplay->module = module;
+		plusdisplay->fileDesc = "+";
+		plusdisplay->numero = 0;
+		addChild(plusdisplay);
+	}
+	{
+		ALGDisplay *moinsdisplay = new ALGDisplay();
+		moinsdisplay->box.pos = Vec(9, 145+24-1);
+		moinsdisplay->module = module;
+		moinsdisplay->fileDesc = "-";
+		moinsdisplay->numero = 1;
+		addChild(moinsdisplay);
+	}
+	{
+		ALGDisplay *foisdisplay = new ALGDisplay();
+		foisdisplay->box.pos = Vec(6, 145+24*2-1);
+		foisdisplay->module = module;
+		foisdisplay->fileDesc = "x";
+		foisdisplay->numero = 2;
+		addChild(foisdisplay);
+	}
+	{
+		ALGDisplay *divdisplay = new ALGDisplay();
+		divdisplay->box.pos = Vec(9, 145+24*3);
+		divdisplay->module = module;
+		divdisplay->fileDesc = "/";
+		divdisplay->numero = 3;
+		addChild(divdisplay);
+	}
+	{
+		ALGDisplay *maxdisplay = new ALGDisplay();
+		maxdisplay->box.pos = Vec(4, 145+24*4);
+		maxdisplay->module = module;
+		maxdisplay->fileDesc = "M";
+		maxdisplay->numero = 4;
+		addChild(maxdisplay);
+	}
+	{
+		ALGDisplay *mindisplay = new ALGDisplay();
+		mindisplay->box.pos = Vec(4, 145+24*5-1);
+		mindisplay->module = module;
+		mindisplay->fileDesc = "m";
+		mindisplay->numero = 5;
+		addChild(mindisplay);
+	}
 	
 }
 };

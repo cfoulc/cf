@@ -115,8 +115,8 @@ struct FUNKTIONDisplay : TransparentWidget {
 		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/LEDCalculator.ttf"));
 	}
 	
-	void draw(const DrawArgs &args) override {
-nvgGlobalTint(args.vg, color::WHITE);
+	void drawLayer(const DrawArgs &args, int layer) override {
+if (layer ==1) {
 std::string fD= module ? module->fctDesc : "sin";
 		std::string to_display = "";
 		for (int i=0; i<14; i++) to_display = to_display + fD[i];
@@ -127,6 +127,8 @@ std::string fD= module ? module->fctDesc : "sin";
 		nvgRotate(args.vg, -M_PI / 2.0f);	
 		nvgTextBox(args.vg, 5, 5,350, to_display.c_str(), NULL);
 	}
+Widget::drawLayer(args, layer);
+}
 };
 struct upButton : app::SvgSwitch {
 	upButton() {

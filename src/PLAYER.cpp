@@ -329,9 +329,9 @@ struct PLAYERDisplay : TransparentWidget {
 
 	}
 	
-	void draw(const DrawArgs &args) override {
-nvgGlobalTint(args.vg, color::WHITE);
+	void drawLayer(const DrawArgs &args, int layer) override {
 if (module) {
+if (layer ==1) {
 		nvgFontSize(args.vg, 12);
 		nvgFontFaceId(args.vg, font->handle);
 		nvgTextLetterSpacing(args.vg, -2);
@@ -398,7 +398,12 @@ if (module) {
 			nvgResetScissor(args.vg);
 			nvgRestore(args.vg);	
 		}
-	}}
+	}
+
+	}
+Widget::drawLayer(args, layer);
+}
+
 };
 
 struct PLAYERItem : MenuItem {

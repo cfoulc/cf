@@ -185,6 +185,9 @@ if (inputs[IN2_INPUT].isConnected()) {
 struct CUTSWidget : ModuleWidget {
 ParamWidget *bsfParam;
 ParamWidget *bsrParam;
+ParamWidget *sfParam;
+ParamWidget *srParam;
+
 
 	CUTSWidget(CUTS *module) {
 		setModule(module);
@@ -202,9 +205,13 @@ ParamWidget *bsrParam;
 
 	addParam(createParam<RoundBlackSnapKnob>(Vec(15.5, 54), module, CUTS::POLE_PARAM));
 
-	addParam(createParam<LEDSliderWhite>(Vec(5, 131), module, CUTS::POTR_PARAM));
+	//addParam(createParam<LEDSliderWhite>(Vec(5, 131), module, CUTS::POTR_PARAM));
+	srParam = createParam<LEDSliderWhite>(Vec(5, 131), module, CUTS::POTR_PARAM);
+	addParam(srParam);
 	addInput(createInput<PJ301MPort>(Vec(3, 252), module, CUTS::R_INPUT));
-	addParam(createParam<LEDSliderWhite>(Vec(35, 131), module, CUTS::POTF_PARAM));
+	//addParam(createParam<LEDSliderWhite>(Vec(35, 131), module, CUTS::POTF_PARAM));
+	sfParam = createParam<LEDSliderWhite>(Vec(35, 131), module, CUTS::POTF_PARAM);
+	addParam(sfParam);
 	addInput(createInput<PJ301MPort>(Vec(32, 252), module, CUTS::F_INPUT));
 
 
@@ -223,6 +230,8 @@ ParamWidget *bsrParam;
 		if (module) {
 			bsfParam->visible = module->fv;
 			bsrParam->visible = module->rv;
+			sfParam->visible = !module->fv;
+			srParam->visible = !module->rv;
 		}
 
 		ModuleWidget::step();

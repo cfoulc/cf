@@ -165,8 +165,9 @@ struct NumDisplayWidget : TransparentWidget {
     font = APP->window->loadFont(asset::plugin(pluginInstance, "res/Segment7Standard.ttf"));
   };
 
-  void draw(const DrawArgs &args) override {
-nvgGlobalTint(args.vg, color::WHITE);
+	void drawLayer(const DrawArgs &args, int layer) override {
+if (layer ==1) {
+
 	int val = module ? module->max_METRO : 120;
     // Background
     NVGcolor backgroundColor = nvgRGB(0x44, 0x44, 0x44);
@@ -204,6 +205,8 @@ nvgGlobalTint(args.vg, color::WHITE);
     nvgFillColor(args.vg, textColor);
     nvgText(args.vg, textPos.x, textPos.y, to_display.c_str(), NULL);
   }
+Widget::drawLayer(args, layer);
+}
 };
 
 struct METROPOTDisplay : TransparentWidget {

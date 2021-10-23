@@ -127,8 +127,8 @@ PEAK *module;
     font = APP->window->loadFont(asset::plugin(pluginInstance, "res/Segment7Standard.ttf"));
   };
 
-  void draw(const DrawArgs &args) override {
-nvgGlobalTint(args.vg, color::WHITE);
+	void drawLayer(const DrawArgs &args, int layer) override {
+if (layer ==1) {
 int st = module ? module->affich : 0;
     // Background
     NVGcolor backgroundColor = nvgRGB(0x44, 0x44, 0x44);
@@ -170,6 +170,8 @@ if (st<100) to_display = ' ' + to_display;
     nvgText(args.vg, textPos.x+1, textPos.y-1, " . ", NULL);
 
   }
+Widget::drawLayer(args, layer);
+}
 };
 
 

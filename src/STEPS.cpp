@@ -51,8 +51,8 @@ struct NumbeDisplayWidget : TransparentWidget {
     font = APP->window->loadFont(asset::plugin(pluginInstance, "res/Segment7Standard.ttf"));
   };
 
-  void draw(const DrawArgs &args) override {
-nvgGlobalTint(args.vg, color::WHITE);
+	void drawLayer(const DrawArgs &args, int layer) override {
+if (layer ==1) {
 int st = module ? module->max_steps : 0;
     // Background
     NVGcolor backgroundColor = nvgRGB(0x44, 0x44, 0x44);
@@ -93,6 +93,8 @@ int st = module ? module->max_steps : 0;
     nvgText(args.vg, textPos.x, textPos.y, to_display.c_str(), NULL);
 //nvgText(args.vg, textPos.x, textPos.y, d_string, NULL);
   }
+Widget::drawLayer(args, layer);
+}
 };
 
 struct STEPSWidget : ModuleWidget {

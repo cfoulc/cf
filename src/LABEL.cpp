@@ -68,8 +68,8 @@ struct LABELDisplay : TransparentWidget {
 		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/LEDCalculator.ttf"));
 	}
 	
-	void draw(const DrawArgs &args) override {
-nvgGlobalTint(args.vg, color::WHITE);
+	void drawLayer(const DrawArgs &args, int layer) override {
+if (layer ==1) {
 std::string fD= module ? module->fileDesc : "Right clic to write";
 		std::string to_display = "";
 		for (int i=0; i<20; i++) to_display = to_display + fD[i];
@@ -80,6 +80,8 @@ std::string fD= module ? module->fileDesc : "Right clic to write";
 		nvgRotate(args.vg, -M_PI / 2.0f);	
 		nvgTextBox(args.vg, 5, 5,350, to_display.c_str(), NULL);
 	}
+Widget::drawLayer(args, layer);
+}
 };
 
 struct LABELItem : MenuItem {
