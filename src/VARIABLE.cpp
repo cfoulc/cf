@@ -125,14 +125,15 @@ struct VARIABLEDisplay : TransparentWidget {
 	VARIABLE *module;
 
 	int frame = 0;
-	std::shared_ptr<Font> font;
+	
 
 	VARIABLEDisplay() {
-    		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/LEDCalculator.ttf"));
+    		
 	};
 	
 	void drawLayer(const DrawArgs &args, int layer) override {
 if (layer ==1) {
+std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/LEDCalculator.ttf"));
 float val = module ? module->value : 0;
 		std::string to_display = "";
 		std::string fileDesc = "";

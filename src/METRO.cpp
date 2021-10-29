@@ -159,15 +159,15 @@ void process(const ProcessArgs &args) override {
 struct NumDisplayWidget : TransparentWidget {
 	METRO *module;
 
-  std::shared_ptr<Font> font;
+
 
   NumDisplayWidget() {
-    font = APP->window->loadFont(asset::plugin(pluginInstance, "res/Segment7Standard.ttf"));
+    
   };
 
 	void drawLayer(const DrawArgs &args, int layer) override {
 if (layer ==1) {
-
+  std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/Segment7Standard.ttf"));
 	int val = module ? module->max_METRO : 120;
     // Background
     NVGcolor backgroundColor = nvgRGB(0x44, 0x44, 0x44);

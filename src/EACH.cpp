@@ -34,12 +34,12 @@ int note = 0;
 dsp::SchmittTrigger stTrigger;
 dsp::SchmittTrigger dzTrigger;
 float or_gain =0.0;
-int or_affi =0;
+
 
 
 	EACH() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		configParam(BEAT_PARAM, 0.0f, 1.0f, 0.0f);
+		configParam(BEAT_PARAM, 0.0f, 1.0f, 0.0f, "Beat");
 		configParam(DIV_PARAM, 1.0f, 48.1f, 3.1f, "Divisions");
 }
 
@@ -47,11 +47,10 @@ int or_affi =0;
 void process(const ProcessArgs &args) override {
 	if (!inputs[DIV_INPUT].isConnected()) {
 		max_EACH = floor(params[DIV_PARAM].getValue());
-		or_affi=0; or_gain = max_EACH/4.8;
+		or_gain = max_EACH/4.8;
 	} else {
 		max_EACH = round(clamp((inputs[DIV_INPUT].getVoltage() * 4.8)+1,1.0f,48.0f));
 		or_gain = (clamp(inputs[DIV_INPUT].getVoltage(),0.0f,10.0f));
-		or_affi=1;
 	}
 
 	if (inputs[START_INPUT].isConnected()) {
@@ -77,17 +76,18 @@ void process(const ProcessArgs &args) override {
 
 };
 
-struct NuDisplayWidget : TransparentWidget {
+struct NuDisp : TransparentWidget {
 	EACH *module;
 
-  std::shared_ptr<Font> font;
+  //std::shared_ptr<Font> font;
 
-  NuDisplayWidget() {
-    font = APP->window->loadFont(asset::plugin(pluginInstance, "res/Segment7Standard.ttf"));
+  NuDisp() {
+    //font = APP->window->loadFont(asset::plugin(pluginInstance, "res/Segment7Standard.ttf"));
   };
 
 	void drawLayer(const DrawArgs &args, int layer) override {
 if (layer ==1) {
+std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/Segment7Standard.ttf"));
 	int val = module ? module->max_EACH : 3;
 
     // Background
@@ -130,41 +130,32 @@ Widget::drawLayer(args, layer);
 }
 };
 
-struct MOTORPOTDisplay : TransparentWidget {
+struct MTPOT : TransparentWidget {
 	EACH *module;
 
 
-	MOTORPOTDisplay() {
+	MTPOT() {
 		
 	}
 	
 	void draw(const DrawArgs &args) override {
-//nvgGlobalTint(args.vg, color::WHITE);
-float gainX = module ? module->or_gain : 1.0f;
-//int affich = module ? module->or_affi : 0;
-float d=18;
 
-		//if (affich==1) {
+		float gainX = module ? module->or_gain : 1.0f;
+
+		float d=18;
+
 		float xx = d*sin(-(gainX*0.17+0.15)*M_PI) ;
-		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;
-
+		float yy = d*cos((gainX*0.17+0.15)*M_PI) ;	
 		
-			//nvgBeginPath(args.vg);
-			//nvgCircle(args.vg, 0,0, d);
-			//nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));
-			//nvgFill(args.vg);	
-		
-			nvgStrokeWidth(args.vg,2);
-			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x88));
-			{
-				nvgBeginPath(args.vg);
-				nvgMoveTo(args.vg, 0,0);
-				nvgLineTo(args.vg, xx,yy);
-				nvgClosePath(args.vg);
-			}
-			nvgStroke(args.vg);
-		//}
-
+		nvgStrokeWidth(args.vg,2);
+		nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x88));
+		{
+			nvgBeginPath(args.vg);
+			nvgMoveTo(args.vg, 0,0);
+			nvgLineTo(args.vg, xx,yy);
+			nvgClosePath(args.vg);
+		}
+		nvgStroke(args.vg);
 	}
 };
 
@@ -190,21 +181,21 @@ struct EACHWidget : ModuleWidget {
 	addParam(createParam<cfBigKnob>(Vec(27, 107), module, EACH::DIV_PARAM));
 	addInput(createInput<PJ301MPort>(Vec(11, 141), module, EACH::DIV_INPUT));
 	{
-		MOTORPOTDisplay *display = new MOTORPOTDisplay();
-		display->box.pos = Vec(45, 125);
-		display->module = module;
-		addChild(display);
+		MTPOT *display1 = new MTPOT();
+		display1->box.pos = Vec(45, 125);
+		display1->module = module;
+		addChild(display1);
 	}
 
      	addParam(createParam<LEDButton>(Vec(38, 197), module, EACH::BEAT_PARAM));
 	addChild(createLight<MediumLight<BlueLight>>(Vec(42.4, 201.4), module, EACH::BEAT_LIGHT));
 	
 	
-	NuDisplayWidget *display = new NuDisplayWidget();
-	display->box.pos = Vec(20,56);
-	display->box.size = Vec(50, 20);
-	display->module = module;
-	addChild(display);
+	NuDisp *display2 = new NuDisp();
+	display2->box.pos = Vec(20,56);
+	display2->box.size = Vec(50, 20);
+	display2->module = module;
+	addChild(display2);
 
 	
 }

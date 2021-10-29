@@ -322,16 +322,17 @@ struct downButton : app::SvgSwitch {
 struct PLAYERDisplay : TransparentWidget {
 	PLAYER *module;
 	int frame = 0;
-	shared_ptr<Font> font;
+	
 
 	PLAYERDisplay() {
-		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/DejaVuSansMono.ttf"));
+		
 
 	}
 	
 	void drawLayer(const DrawArgs &args, int layer) override {
 if (module) {
 if (layer ==1) {
+shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/DejaVuSansMono.ttf"));
 		nvgFontSize(args.vg, 12);
 		nvgFontFaceId(args.vg, font->handle);
 		nvgTextLetterSpacing(args.vg, -2);

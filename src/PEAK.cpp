@@ -121,14 +121,15 @@ void process(const ProcessArgs &args) override {
 struct NumbDisplayWidget : TransparentWidget {
 PEAK *module;
 //  float *value=0;
-  std::shared_ptr<Font> font;
+  
 
   NumbDisplayWidget() {
-    font = APP->window->loadFont(asset::plugin(pluginInstance, "res/Segment7Standard.ttf"));
+    
   };
 
 	void drawLayer(const DrawArgs &args, int layer) override {
 if (layer ==1) {
+std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/Segment7Standard.ttf"));
 int st = module ? module->affich : 0;
     // Background
     NVGcolor backgroundColor = nvgRGB(0x44, 0x44, 0x44);

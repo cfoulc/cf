@@ -109,14 +109,15 @@ struct FUNKTIONDisplay : TransparentWidget {
 	FUNKTION *module;
 
 	int frame = 0;
-	shared_ptr<Font> font;
+	
 
 	FUNKTIONDisplay() {
-		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/LEDCalculator.ttf"));
+		
 	}
 	
 	void drawLayer(const DrawArgs &args, int layer) override {
 if (layer ==1) {
+shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/LEDCalculator.ttf"));
 std::string fD= module ? module->fctDesc : "sin";
 		std::string to_display = "";
 		for (int i=0; i<14; i++) to_display = to_display + fD[i];

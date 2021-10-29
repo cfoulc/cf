@@ -87,39 +87,44 @@ struct plusButton : app::SvgSwitch {
 
 struct ALGDisplay : TransparentWidget {
 	ALGEBRA *module;
-		std::string fileDesc = "+";
-int numero =0;
+	std::string fileDesc = "+";
+	int numero =0;
 	int frame = 0;
-	std::shared_ptr<Font> font;
+	 
 
 	ALGDisplay() {
-    		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/ArialBlack.ttf"));
+		
 	};
 
-void draw(const DrawArgs &args) override {
+	void draw(const DrawArgs &args) override {
+std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/ArialBlack.ttf"));
 
-		nvgFontSize(args.vg, 20);
-		nvgFontFaceId(args.vg, font->handle);
-		nvgTextLetterSpacing(args.vg, 0);
-		nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));	
-		nvgTextBox(args.vg, 5, 5,350, fileDesc.c_str(), NULL);
-}
-
-void drawLayer(const DrawArgs &args, int layer) override {
-	if (layer ==1) {
-		float val = module ? module->OP_STATE : 0;
-
-		if (val==numero){
-			nvgFontSize(args.vg, 20);
+//	if (font) {
 			nvgFontFaceId(args.vg, font->handle);
+			nvgFontSize(args.vg, 20);
 			nvgTextLetterSpacing(args.vg, 0);
-			nvgFillColor(args.vg, nvgRGBA(0x4c, 0xc7, 0xf3, 0xff));	
+			nvgFillColor(args.vg, nvgRGBA(0x00, 0x00, 0x00, 0xff));	
 			nvgTextBox(args.vg, 5, 5,350, fileDesc.c_str(), NULL);
-		}
+//		}
 	}
-	Widget::drawLayer(args, layer);
-}
 
+	void drawLayer(const DrawArgs &args, int layer) override {
+std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/ArialBlack.ttf"));
+//	if (font) {
+		if (layer ==1) {
+			float val = module ? module->OP_STATE : 0;
+
+			if (val==numero){
+				nvgFontFaceId(args.vg, font->handle);
+				nvgFontSize(args.vg, 20);
+				nvgTextLetterSpacing(args.vg, 0);
+				nvgFillColor(args.vg, nvgRGBA(0x4c, 0xc7, 0xf3, 0xff));	
+				nvgTextBox(args.vg, 5, 5,350, fileDesc.c_str(), NULL);
+				}
+			}
+//		}
+	Widget::drawLayer(args, layer);
+	}
 };
 
 struct ALGEBRAWidget : ModuleWidget {
