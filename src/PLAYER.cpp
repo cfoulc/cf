@@ -114,10 +114,10 @@ json_object_set_new(rootJ, "oscstate", json_integer(oscState));
 			
 		}
 		json_t *oscstateJ = json_object_get(rootJ, "oscstate");
-		if (oscstateJ)
+		if (oscstateJ) {
 			oscState = json_integer_value(oscstateJ);
 			lights[OSC_LIGHT].setBrightness(oscState);
-	
+		}
 	}
 
 
