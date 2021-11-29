@@ -28,9 +28,17 @@ struct ALGEBRA : Module {
 
 ALGEBRA() { 
 	config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-	for (int i = 0; i < 6; i++) {
-			configParam(OP_PARAM + i, 0.f, 1.f, 0.f);
-		}
+	configInput(IN1_INPUT,"a");
+	configInput(IN2_INPUT,"b");
+	configOutput(OUT_OUTPUT,"Result");
+configButton(OP_PARAM + 0,"+");
+configButton(OP_PARAM + 1,"-");
+configButton(OP_PARAM + 2,"x");
+configButton(OP_PARAM + 3,"/");
+configButton(OP_PARAM + 4,"Max");
+configButton(OP_PARAM + 5,"Min");
+configBypass(IN1_INPUT, OUT_OUTPUT);
+
 }
 
 	
