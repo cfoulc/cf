@@ -22,6 +22,7 @@ struct CHOKE : Module {
 		NUM_OUTPUTS
 	};
 	enum LightIds {
+		L1_LIGHT,
 		L2_LIGHT,
 		NUM_LIGHTS
 	};
@@ -32,7 +33,13 @@ struct CHOKE : Module {
 
 CHOKE()  { 
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		configParam(PAN_PARAM, -1.0f, 1.0f, 0.0f, "Pan");
+		configParam(PAN_PARAM, -1.0f, 1.0f, 0.0f, "Mix");
+configInput(TRIG1_INPUT, "Select signal 1 trigger");
+configInput(TRIG2_INPUT, "Select signal 2 trigger");
+configInput(IN1_INPUT, "Signal 1");
+configInput(IN2_INPUT, "Signal 2");
+configOutput(OUT_OUTPUT, "Signal");
+configBypass(IN1_INPUT, OUT_OUTPUT);
 }
 
 
@@ -52,7 +59,7 @@ void process(const ProcessArgs &args) override {
 		outputs[OUT_OUTPUT].setVoltage(inputs[IN2_INPUT].getVoltage()*(1-clamp(-params[PAN_PARAM].getValue(),0.0f,1.0f)));
 			else outputs[OUT_OUTPUT].setVoltage(inputs[IN1_INPUT].getVoltage()*(1-clamp(params[PAN_PARAM].getValue(),0.0f,1.0f))); 
 		
-
+	lights[L1_LIGHT].setBrightness(!play);
 	lights[L2_LIGHT].setBrightness(play);
 }
 };
@@ -77,7 +84,9 @@ struct CHOKEWidget : ModuleWidget {
 	addInput(createInput<PJ301MPort>(Vec(3, 181), module, CHOKE::IN2_INPUT));
 	addInput(createInput<PJ301MPort>(Vec(3, 211), module, CHOKE::TRIG2_INPUT));
 
-	addChild(createLight<LargeLight<BlueLight>>(Vec(8, 276), module, CHOKE::L2_LIGHT));
+	addChild(createLight<LargeLight<BlueLight>>(Vec(8, 136), module, CHOKE::L1_LIGHT));
+	addChild(createLight<LargeLight<BlueLight>>(Vec(8, 256), module, CHOKE::L2_LIGHT));
+
 
 	addOutput(createOutput<PJ301MPort>(Vec(3, 321), module, CHOKE::OUT_OUTPUT));
 

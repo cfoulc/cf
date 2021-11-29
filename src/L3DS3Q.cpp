@@ -34,10 +34,15 @@ dsp::SchmittTrigger ledTrigger[80] ={};
 
 	L3DS3Q() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		configParam(EDIT_PARAM, 0.f, 1.f, 0.f);
+configButton(EDIT_PARAM, "Edit mode");
 		for (int i = 0; i < 80; i++) {
-			configParam(ON_PARAM + i, 0.f, 1.f, 0.f);
+			configButton(ON_PARAM + i, std::to_string(int(i%5)+1) + ":" + std::to_string(int(i/5)+1));
 		}
+		for (int i = 0; i < 5; i++) {
+			configOutput(TR_OUTPUT+i,"No " +std::to_string(i+1)+ " trigger");
+		}
+		configInput(RST_INPUT,"Reset trigger");
+		configInput(UP_INPUT,"Step trigger");
 }
 
 

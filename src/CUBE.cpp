@@ -38,6 +38,9 @@ struct CUBE : Module {
 
 	CUBE() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS);
+		configInput(X_INPUT, "X speed control");
+		configInput(Y_INPUT, "Y speed control");
+		configOutput(X_OUTPUT, "Result");
 }
 
 

@@ -13,7 +13,6 @@ struct FUNKTION : Module {
 	};
 	enum InputIds {
 		IN1_INPUT,
-		IN2_INPUT,
 		NUM_INPUTS
 	};
 	enum OutputIds {
@@ -37,8 +36,13 @@ struct FUNKTION : Module {
 
 FUNKTION() { 
 	config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-	configParam(NEXT_PARAM, 0.f, 1.f, 0.f);
-	configParam(PREV_PARAM, 0.f, 1.f, 0.f);
+	configButton(NEXT_PARAM, "Next function");
+	configButton(PREV_PARAM, "Previous function");
+		configInput(IN1_INPUT,"Signal");
+		configOutput(OUT_OUTPUT,"Result");
+	configLight(ERROR_LIGHT, "Function input error");
+	configLight(PERROR_LIGHT, "Function input error");
+	configLight(OERROR_LIGHT, "Function input error");
 		
 }
 

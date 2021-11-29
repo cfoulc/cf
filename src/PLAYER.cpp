@@ -80,13 +80,22 @@ struct PLAYER : Module {
 
 PLAYER() {
 	config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-	configParam(PREV_PARAM, 0.f, 1.f, 0.f);
-	configParam(NEXT_PARAM, 0.f, 1.f, 0.f);
-	configParam(OSC_PARAM, 0.0, 1.0, 0.0, "Osc Mode");
+	configButton(PREV_PARAM, "Previous sample");
+	configButton(NEXT_PARAM, "Next sample");
+	configButton(OSC_PARAM, "Osc Mode");
 	configParam(TSPEED_PARAM, -1.0f, 1.0f, 0.0f, "Speed trim");
 	configParam(TSTART_PARAM, -1.0f, 1.0f, 0.0f, "Start trim");
 	configParam(LSPEED_PARAM, -5.0f, 5.0f, 0.0f, "Speed");
 	configParam(LSTART_PARAM, 0.0f, 10.0f, 0.0f, "Start");
+	configInput(GATE_INPUT,"Gated sample play");
+	configInput(POS_INPUT,"Start position control");
+        configInput(SPD_INPUT,"Speed control");
+	configInput(PREV_INPUT,"Previous sample trigger");
+	configInput(NEXT_INPUT,"Next sample trigger");
+	configInput(TRIG_INPUT,"Triggered sample play");
+	configInput(VO_INPUT,"Volt/octave control");
+	configOutput(OUT_OUTPUT,"Left");
+	configOutput(OUT2_OUTPUT,"Right");
 			playBuffer.resize(2);
 			playBuffer[0].resize(0);
 			playBuffer[1].resize(0); 

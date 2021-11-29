@@ -40,9 +40,14 @@ struct BUFFER : Module {
 
 BUFFER() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		configParam(MODE_PARAM, 0.0, 1.0, 0.0, "Mode");
+		configButton(MODE_PARAM,"Pseudofilter mode");
 		configParam(FB_PARAM, 0.0f, 1.0f, 0.5f, "Feedback");
-		configParam(LENGTH_PARAM, 0.0f, 1.0f, 0.5f, "LENGTH");
+		configParam(LENGTH_PARAM, 0.0f, 1.0f, 0.5f, "Length");
+		configInput(IN_INPUT, "Signal");
+		configInput(FB_INPUT, "Signal feedback");
+		configInput(LENGTH_INPUT, "Length control");
+		configOutput(X_OUTPUT, "Signal");
+		configBypass(IN_INPUT, X_OUTPUT);
 
 }
 

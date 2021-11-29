@@ -57,10 +57,25 @@ int orp_affi ;
 
 	MONO() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		configParam(SOLO_PARAM, 0.0f, 1.0f, 0.0f);
+		configButton(SOLO_PARAM, "Solo");
 		configParam(PAN_PARAM, -1.0f, 1.0f, 0.0f, "Pan");
-		configParam(ON_PARAM, 0.0f, 1.0f, 0.0f);
+		configButton(ON_PARAM, "On/off");
 		configParam(GAIN_PARAM, 0.0f, 10.0f, 5.0f, "Gain");
+		configInput(SOLOT_INPUT,"Solo trigger");
+		configInput(ONT_INPUT,"On/off trigger");
+		configInput(PAN_INPUT,"Pan control");
+		configInput(GAIN_INPUT,"Gain control");
+		configInput(EXTSOLO_INPUT,"Solo link");
+		configInput(LEFT_INPUT,"Left link");
+		configInput(RIGHT_INPUT,"Right link");
+		configInput(IN1_INPUT,"Signal");
+		configOutput(EXTSOLO_OUTPUT,"Solo link");
+		configOutput(LEFT_OUTPUT,"Left link");
+		configOutput(RIGHT_OUTPUT,"Right link");
+		configOutput(OUT1_OUTPUT,"Aux");
+		configBypass(LEFT_INPUT, LEFT_OUTPUT);
+		configBypass(RIGHT_INPUT, RIGHT_OUTPUT);
+		configBypass(EXTSOLO_INPUT, EXTSOLO_OUTPUT);
 		onReset();
 }
 

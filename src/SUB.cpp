@@ -43,9 +43,21 @@ dsp::SchmittTrigger linkTrigger;
 
 	SUB() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		configParam(LINK_PARAM, 0.0f, 1.0f, 0.0f);
-		configParam(GAIN_PARAM, 0.0f, 10.0f, 0.0f, "Gain");
-		configParam(GAIN2_PARAM, 0.0f, 10.0f, 0.0f, "Gain");
+		configButton(LINK_PARAM, "Link");
+		configParam(GAIN_PARAM, 0.0f, 1.0f, 0.0f, "Send 1");
+		configParam(GAIN2_PARAM, 0.0f, 1.0f, 0.0f, "Send 2");
+
+		configInput(GAIN_INPUT,"Send 1 control");
+		configInput(GAIN2_INPUT,"Send 2 control");
+		configInput(M1_INPUT,"A1");
+		configInput(M2_INPUT,"A2");
+		configInput(IN1_INPUT,"B1");
+		configInput(IN2_INPUT,"B2");
+
+		configOutput(M1_OUTPUT,"A1+B1xSend1");
+		configOutput(OUT1_OUTPUT,"B1 thru");
+		configOutput(M2_OUTPUT,"A2+B2xSend2");
+		configOutput(OUT2_OUTPUT,"B2 thru");
 		onReset();
 }
 
@@ -86,7 +98,7 @@ void process(const ProcessArgs &args) override {
 	outputs[OUT1_OUTPUT].setVoltage(SIGNAL);
 
 	if (!inputs[GAIN_INPUT].isConnected())
-		{SIGNAL = SIGNAL * params[GAIN_PARAM].getValue()/10.0 ;or_affi=0; or_gain=params[GAIN_PARAM].getValue();}
+		{SIGNAL = SIGNAL * params[GAIN_PARAM].getValue();or_affi=0; or_gain=params[GAIN_PARAM].getValue()*10.0;}
 		else {SIGNAL = SIGNAL * clamp(inputs[GAIN_INPUT].getVoltage()/10.0f,0.0f,1.0f) ; or_affi=1;or_gain=clamp(inputs[GAIN_INPUT].getVoltage(),0.0f,10.0f);}
 
 	outputs[M1_OUTPUT].setVoltage(inputs[M1_INPUT].getVoltage() + SIGNAL);
@@ -98,11 +110,11 @@ void process(const ProcessArgs &args) override {
 
 	if (!LINK_STATE) {
 		if (!inputs[GAIN2_INPUT].isConnected()) 
-			{SIGNAL2 = SIGNAL2 * params[GAIN2_PARAM].getValue()/10.0 ;or2_affi=0;or2_gain=params[GAIN2_PARAM].getValue();}
+			{SIGNAL2 = SIGNAL2 * params[GAIN2_PARAM].getValue();or2_affi=0;or2_gain=params[GAIN2_PARAM].getValue()*10.0;}
 			else {SIGNAL2 = SIGNAL2 * clamp(inputs[GAIN2_INPUT].getVoltage()/10.0f,0.0f,1.0f) ; or2_affi=1;or2_gain=clamp(inputs[GAIN2_INPUT].getVoltage(),0.0f,10.0f);}
 	} else {
 		if (!inputs[GAIN_INPUT].isConnected())
-			{SIGNAL2 = SIGNAL2 * params[GAIN_PARAM].getValue()/10.0 ;or2_affi=1;or2_gain=clamp(params[GAIN_PARAM].getValue(),0.0f,10.0f);}
+			{SIGNAL2 = SIGNAL2 * params[GAIN_PARAM].getValue() ;or2_affi=1;or2_gain=clamp(params[GAIN_PARAM].getValue()*10.0,0.0f,10.0f);}
 		else {SIGNAL2 = SIGNAL2 * clamp(inputs[GAIN_INPUT].getVoltage()/10.0f,0.0f,1.0f) ; or2_affi=1;or2_gain=clamp(inputs[GAIN_INPUT].getVoltage(),0.0f,10.0f);}
 	}
 

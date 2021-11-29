@@ -54,9 +54,11 @@ struct PLAY : Module {
 
 PLAY() {
 	config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-	configParam(PREV_PARAM, 0.f, 1.f, 0.f);
-	configParam(NEXT_PARAM, 0.f, 1.f, 0.f);
+	configButton(PREV_PARAM, "Previous sample");
+	configButton(NEXT_PARAM, "Next Sample");
 	configParam(LSPEED_PARAM, -5.0f, 5.0f, 0.0f, "Speed");
+	configInput(TRIG_INPUT,"Start trigger");
+	configOutput(OUT_OUTPUT,"Audio");
 		playBuffer.resize(1);
 		playBuffer[0].resize(0); 
 }

@@ -22,7 +22,6 @@ struct EACH : Module {
 		NUM_OUTPUTS
 	};
     enum LightIds {
-		ON_LIGHT,
 		BEAT_LIGHT,
 		NUM_LIGHTS
 	};
@@ -39,9 +38,18 @@ float or_gain =0.0;
 
 	EACH() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		configParam(BEAT_PARAM, 0.0f, 1.0f, 0.0f, "Beat");
+		configButton(BEAT_PARAM,"Beat");
 		configParam(DIV_PARAM, 1.0f, 48.1f, 3.1f, "Divisions");
-}
+		configInput(DIV_INPUT,"Divisions control");
+
+		configInput(DOUZE_INPUT,"12 ppn");
+		configOutput(DOUZE_OUTPUT,"12 ppn");
+		configInput(START_INPUT,"Start/reset");
+		configOutput(START_OUTPUT,"Start/reset");
+
+		configOutput(RESET_OUTPUT,"Start/reset");
+		configOutput(BEAT_OUTPUT,"Divided");
+		}
 
 
 void process(const ProcessArgs &args) override {

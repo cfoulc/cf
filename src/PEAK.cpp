@@ -34,6 +34,10 @@ int sensiv = 10000;
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		configParam(GAIN_PARAM, 0.0f, 10.0f, 1.0f, "Gain");
 		configParam(TRESHOLD_PARAM, 0.0f, 10.0f, 10.0f, "Treshold");
+		configInput(IN1_INPUT,"Left");
+		configInput(IN2_INPUT,"Right");
+		configOutput(OUT1_OUTPUT,"Left");
+		configOutput(OUT2_OUTPUT,"Right");
 }
 
 

@@ -34,6 +34,11 @@ struct DISTO : Module {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS);
 		configParam(GAIN_PARAM, 0.0f, 10.0f, 0.2f, "Gain");
 		configParam(FOLD_PARAM, 0.0f, 10.0f, 0.0f, "Fold");
+		configInput(IN_INPUT, "Signal");
+		configInput(GAIN_INPUT, "Gain control");
+		configInput(FOLD_INPUT, "Fold control");
+		configOutput(X_OUTPUT, "Signal");
+		configBypass(IN_INPUT, X_OUTPUT);
 }
 
 

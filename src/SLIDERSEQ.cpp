@@ -39,10 +39,14 @@ float sl_value ;
 	SLIDERSEQ() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		configParam(ON_PARAM, 0.f, 1.f, 0.f);
-		configParam(OFFSET_PARAM, 0.f, 1.f, 0.f);
+		configButton(OFFSET_PARAM, "-5V offset");
 		for (int i = 0; i < 16; i++) {
-			configParam(LVL_PARAM + i, 0.f, 1.f, 0.f);
+		configParam(LVL_PARAM + i, 0.f, 1.f, 0.f,"Step " +std::to_string(i+1));
 		}
+		configInput(RST_INPUT,"Reset trigger");
+		configInput(UP_INPUT,"Step trigger");
+		configInput(POS_INPUT,"Position control");
+		configOutput(TR_OUTPUT,"CV");
 }
 
 

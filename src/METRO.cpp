@@ -46,10 +46,15 @@ int or_affi ;
 
 	METRO() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		configParam(BEAT_PARAM, 0.0f, 1.0f, 0.0f);
-		configParam(RST_PARAM, 0.0f, 1.0f, 0.0f);
-		configParam(ON_PARAM, 0.0f, 1.0f, 0.0f);
+		configButton(BEAT_PARAM, "Beat");
+		configButton(RST_PARAM, "Reset");
+		configButton(ON_PARAM, "Start/stop");
 		configParam(BPM_PARAM, 0.0f, 301.0f, 120.1f, "BPM");
+		configInput(ON_INPUT,"Start/stop trigger");
+		configInput(BPM_INPUT,"BPM control");
+		configOutput(START_OUTPUT,"Start/reset");
+		configOutput(OUT_OUTPUT,"12 ppn");
+		configOutput(BEAT_OUTPUT,"Audio ticks per note");
 onReset();
 }
 

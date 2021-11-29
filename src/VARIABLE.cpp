@@ -39,9 +39,12 @@ struct VARIABLE : Module {
 
 VARIABLE(){ 
 	config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-	configParam(PREV_PARAM, 0.f, 1.f, 0.f);
-	configParam(NEXT_PARAM, 0.f, 1.f, 0.f);
-	configParam(HOLD_PARAM, 0.f, 1.f, 0.f);
+	configButton(PREV_PARAM, "-1");
+	configButton(NEXT_PARAM, "+1");
+	configButton(HOLD_PARAM, "Hold value");
+	configInput(IN_INPUT,"Value");
+	configInput(TRIG_INPUT,"Value hold trigger");
+	configOutput(OUT_OUTPUT,"Value");
 }
 
 

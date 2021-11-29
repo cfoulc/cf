@@ -22,6 +22,9 @@ float max_steps = 8 ;
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS);
 		configParam(LEVEL1_PARAM, 1.0f, 32.0f, 8.1f, "Steps");
 		configParam(TRIM1_PARAM, -10.0f, 10.0f, 0.0f, "Trim");
+		configInput(LIN1_INPUT,"Steps control");
+		configInput(IN1_INPUT,"CV");
+		configOutput(OUT1_OUTPUT,"Stepped CV");
 }
 
 void process(const ProcessArgs &args) override {

@@ -59,10 +59,27 @@ int orp_affi ;
 
 	STEREO() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		configParam(SOLO_PARAM, 0.0f, 1.0f, 0.0f);
+		configButton(SOLO_PARAM, "Solo");
 		configParam(PAN_PARAM, -1.0f, 1.0f, 0.0f, "Pan");
-		configParam(ON_PARAM, 0.0f, 1.0f, 0.0f);
+		configButton(ON_PARAM, "On/off");
 		configParam(GAIN_PARAM, 0.0f, 10.0f, 5.0f, "Gain");
+		configInput(SOLOT_INPUT,"Solo trigger");
+		configInput(ONT_INPUT,"On/off trigger");
+		configInput(PAN_INPUT,"Pan control");
+		configInput(GAIN_INPUT,"Gain control");
+		configInput(EXTSOLO_INPUT,"Solo link");
+		configInput(LEFT_INPUT,"Left link");
+		configInput(RIGHT_INPUT,"Right link");
+		configInput(IN1_INPUT,"Signal left");
+		configInput(IN2_INPUT,"Signal right");
+		configOutput(EXTSOLO_OUTPUT,"Solo link");
+		configOutput(LEFT_OUTPUT,"Left link");
+		configOutput(RIGHT_OUTPUT,"Right link");
+		configOutput(TLEFT_OUTPUT,"Aux left");
+		configOutput(TRIGHT_OUTPUT,"Aux right");
+		configBypass(LEFT_INPUT, LEFT_OUTPUT);
+		configBypass(RIGHT_INPUT, RIGHT_OUTPUT);
+		configBypass(EXTSOLO_INPUT, EXTSOLO_OUTPUT);
 		onReset();
 	}
 
@@ -106,7 +123,7 @@ void process(const ProcessArgs &args) override {
 	if (!inputs[GAIN_INPUT].isConnected()) {
 		SIGNAL1 = SIGNAL1 * params[GAIN_PARAM].getValue()/5.0 ;
 		SIGNAL2 = SIGNAL2 * params[GAIN_PARAM].getValue()/5.0 ;
-		or_affi =0;
+		or_affi =0;or_gain=params[GAIN_PARAM].getValue() ;
 		}
 		else {
 		SIGNAL1 = SIGNAL1 * clamp(inputs[GAIN_INPUT].getVoltage()/5.0,0.0f,2.0f) ;

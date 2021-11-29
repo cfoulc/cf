@@ -59,14 +59,22 @@ struct trSEQ : Module {
 	trSEQ() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		configParam(CLOCK_PARAM, -2.f, 6.f, 2.f, "Clock tempo", " bpm", 2.f, 60.f);
-		configParam(RUN_PARAM, 0.f, 1.f, 0.f);
-		configParam(RESET_PARAM, 0.f, 1.f, 0.f);
-		configParam(STEPS_PARAM, 1.0f, 16.0f, 16.0f);
+		configButton(RUN_PARAM, "On/off");
+		configButton(RESET_PARAM, "Reset");
+		configParam(STEPS_PARAM, 1.0f, 16.0f, 16.0f,"Pattern length");
 		for (int i = 0; i < 16; i++) {
-			configParam(GATE_PARAM + i, 0.f, 1.f, 0.f);
+			configButton(GATE_PARAM + i, "Step " +std::to_string(i+1));
+			configInput(GATE_INPUT + i, "Step " +std::to_string(i+1) +" trigger");
 		}
-		configParam(NOTESIN_PARAM, 0.f, 1.f, 0.f);
-		configParam(CLEAR_PARAM, 0.0f, 1.0f, 0.0f);
+		configButton(NOTESIN_PARAM, "Write current note");
+		configButton(CLEAR_PARAM, "Erase current note");
+		configInput(CLOCK_INPUT,"Clock control");
+		configInput(EXT_CLOCK_INPUT,"External Clock");
+		configInput(RESET_INPUT,"Reset");
+		configInput(NOTESIN_INPUT,"Write current note");
+		configInput(CLEAR_INPUT,"Erase current note");
+		configInput(STEPS_INPUT,"Pattern length control");
+		configOutput(GATES_OUTPUT,"Triggers");
 
 		onReset();
 	}

@@ -53,12 +53,20 @@ dsp::SchmittTrigger linkTrigger;
 
 	CUTS() {
 	config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		configParam(LINK_PARAM, 0.0, 1.0, 0.0, "Link");
+		configButton(LINK_PARAM, "Link");
 		configParam(POLE_PARAM, 1.0f, 8.0f, 4.0f, "Pole");
-		configParam(POTR_PARAM, 0.0f, 1.0f, 0.0f, "R");
-		configParam(POTF_PARAM, 0.0f, 1.0f, 1.0f, "F");
-		configParam(BPOTR_PARAM, 0.0f, 1.0f, 0.0f, "R");
-		configParam(BPOTF_PARAM, 0.0f, 1.0f, 1.0f, "F");
+		configParam(POTR_PARAM, 0.0f, 1.0f, 0.0f, "Low cut freq");
+		configParam(POTF_PARAM, 0.0f, 1.0f, 1.0f, "Hi cut freq");
+		configParam(BPOTR_PARAM, 0.0f, 1.0f, 0.0f, "Low cut freq");
+		configParam(BPOTF_PARAM, 0.0f, 1.0f, 1.0f, "Hi cut freq");
+		configInput(IN_INPUT, "Left");
+		configInput(IN2_INPUT, "Right");
+		configInput(F_INPUT, "Hi cut freq control");
+		configInput(R_INPUT, "Low cut freq control");
+		configOutput(OUT_OUTPUT, "Left");
+		configOutput(OUT2_OUTPUT, "Right");
+		configBypass(IN_INPUT, OUT_OUTPUT);
+		configBypass(IN2_INPUT, OUT2_OUTPUT);
 onReset();
 }
 

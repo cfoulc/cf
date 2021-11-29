@@ -41,8 +41,16 @@ dsp::SchmittTrigger oninTrigger;
 
 	MASTER() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		configParam(ON_PARAM, 0.0f, 1.0f, 0.0f);
+		configButton(ON_PARAM, "On/off");
 		configParam(GAIN_PARAM, 0.0f, 10.0f, 5.0f, "Gain");
+		configInput(LEFT_INPUT, "Left");
+		configInput(RIGHT_INPUT, "Right");
+		configOutput(LEFT_OUTPUT, "Left");
+		configOutput(RIGHT_OUTPUT, "Right");
+		configOutput(LEFT_MAIN_OUTPUT, "Left main");
+		configOutput(RIGHT_MAIN_OUTPUT, "Right main");
+		configBypass(LEFT_INPUT, LEFT_OUTPUT);
+		configBypass(RIGHT_INPUT, RIGHT_OUTPUT);
 	onReset();
 }
 

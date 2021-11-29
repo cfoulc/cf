@@ -35,8 +35,12 @@ dsp::SchmittTrigger soloTrigger[8];
 	FOUR() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 	for (int i = 0; i < 4; i++) {
-		configParam(M_PARAM + i, 0.0f, 1.0f, 0.0f, "Mute");
-		configParam(S_PARAM + i, 0.0f, 1.0f, 0.0f, "Solo");
+		configButton(M_PARAM + i,"Mute "+std::to_string(i+1));
+		configButton(S_PARAM + i,"Solo "+std::to_string(i+1));
+		configInput(IN_INPUT+i,"Number "+std::to_string(i+1));
+		configInput(TRM_INPUT+i,"Mute trigger "+std::to_string(i+1));
+		configInput(TRS_INPUT+i,"Solo trigger "+std::to_string(i+1));
+		configOutput(OUT_OUTPUT+i,"Number "+std::to_string(i+1));
 	}
 	onReset();
 }
