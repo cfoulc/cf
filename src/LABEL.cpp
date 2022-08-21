@@ -21,7 +21,7 @@ struct LABEL : Module {
 	};
 	
 
-		std::string fileDesc = "Right clic to write";
+		std::string fileDesc = "Right click to write";
 	
 
 
@@ -71,9 +71,8 @@ struct LABELDisplay : TransparentWidget {
 	void drawLayer(const DrawArgs &args, int layer) override {
 if (layer ==1) {
 shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/LEDCalculator.ttf"));
-std::string fD= module ? module->fileDesc : "Right clic to write";
-		std::string to_display = "";
-		for (int i=0; i<20; i++) to_display = to_display + fD[i];
+std::string to_display= module ? module->fileDesc : "Right click to write";
+		to_display.resize(20);
 		nvgFontSize(args.vg, 24);
 		nvgFontFaceId(args.vg, font->handle);
 		nvgTextLetterSpacing(args.vg, 0);
